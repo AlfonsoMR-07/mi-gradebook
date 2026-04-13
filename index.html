@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gradebook Pro - Docentes</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <h1>Mis Grupos</h1>
+        <button onclick="cerrarSesion()" class="btn-gestion">Cerrar Sesión</button>
+    </nav>
+
+    <main id="app-container">
+        <section id="auth-section">
+            <h2>Acceso para Docentes</h2>
+            <input type="email" id="email" placeholder="Correo electrónico">
+            <input type="password" id="password" placeholder="Contraseña">
+            <button id="btn-ingresar">Ingresar</button>
+        </section>
+
+        <section id="dashboard" class="hidden">
+            <div class="header-actions">
+                <h2>Mis Grupos</h2>
+            </div>
+            <hr>
+            <div id="lista-grupos" class="grid-grupos"></div>
+        </section>
+
+        <section id="vista-grupo" class="hidden">
+            <div class="header-vista">
+                <button onclick="regresarADashboard()">⬅ Volver</button>
+                <h2 id="titulo-grupo-actual">Grupo: ---</h2>
+            </div>
+
+            <div class="tabs-escolares">
+                <button onclick="mostrarSeccion('asistencia')">📋 Asistencia</button>
+                <button onclick="mostrarSeccion('tareas')">📝 Tareas/Notas</button>
+                <button onclick="mostrarSeccion('reporte')">📊 Reporte</button>
+                <button onclick="mostrarSeccion('historial')">📂 Historial</button>
+                <button onclick="mostrarSeccion('config')">⚙️ Configuración</button>
+                <button onclick="document.getElementById('importar-area').classList.toggle('hidden')" class="btn-gestion">👤 + Alumnos</button>
+            </div>
+
+            <div id="importar-area" class="importar-seccion hidden">
+                <p>Formato esperado: 1 - Nombre Apellido</p>
+                <textarea id="nombres-masivos" rows="4" placeholder="1 - Juan Perez"></textarea>
+                <button onclick="importarAlumnos()">Guardar Alumnos</button>
+            </div>
+
+            <section id="seccion-asistencia" class="tab-content">
+                <div class="form-tarea" style="flex-direction: column; align-items: flex-start;">
+                    <label>Fecha de Pase de Lista:</label>
+                    <input type="date" id="fecha-asistencia">
+                </div>
+                <div id="lista-asistencia-tabla"></div>
+                <button onclick="guardarAsistenciaBD()" class="btn-finalizar">Guardar Asistencia del Día</button>
+            </section>
+
+            <section id="seccion-config" class="tab-content hidden">
+                <div id="lista-categorias-config"></div>
+            </section>
+            
+            <section id="seccion-tareas" class="tab-content hidden">
+                <div class="form-tarea">
+                    <select id="categoria-tarea"></select>
+                    <input type="text" id="nombre-tarea" placeholder="Nombre de actividad">
+                    <input type="date" id="fecha-tarea">
+                    <button onclick="crearActividad()">Calificar</button>
+                </div>
+                <div id="tabla-calificaciones" class="hidden">
+                    <div id="lista-alumnos-notas"></div>
+                    <button onclick="guardarNotasBD()" class="btn-finalizar">Guardar Calificaciones</button>
+                </div>
+            </section>
+
+            <section id="seccion-reporte" class="tab-content hidden">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>Concentrado de Actividades y Asistencias</h3>
+                    <button onclick="generarReporte()" class="btn-gestion">🔄 Sincronizar Datos</button>
+                </div>
+                <div id="tabla-reporte-contenedor" style="overflow-x: auto; white-space: nowrap; border: 1px solid #ddd;">
+                    <table class="tabla-reporte" id="tabla-completa">
+                        <thead id="cabezal-reporte">
+                            </thead>
+                        <tbody id="cuerpo-reporte">
+                            </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="seccion-historial" class="tab-content hidden">
+                <h3>Gestión de Actividades y Asistencias</h3>
+                <p>Desde aquí puedes corregir nombres, fechas o eliminar registros duplicados.</p>
+                
+                <div class="tabs-escolares" style="margin-top: 15px;">
+                    <button onclick="cargarHistorial('actividades')" class="btn-gestion">Ver Actividades</button>
+                    <button onclick="cargarHistorial('asistencia')" class="btn-gestion">Ver Sesiones de Asistencia</button>
+                </div>
+
+                <div id="lista-historial-items" style="margin-top: 20px;">
+                    </div>
+            </section>
+
+
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+</body>
+</html>
