@@ -410,14 +410,28 @@ async function actualizarFechaAsistencia(fechaOriginal) {
 }
 
 // 8. NAVEGACIÓN
-function mostrarSeccion(s) {
+async function mostrarSeccion(s) {
+    // 1. Ocultar todas las secciones
     document.querySelectorAll('.tab-content').forEach(x => x.classList.add('hidden'));
+    
+    // 2. Mostrar la sección seleccionada
     const seccionActiva = document.getElementById(`seccion-${s}`);
     if (seccionActiva) seccionActiva.classList.remove('hidden');
 
+    // 3. Lógica de carga de datos frescos
+    if (s === 'reporte') {
+        // IMPORTANTE: Recargamos alumnos y generamos el reporte con datos nuevos
+        await cargarAlumnos(); 
+        generarReporte();
+    }
+    
     if (s === 'config') cargarInterfazCategorias();
-    if (s === 'reporte') generarReporte();
-    if (s === 'historial') cargarHistorial('actividades');
+    
+    if (s === 'historial') {
+        // Por defecto cargar actividades al abrir historial
+        cargarHistorial('actividades');
+    }
+    
     if (s === 'tareas') {
         const sel = document.getElementById('categoria-tarea');
         if (sel) {
