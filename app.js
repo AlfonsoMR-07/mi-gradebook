@@ -34,7 +34,7 @@ async function cerrarSesion() {
     location.reload();
 }
 
-// 2. GRUPOS (CORREGIDO PARA EVITAR UNDEFINED)
+// 2. GRUPOS
 async function cargarGrupos() {
     const { data: grupos } = await clienteSupabase.from('grupos').select('*');
     const lista = document.getElementById('lista-grupos');
@@ -42,7 +42,6 @@ async function cargarGrupos() {
     lista.innerHTML = '';
     
     grupos?.forEach(g => {
-        // CORRECCIÓN: Aseguramos que el nombre no sea undefined buscando g.nombre o g.nombre_grupo
         const nombreAMostrar = g.nombre || g.nombre_grupo || "Grupo sin nombre";
         const div = document.createElement('div');
         div.className = 'card-grupo';
@@ -52,15 +51,26 @@ async function cargarGrupos() {
     });
 }
 
+// CORRECCIÓN: Limpieza de variables al abrir un nuevo grupo
 async function abrirGrupo(id, nombre) {
     grupoSeleccionadoId = id;
+    
+    // Reiniciamos datos temporales para evitar errores al cambiar de grupo
+    asistenciasHoy = {}; 
+    const listaAsistencia = document.getElementById('lista-asistencia-tabla');
+    if (listaAsistencia) listaAsistencia.innerHTML = '';
+    
+    const fechaAsistencia = document.getElementById('fecha-asistencia');
+    if (fechaAsistencia) fechaAsistencia.value = '';
+
     document.getElementById('dashboard').classList.add('hidden');
     document.getElementById('vista-grupo').classList.remove('hidden');
     document.getElementById('titulo-grupo-actual').innerText = "Grupo: " + nombre;
+    
     cargarAlumnos();
 }
 
-// 3. ALUMNOS E IMPORTACIÓN
+// 3. ALUMNOS
 async function cargarAlumnos() {
     const { data: alumnosReal } = await clienteSupabase.from('estudiantes')
         .select('*').eq('grupo_id', grupoSeleccionadoId).order('asiento', { ascending: true });
@@ -86,6 +96,10 @@ async function importarAlumnos() {
 function prepararPaseLista(alumnos) {
     const cont = document.getElementById('lista-asistencia-tabla');
     cont.innerHTML = '';
+    
+    // CORRECCIÓN: Aseguramos que el objeto esté limpio antes de llenarlo
+    asistenciasHoy = {}; 
+
     alumnos.forEach(al => {
         asistenciasHoy[al.id] = 'Asistencia';
         const div = document.createElement('div');
@@ -135,19 +149,16 @@ async function crearActividad() {
 
     const { data, error } = await clienteSupabase
         .from('actividades')
-        .insert([
-            { 
-                grupo_id: grupoSeleccionadoId, 
-                nombre_actividad: nombre, 
-                fecha_actividad: fecha, 
-                tipo: cat,
-                ponderacion: 100 // <--- AGREGAMOS ESTA LÍNEA
-            }
-        ])
+        .insert([{ 
+            grupo_id: grupoSeleccionadoId, 
+            nombre_actividad: nombre, 
+            fecha_actividad: fecha, 
+            tipo: cat,
+            ponderacion: 100 
+        }])
         .select();
 
     if (error) {
-        console.error("Detalle del error:", error);
         alert("Error de base de datos: " + error.message);
         return;
     }
@@ -156,7 +167,7 @@ async function crearActividad() {
         actividadActualId = data[0].id;
         document.getElementById('tabla-calificaciones').classList.remove('hidden');
         generarCamposNotas();
-        alert("Actividad creada con éxito"); // Confirmación visual
+        alert("Actividad creada con éxito");
     }
 }
 
@@ -195,25 +206,18 @@ async function generarReporte() {
 
     const idsAlumnos = window.alumnosActuales.map(al => al.id);
 
-    const { data: actividades, error: errAct } = await clienteSupabase
-        .from('actividades')
-        .select('*')
-        .eq('grupo_id', grupoSeleccionadoId)
-        .order('fecha_actividad', { ascending: true });
+    const { data: actividades } = await clienteSupabase
+        .from('actividades').select('*').eq('grupo_id', grupoSeleccionadoId).order('fecha_actividad', { ascending: true });
 
-    const { data: asistencias, error: errAsist } = await clienteSupabase
-        .from('asistencia')
-        .select('*')
-        .in('estudiante_id', idsAlumnos);
+    const { data: asistencias } = await clienteSupabase
+        .from('asistencia').select('*').in('estudiante_id', idsAlumnos);
 
     let notas = [];
     const idsActividades = actividades ? actividades.map(a => a.id) : [];
 
     if (idsActividades.length > 0) {
         const { data: notasData } = await clienteSupabase
-            .from('calificaciones')
-            .select('*')
-            .in('actividad_id', idsActividades);
+            .from('calificaciones').select('*').in('actividad_id', idsActividades);
         if (notasData) notas = notasData;
     }
 
@@ -268,9 +272,8 @@ async function generarReporte() {
     cuerpo.innerHTML = htmlCuerpo;
 }
 
-// FUNCIONES DE EDICIÓN EN TIEMPO REAL
 async function editarNota(estudianteId, actividadId, nuevaNota) {
-    const { error } = await clienteSupabase.from('calificaciones').upsert({
+    await clienteSupabase.from('calificaciones').upsert({
         estudiante_id: estudianteId,
         actividad_id: actividadId,
         nota: parseFloat(nuevaNota) || 0
@@ -278,7 +281,7 @@ async function editarNota(estudianteId, actividadId, nuevaNota) {
 }
 
 async function editarAsistencia(estudianteId, fecha, nuevoEstado) {
-    const { error } = await clienteSupabase.from('asistencia').upsert({
+    await clienteSupabase.from('asistencia').upsert({
         estudiante_id: estudianteId,
         fecha: fecha,
         estado: nuevoEstado
@@ -300,23 +303,20 @@ function calcularPromedioIndividual(misNotas, misAsist, totalDias, actividades) 
             (pExm * (categoriasDefecto[2].valor/100))).toFixed(1);
 }
 
-// 7. HISTORIAL (NUEVAS FUNCIONES INTEGRADAS)
+// 7. HISTORIAL
 async function cargarHistorial(tipo) {
     const contenedor = document.getElementById('lista-historial-items');
     contenedor.innerHTML = "Cargando registros...";
 
     if (tipo === 'actividades') {
         const { data } = await clienteSupabase
-            .from('actividades')
-            .select('*')
-            .eq('grupo_id', grupoSeleccionadoId)
-            .order('fecha_actividad', { ascending: false });
+            .from('actividades').select('*').eq('grupo_id', grupoSeleccionadoId).order('fecha_actividad', { ascending: false });
 
         contenedor.innerHTML = data.map(act => `
             <div class="card-historial" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #fff;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end;">
                     <div>
-                        <label style="font-size: 11px; color: #666;">Nombre de Actividad:</label><br>
+                        <label style="font-size: 11px; color: #666;">Nombre:</label><br>
                         <input type="text" id="edit-nom-${act.id}" value="${act.nombre_actividad}" style="width: 100%;">
                     </div>
                     <div>
@@ -331,24 +331,16 @@ async function cargarHistorial(tipo) {
             </div>
         `).join('');
     } else {
-        // Historial de Asistencias (por fecha)
-        const { data } = await clienteSupabase
-            .from('asistencia')
-            .select('fecha')
-            .in('estudiante_id', window.alumnosActuales.map(al => al.id));
-
+        const { data } = await clienteSupabase.from('asistencia').select('fecha').in('estudiante_id', window.alumnosActuales.map(al => al.id));
         const fechasUnicas = [...new Set(data.map(d => d.fecha))].sort().reverse();
 
         contenedor.innerHTML = fechasUnicas.map(fecha => `
             <div class="card-historial" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #fdfdfd;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <strong>Sesión de Asistencia</strong><br>
-                        <input type="date" id="old-fecha-${fecha}" value="${fecha}" style="margin-top:5px;">
-                    </div>
+                    <div><strong>Sesión:</strong> <input type="date" id="old-fecha-${fecha}" value="${fecha}"></div>
                     <div style="display: flex; gap: 5px;">
-                        <button onclick="actualizarFechaAsistencia('${fecha}')" style="background:#3498db; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">Cambiar Fecha</button>
-                        <button onclick="eliminarAsistenciaDia('${fecha}')" style="background:#e74c3c; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;">🗑️</button>
+                        <button onclick="actualizarFechaAsistencia('${fecha}')" style="background:#3498db; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">Cambiar</button>
+                        <button onclick="eliminarAsistenciaDia('${fecha}')" style="background:#e74c3c; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">🗑️</button>
                     </div>
                 </div>
             </div>
@@ -357,88 +349,48 @@ async function cargarHistorial(tipo) {
 }
 
 async function eliminarActividad(id) {
-    if (!confirm("¿Seguro que quieres eliminar esta actividad?")) return;
+    if (!confirm("¿Eliminar actividad?")) return;
     await clienteSupabase.from('actividades').delete().eq('id', id);
     cargarHistorial('actividades');
 }
 
 async function eliminarAsistenciaDia(fecha) {
-    if (!confirm(`¿Borrar toda la asistencia del día ${fecha}?`)) return;
+    if (!confirm(`¿Borrar asistencia del ${fecha}?`)) return;
     const idsAlumnos = window.alumnosActuales.map(al => al.id);
     await clienteSupabase.from('asistencia').delete().eq('fecha', fecha).in('estudiante_id', idsAlumnos);
     cargarHistorial('asistencia');
 }
 
-
-// ACTUALIZAR NOMBRE O FECHA DE UNA TAREA
 async function actualizarActividad(id) {
-    const nuevoNombre = document.getElementById(`edit-nom-${id}`).value;
-    const nuevaFecha = document.getElementById(`edit-fec-${id}`).value;
-
-    const { error } = await clienteSupabase
-        .from('actividades')
-        .update({ nombre_actividad: nuevoNombre, fecha_actividad: nuevaFecha })
-        .eq('id', id);
-
-    if (error) alert("Error al actualizar: " + error.message);
-    else {
-        alert("✅ Actividad actualizada correctamente");
-        cargarHistorial('actividades');
-    }
+    const { error } = await clienteSupabase.from('actividades').update({ 
+        nombre_actividad: document.getElementById(`edit-nom-${id}`).value, 
+        fecha_actividad: document.getElementById(`edit-fec-${id}`).value 
+    }).eq('id', id);
+    if (!error) alert("Actualizado");
 }
 
-// ACTUALIZAR FECHA DE UNA SESIÓN DE ASISTENCIA
 async function actualizarFechaAsistencia(fechaOriginal) {
     const nuevaFecha = document.getElementById(`old-fecha-${fechaOriginal}`).value;
-    
-    if (fechaOriginal === nuevaFecha) return;
-
     const idsAlumnos = window.alumnosActuales.map(al => al.id);
-    
-    // Actualizamos todos los registros que tengan esa fecha antigua por la nueva
-    const { error } = await clienteSupabase
-        .from('asistencia')
-        .update({ fecha: nuevaFecha })
-        .eq('fecha', fechaOriginal)
-        .in('estudiante_id', idsAlumnos);
-
-    if (error) alert("Error al mover fecha: " + error.message);
-    else {
-        alert("✅ Fecha de asistencia cambiada");
-        cargarHistorial('asistencia');
-    }
+    await clienteSupabase.from('asistencia').update({ fecha: nuevaFecha }).eq('fecha', fechaOriginal).in('estudiante_id', idsAlumnos);
+    alert("Fecha cambiada");
 }
 
 // 8. NAVEGACIÓN
 async function mostrarSeccion(s) {
-    // 1. Ocultar todas las secciones
     document.querySelectorAll('.tab-content').forEach(x => x.classList.add('hidden'));
-    
-    // 2. Mostrar la sección seleccionada
     const seccionActiva = document.getElementById(`seccion-${s}`);
     if (seccionActiva) seccionActiva.classList.remove('hidden');
 
-    // 3. Lógica de carga de datos frescos
     if (s === 'reporte') {
-        // IMPORTANTE: Recargamos alumnos y generamos el reporte con datos nuevos
         await cargarAlumnos(); 
         generarReporte();
     }
-    
     if (s === 'config') cargarInterfazCategorias();
-    
-    if (s === 'historial') {
-        // Por defecto cargar actividades al abrir historial
-        cargarHistorial('actividades');
-    }
-    
+    if (s === 'historial') cargarHistorial('actividades');
     if (s === 'tareas') {
         const sel = document.getElementById('categoria-tarea');
-        if (sel) {
-            sel.innerHTML = categoriasDefecto.map(c => 
-                `<option value="${c.nombre}">${c.nombre}</option>`
-            ).join('');
-        }
+        if (sel) sel.innerHTML = categoriasDefecto.map(c => `<option value="${c.nombre}">${c.nombre}</option>`).join('');
     }
 }
 
@@ -448,7 +400,15 @@ function regresarADashboard() {
 }
 
 // 9. CONFIGURACIÓN
-function cargarInterfazCategorias() {
+async function cargarInterfazCategorias() {
+    // Intentamos cargar la configuración guardada del grupo
+    const { data } = await clienteSupabase.from('configuraciones').select('*').eq('grupo_id', grupoSeleccionadoId).single();
+    if (data) {
+        categoriasDefecto[0].valor = data.asistencia;
+        categoriasDefecto[1].valor = data.trabajo;
+        categoriasDefecto[2].valor = data.examen;
+    }
+
     const contenedor = document.getElementById('lista-categorias-config');
     if (!contenedor) return;
 
