@@ -4,15 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EduHub Connect - Gradebook Pro</title>
-    <!-- Fuente Moderna: Poppins -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3498db">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <!-- Iconos: FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-    <!-- Barra de Navegación Superior Moderna -->
+
+    <!-- Barra de Navegación Superior -->
     <nav class="main-nav">
         <div class="nav-container">
             <div class="logo">
@@ -20,6 +22,10 @@
                 <span>EduHub <span class="logo-light">Connect</span></span>
             </div>
             <div class="user-actions">
+                <button onclick="toggleTemaOscuro()" class="btn-tema" title="Cambiar tema">
+                    <i class="fas fa-moon" id="icono-tema"></i>
+                </button>
+                <span id="user-email" class="user-email hidden"></span>
                 <button onclick="cerrarSesion()" class="btn-logout">
                     <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
                 </button>
@@ -27,9 +33,82 @@
         </div>
     </nav>
 
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+    <!-- Spinner Overlay -->
+    <div id="spinner-overlay" class="spinner-overlay hidden">
+        <div class="spinner-content">
+            <div class="spinner"></div>
+            <p id="spinner-text">Cargando...</p>
+        </div>
+    </div>
+
+    <!-- Modal Observaciones -->
+    <div id="modal-observaciones" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-comment-dots"></i> Observaciones</h3>
+                <button onclick="cerrarModalObservaciones()" class="btn-cerrar-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="obs-estudiante-id">
+                <div class="observaciones-lista" id="lista-observaciones"></div>
+                <textarea id="nueva-observacion" rows="3" placeholder="Escribe una observación..."></textarea>
+                <button onclick="guardarObservacion()" class="btn-success">
+                    <i class="fas fa-save"></i> Guardar Observación
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Justificación -->
+    <div id="modal-justificacion" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-notes-medical"></i> Justificar Falta</h3>
+                <button onclick="cerrarModalJustificacion()" class="btn-cerrar-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="just-estudiante-id">
+                <input type="hidden" id="just-fecha">
+                <p id="just-alumno-nombre" style="margin-bottom: 10px; font-weight: 500;"></p>
+                <textarea id="texto-justificacion" rows="3" placeholder="Motivo de la falta (ej: cita médica, funeral...)"></textarea>
+                <button onclick="guardarJustificacion()" class="btn-success">
+                    <i class="fas fa-save"></i> Guardar Justificación
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Recordatorios -->
+    <div id="modal-recordatorios" class="modal hidden">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3><i class="fas fa-bell"></i> Mis Recordatorios</h3>
+                <button onclick="cerrarModalRecordatorios()" class="btn-cerrar-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-recordatorio">
+                    <input type="text" id="nuevo-recordatorio" placeholder="Nuevo recordatorio...">
+                    <button onclick="crearRecordatorio()" class="btn-success">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div id="lista-recordatorios" class="recordatorios-lista"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicador Offline -->
+    <div id="offline-indicator" class="offline-indicator hidden">
+        <i class="fas fa-wifi-slash"></i> Sin conexión — Modo offline
+        <span id="offline-count">0 cambios pendientes</span>
+    </div>
+
     <main id="app-container">
-        
-        <!-- SECCIÓN 1: Autenticación (Estilo Card) -->
+
+        <!-- SECCIÓN 1: Autenticación -->
         <section id="auth-section" class="auth-wrapper">
             <div class="auth-card">
                 <div class="auth-header">
@@ -53,14 +132,12 @@
             </div>
         </section>
 
-        <!-- SECCIÓN 2: Dashboard (Slección de Grupos) -->
+        <!-- SECCIÓN 2: Dashboard -->
         <section id="dashboard" class="hidden">
             <div class="page-header">
-                <h2><i class="fas fa-th-large"></i> Mis Grupos <span class="badge">12</span></h2>
+                <h2><i class="fas fa-th-large"></i> Mis Grupos <span class="badge" id="contador-grupos">0</span></h2>
             </div>
-            <div id="lista-grupos" class="grid-grupos">
-                <!-- Las tarjetas de grupo se generan aquí -->
-            </div>
+            <div id="lista-grupos" class="grid-grupos"></div>
         </section>
 
         <!-- SECCIÓN 3: Vista Interna del Grupo -->
@@ -72,12 +149,20 @@
                 <div class="group-title-area">
                     <h2 id="titulo-grupo-actual">Grupo: ---</h2>
                 </div>
-                <button onclick="document.getElementById('importar-area').classList.toggle('hidden')" class="btn-secondary">
-                    <i class="fas fa-user-plus"></i> Gestionar Alumnos
-                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="abrirModalRecordatorios()" class="btn-secondary" title="Recordatorios">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    <button onclick="document.getElementById('importar-area').classList.toggle('hidden')" class="btn-secondary">
+                        <i class="fas fa-user-plus"></i> Importar Alumnos
+                    </button>
+                </div>
             </div>
 
-            <!-- Área de Importación Flotante -->
+            <!-- Recordatorios flotantes del grupo -->
+            <div id="recordatorios-grupo" class="recordatorios-grupo hidden"></div>
+
+            <!-- Área de Importación -->
             <div id="importar-area" class="import-card hidden">
                 <h3><i class="fas fa-file-import"></i> Importación Masiva</h3>
                 <p class="help-text">Formato: 1 - Nombre Apellido (una línea por alumno)</p>
@@ -87,7 +172,7 @@
                 </button>
             </div>
 
-            <!-- Menú de Pestañas Interactivas -->
+            <!-- Menú de Pestañas -->
             <div class="tabs-container">
                 <button onclick="mostrarSeccion('asistencia')" class="tab-btn active" data-section="asistencia">
                     <i class="fas fa-clipboard-list"></i> Asistencia
@@ -95,8 +180,14 @@
                 <button onclick="mostrarSeccion('tareas')" class="tab-btn" data-section="tareas">
                     <i class="fas fa-pencil-alt"></i> Actividades
                 </button>
+                <button onclick="mostrarSeccion('alumnos')" class="tab-btn" data-section="alumnos">
+                    <i class="fas fa-users-cog"></i> Alumnos
+                </button>
                 <button onclick="mostrarSeccion('reporte')" class="tab-btn" data-section="reporte">
                     <i class="fas fa-chart-bar"></i> Reporte Final
+                </button>
+                <button onclick="mostrarSeccion('estadisticas')" class="tab-btn" data-section="estadisticas">
+                    <i class="fas fa-chart-pie"></i> Estadísticas
                 </button>
                 <button onclick="mostrarSeccion('historial')" class="tab-btn" data-section="historial">
                     <i class="fas fa-history"></i> Historial
@@ -106,8 +197,6 @@
                 </button>
             </div>
 
-            <!-- CONTENIDOS DE LAS PESTAÑAS -->
-            
             <!-- A. Asistencia -->
             <section id="seccion-asistencia" class="tab-content">
                 <div class="content-card">
@@ -116,11 +205,27 @@
                             <label><i class="fas fa-calendar-day"></i> Fecha del Registro:</label>
                             <input type="date" id="fecha-asistencia">
                         </div>
+                        <div class="search-group">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="buscar-alumno-asistencia" placeholder="Buscar alumno..." oninput="filtrarAlumnosAsistencia()">
+                        </div>
                     </div>
-                    <div id="lista-asistencia-tabla" class="asistencia-list">
-                        <!-- Filas de alumnos aquí -->
+                    <div id="resumen-asistencia" class="resumen-asistencia hidden">
+                        <div class="resumen-item presentes">
+                            <i class="fas fa-check-circle"></i>
+                            <span id="contador-presentes">0</span> Presentes
+                        </div>
+                        <div class="resumen-item faltas">
+                            <i class="fas fa-times-circle"></i>
+                            <span id="contador-faltas">0</span> Faltas
+                        </div>
+                        <div class="resumen-item total">
+                            <i class="fas fa-users"></i>
+                            <span id="contador-total">0</span> Total
+                        </div>
                     </div>
-                    <button onclick="guardarAsistenciaBD()" class="btn-primary btn-finalizar">
+                    <div id="lista-asistencia-tabla" class="asistencia-list"></div>
+                    <button onclick="guardarAsistenciaBD()" class="btn-primary btn-finalizar" id="btn-guardar-asistencia">
                         <i class="fas fa-cloud-upload-alt"></i> Guardar Asistencia del Día
                     </button>
                 </div>
@@ -132,7 +237,7 @@
                     <div id="lista-categorias-config"></div>
                 </div>
             </section>
-            
+
             <!-- C. Tareas/Actividades -->
             <section id="seccion-tareas" class="tab-content hidden">
                 <div class="content-card">
@@ -146,26 +251,75 @@
                                 <i class="fas fa-check"></i> Crear
                             </button>
                         </div>
+                        <div class="plantillas-area" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label style="font-size: 0.85rem; color: var(--text-light);">
+                                    <i class="fas fa-clone"></i> Plantillas guardadas:
+                                </label>
+                                <button onclick="abrirModalPlantilla()" class="btn-secondary btn-sm" style="font-size: 0.8rem;">
+                                    <i class="fas fa-plus"></i> Nueva Plantilla
+                                </button>
+                            </div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <select id="selector-plantilla" style="flex: 1;">
+                                    <option value="">-- Seleccionar plantilla --</option>
+                                </select>
+                                <button onclick="aplicarPlantilla()" class="btn-secondary btn-sm">Aplicar</button>
+                            </div>
+                        </div>
                     </div>
-                    
+
                     <div id="tabla-calificaciones" class="hidden grades-section">
-                        <h4><i class="fas fa-list-ol"></i> Ingresar Notas (0-10)</h4>
+                        <div class="grades-header">
+                            <h4><i class="fas fa-list-ol"></i> Ingresar Notas (0-10)</h4>
+                            <div class="search-group small">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="buscar-alumno-notas" placeholder="Buscar alumno..." oninput="filtrarAlumnosNotas()">
+                            </div>
+                        </div>
                         <div id="lista-alumnos-notas" class="grades-list"></div>
-                        <button onclick="guardarNotasBD()" class="btn-primary btn-finalizar">
+                        <button onclick="guardarNotasBD()" class="btn-primary btn-finalizar" id="btn-guardar-notas">
                             <i class="fas fa-save"></i> Guardar Calificaciones
                         </button>
                     </div>
                 </div>
             </section>
 
-            <!-- D. Reporte Final -->
+            <!-- D. Gestión de Alumnos (NUEVA SECCIÓN) -->
+            <section id="seccion-alumnos" class="tab-content hidden">
+                <div class="content-card">
+                    <div class="card-header-actions">
+                        <h3><i class="fas fa-users-cog"></i> Gestión de Alumnos</h3>
+                        <div class="search-group small">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="buscar-alumno-gestion" placeholder="Buscar alumno..." oninput="filtrarAlumnosGestion()">
+                        </div>
+                    </div>
+                    <p class="help-text">Edita el número de asiento, nombre, agrega foto o elimina alumnos.</p>
+
+                    <div class="gestion-alumnos-header">
+                        <div class="ga-header-col" style="width: 70px;">Asiento</div>
+                        <div class="ga-header-col" style="width: 70px;">Foto</div>
+                        <div class="ga-header-col" style="flex: 1;">Nombre Completo</div>
+                        <div class="ga-header-col" style="width: 100px; text-align: center;">Acciones</div>
+                    </div>
+                    <div id="lista-gestion-alumnos" class="gestion-alumnos-list"></div>
+                </div>
+            </section>
+
+            <!-- E. Reporte Final -->
             <section id="seccion-reporte" class="tab-content hidden">
                 <div class="content-card">
                     <div class="card-header-actions">
                         <h3><i class="fas fa-file-contract"></i> Concentrado General</h3>
-                        <button onclick="generarReporte()" class="btn-secondary btn-sm">
-                            <i class="fas fa-sync-alt"></i> Sincronizar
-                        </button>
+                        <div class="report-actions">
+                            <button onclick="generarReporte()" class="btn-secondary btn-sm">
+                                <i class="fas fa-sync-alt"></i> Sincronizar
+                            </button>
+                            <button onclick="exportarCSV()" class="btn-success btn-sm">
+                                <i class="fas fa-file-csv"></i> Exportar CSV
+                            </button>
+                        </div>
                     </div>
                     <div class="table-responsive">
                         <table class="tabla-reporte moderno" id="tabla-completa">
@@ -176,28 +330,182 @@
                 </div>
             </section>
 
-            <!-- E. Historial -->
+            <!-- F. Estadísticas -->
+            <section id="seccion-estadisticas" class="tab-content hidden">
+                <div class="content-card">
+                    <div class="stats-grid" id="stats-cards">
+                        <div class="stat-card">
+                            <i class="fas fa-users"></i>
+                            <div class="stat-value" id="stat-total-alumnos">0</div>
+                            <div class="stat-label">Total Alumnos</div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-percentage"></i>
+                            <div class="stat-value" id="stat-prom-asistencia">0%</div>
+                            <div class="stat-label">Prom. Asistencia</div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-chart-line"></i>
+                            <div class="stat-value" id="stat-prom-general">0</div>
+                            <div class="stat-label">Promedio General</div>
+                        </div>
+                        <div class="stat-card alert">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div class="stat-value" id="stat-alumnos-riesgo">0</div>
+                            <div class="stat-label">En Riesgo (&lt;6)</div>
+                        </div>
+                    </div>
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <h4>Promedios por Alumno</h4>
+                            <canvas id="chart-promedios"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <h4>Evolución de Asistencia</h4>
+                            <canvas id="chart-asistencia"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <h4>Distribución de Calificaciones</h4>
+                            <canvas id="chart-distribucion"></canvas>
+                        </div>
+                        <div class="chart-card">
+                            <h4>Top 5 Mejores Promedios</h4>
+                            <div id="top-alumnos" class="top-alumnos-list"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- G. Historial -->
             <section id="seccion-historial" class="tab-content hidden">
                 <div class="content-card">
                     <h3><i class="fas fa-folder-open"></i> Gestión de Registros</h3>
                     <p class="help-text">Edita nombres, fechas o elimina registros duplicados.</p>
-                    
+
                     <div class="sub-tabs">
-                        <button onclick="cargarHistorial('actividades')" class="btn-sub-tab active">Actividades</button>
-                        <button onclick="cargarHistorial('asistencia')" class="btn-sub-tab">Sesiones de Asistencia</button>
+                        <button onclick="cargarHistorial('actividades')" class="btn-sub-tab active" data-subtab="actividades">Actividades</button>
+                        <button onclick="cargarHistorial('asistencia')" class="btn-sub-tab" data-subtab="asistencia">Sesiones de Asistencia</button>
+                        <button onclick="cargarHistorial('plantillas')" class="btn-sub-tab" data-subtab="plantillas">Plantillas</button>
                     </div>
 
-                    <div id="lista-historial-items" class="historial-container">
-                        <!-- Items del historial aquí -->
-                    </div>
+                    <div id="lista-historial-items" class="historial-container"></div>
                 </div>
             </section>
 
         </section>
     </main>
 
-    <!-- Librerías y Script -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+
+    <!-- Módulos JavaScript -->
+    <script src="db.js"></script>
+    <script src="utils.js"></script>
+    <script src="auth.js"></script>
+    <script src="grupos.js"></script>
+    <script src="alumnos.js"></script>
+    <script src="asistencia.js"></script>
+    <script src="observaciones.js"></script>
+    <script src="categorias.js"></script>
+    <script src="actividades.js"></script>
+    <script src="reportes.js"></script>
+    <script src="recordatorios.js"></script>
+    <script src="historial.js"></script>
+    <script src="main.js"></script>
+
+    <!-- Modal Crear Plantilla -->
+    <div id="modal-plantilla" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-clone"></i> Nueva Plantilla</h3>
+                <button onclick="cerrarModalPlantilla()" class="btn-cerrar-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Nombre de la plantilla:</label>
+                    <input type="text" id="plantilla-nombre" placeholder="Ej: Tarea de Matemáticas" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-family: var(--font-family); font-size: 1rem; background: var(--bg-color); color: var(--text-main);">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Categoría:</label>
+                    <select id="plantilla-categoria" style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-family: var(--font-family); font-size: 1rem; background: var(--bg-color); color: var(--text-main);">
+                        <option value="Asistencia">Asistencia</option>
+                        <option value="Trabajo en Clase">Trabajo en Clase</option>
+                        <option value="Examen">Examen</option>
+                        <option value="Tarea">Tarea</option>
+                        <option value="Proyecto">Proyecto</option>
+                        <option value="Participación">Participación</option>
+                    </select>
+                </div>
+                <button onclick="guardarPlantillaDesdeModal()" class="btn-success" style="width: 100%;">
+                    <i class="fas fa-save"></i> Guardar Plantilla
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal Nueva Categoría -->
+    <div id="modal-nueva-categoria" class="modal hidden">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Nueva Categoría</h3>
+                <button onclick="cerrarModalNuevaCategoria()" class="btn-cerrar-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Nombre:</label>
+                    <input type="text" id="nueva-cat-nombre" placeholder="Ej: Proyecto Final" 
+                        style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-family: var(--font-family); font-size: 1rem; background: var(--bg-color); color: var(--text-main);">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Porcentaje (%):</label>
+                    <input type="number" id="nueva-cat-porcentaje" value="0" min="0" max="100" 
+                        style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-family: var(--font-family); font-size: 1rem; background: var(--bg-color); color: var(--text-main);">
+                </div>
+                <button onclick="crearNuevaCategoria()" class="btn-success" style="width: 100%;">
+                    <i class="fas fa-save"></i> Crear Categoría
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Registro de Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('[SW] Registrado:', registration.scope);
+
+                        // Escuchar mensajes del SW
+                        navigator.serviceWorker.addEventListener('message', (event) => {
+                            if (event.data && event.data.type === 'SYNC_DATA') {
+                                sincronizarTodo();
+                            }
+                        });
+
+                        // Registrar sync cuando hay cambios
+                        if ('SyncManager' in window) {
+                            registration.sync.register('sync-eduhub-data')
+                                .catch((err) => console.log('[SW] Sync no soportado:', err));
+                        }
+                    })
+                    .catch((err) => {
+                        console.log('[SW] Error de registro:', err);
+                    });
+            });
+        }
+
+        // Inicializar DB local
+        if ('indexedDB' in window) {
+            initDB().then(() => {
+                console.log('[DB] Base de datos local lista');
+            }).catch((err) => {
+                console.error('[DB] Error inicializando:', err);
+            });
+        }
+    </script>
+
 </body>
 </html>
