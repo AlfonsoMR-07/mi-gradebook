@@ -1044,22 +1044,590 @@ body.dark-mode .stat-value { color: var(--text-main); }
 }
 
 /* =========================================
-   RESPONSIVE
+   RESPONSIVE - ASISTENCIA Y ACTIVIDADES
    ========================================= */
+
+/* Tablet (769px - 1024px) */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .fila-asistencia {
+        padding: 10px 12px;
+        gap: 12px;
+    }
+
+    .btn-asist, .btn-falta {
+        width: 32px;
+        height: 32px;
+        font-size: 0.85rem;
+    }
+
+    .num-asiento {
+        padding: 3px;
+        font-size: 0.85rem;
+    }
+
+    .student-name {
+        font-size: 0.9rem;
+    }
+
+    .input-nota {
+        width: 55px;
+        padding: 6px;
+        font-size: 0.9rem;
+    }
+
+    .form-grid {
+        grid-template-columns: 1fr 1.5fr 1fr auto;
+        gap: 8px;
+    }
+
+    .form-grid input, .form-grid select {
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+
+    .form-create-activity {
+        padding: 15px;
+    }
+
+    .grades-section {
+        padding: 15px;
+    }
+
+    .content-card {
+        padding: 20px;
+    }
+}
+
+/* Móvil (hasta 768px) */
 @media (max-width: 768px) {
-    .group-header { grid-template-columns: 1fr; gap: 10px; }
-    .action-bar { flex-direction: column; align-items: stretch; }
-    .search-group input, .search-group input:focus { width: 100%; }
-    .resumen-asistencia { flex-direction: column; gap: 10px; }
-    .form-grid { grid-template-columns: 1fr; }
-    .grades-header { flex-direction: column; align-items: stretch; gap: 10px; }
-    .report-actions { flex-direction: column; }
-    .tabs-container { flex-wrap: wrap; }
-    .tab-btn { flex: none; min-width: 120px; }
-    .stats-grid { grid-template-columns: repeat(2, 1fr); }
-    .charts-grid { grid-template-columns: 1fr; }
-    .fila-asistencia { grid-template-columns: 80px 40px 1fr; }
-    .btn-observacion, .btn-justificar, .foto-alumno, .foto-placeholder { display: none; }
+    .group-header { 
+        grid-template-columns: 1fr; 
+        gap: 10px; 
+    }
+
+    .action-bar { 
+        flex-direction: column; 
+        align-items: stretch; 
+        gap: 12px;
+    }
+
+    .search-group input, .search-group input:focus { 
+        width: 100%; 
+    }
+
+    .search-group.small input,
+    .search-group.small input:focus {
+        width: 100%;
+    }
+
+    .resumen-asistencia { 
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 12px;
+    }
+
+    .resumen-item {
+        font-size: 0.85rem;
+    }
+
+    /* Asistencia - más compacta */
+    .fila-asistencia { 
+        grid-template-columns: 70px 35px 1fr auto; 
+        padding: 10px 12px;
+        gap: 10px;
+    }
+
+    .btn-asist, .btn-falta { 
+        width: 30px; 
+        height: 30px; 
+        font-size: 0.8rem;
+    }
+
+    .num-asiento { 
+        padding: 2px 4px; 
+        font-size: 0.8rem; 
+    }
+
+    .student-name { 
+        font-size: 0.9rem; 
+    }
+
+    .btn-observacion {
+        font-size: 1rem;
+        padding: 4px;
+    }
+
+    .btn-justificar {
+        font-size: 0.8rem;
+        padding: 4px;
+    }
+
+    /* Actividades - form más compacto */
+    .form-grid { 
+        grid-template-columns: 1fr; 
+        gap: 10px;
+    }
+
+    .form-create-activity {
+        padding: 15px;
+    }
+
+    .form-create-activity h3 {
+        font-size: 0.95rem;
+    }
+
+    .form-grid input, .form-grid select {
+        padding: 10px;
+        font-size: 0.95rem;
+    }
+
+    /* Notas - más compactas */
+    .grades-section {
+        padding: 15px;
+    }
+
+    .grades-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .grades-header h4 {
+        font-size: 0.95rem;
+    }
+
+    .input-nota { 
+        width: 55px; 
+        padding: 6px; 
+        font-size: 0.9rem;
+    }
+
+    .fila-asistencia .input-nota {
+        width: 50px;
+    }
+
+    /* Plantillas */
+    .plantillas-area {
+        padding-top: 12px;
+        margin-top: 12px;
+    }
+
+    .plantillas-area > div:first-child {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .plantillas-area > div:last-child {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .plantillas-area select {
+        width: 100%;
+    }
+
+    /* Reporte */
+    .report-actions { 
+        flex-direction: column; 
+    }
+
+    /* Tabs */
+    .tabs-container { 
+        flex-wrap: wrap; 
+        gap: 4px;
+        padding: 4px;
+    }
+
+    .tab-btn { 
+        flex: 1 1 auto; 
+        min-width: 100px; 
+        padding: 10px 8px;
+        font-size: 0.85rem;
+        gap: 6px;
+    }
+
+    /* Stats */
+    .stats-grid { 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 10px;
+    }
+
+    .stat-card {
+        padding: 15px;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+    }
+
+    /* Charts */
+    .charts-grid { 
+        grid-template-columns: 1fr; 
+        gap: 15px;
+    }
+
+    .chart-card {
+        padding: 15px;
+    }
+
+    /* Tabla reporte */
+    .tabla-reporte.moderno {
+        font-size: 0.8rem;
+    }
+
+    .tabla-reporte.moderno th,
+    .tabla-reporte.moderno td {
+        padding: 8px 5px;
+    }
+
+    /* Content cards */
+    .content-card {
+        padding: 15px;
+    }
+
+    /* Import card */
+    .import-card {
+        padding: 15px;
+    }
+
+    /* Sub-tabs */
+    .sub-tabs {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .btn-sub-tab {
+        font-size: 0.85rem;
+        padding: 6px 10px;
+    }
+
+    /* Cards historial */
+    .card-historial {
+        padding: 12px;
+    }
+
+    /* Categorías config */
+    .cat-config-header,
+    .cat-config-row {
+        grid-template-columns: 30px 1fr 70px 80px 40px !important;
+        gap: 6px !important;
+        padding: 10px 8px !important;
+    }
+
+    .cat-config-row input[type="text"] {
+        padding: 6px !important;
+        font-size: 0.85rem !important;
+    }
+
+    .cat-config-row input[type="number"] {
+        width: 55px !important;
+        padding: 6px !important;
+        font-size: 0.85rem !important;
+    }
+
+    /* Modal */
+    .modal-content {
+        margin: 10px;
+        max-height: 90vh;
+    }
+
+    .modal-body {
+        padding: 15px;
+    }
+
+    /* Top alumnos */
+    .top-alumno-item {
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .top-rank {
+        width: 26px;
+        height: 26px;
+        font-size: 0.8rem;
+    }
+
+    .top-nombre {
+        font-size: 0.85rem;
+    }
+
+    .top-detalles {
+        font-size: 0.75rem;
+    }
+
+    .top-promedio {
+        font-size: 1rem;
+    }
+}
+
+/* Móvil pequeño (hasta 480px) */
+@media (max-width: 480px) {
+    #app-container {
+        padding: 0 10px;
+        margin: 15px auto;
+    }
+
+    .main-nav {
+        padding: 0.6rem 1rem;
+    }
+
+    .logo {
+        font-size: 1.2rem;
+    }
+
+    .user-actions {
+        gap: 8px;
+    }
+
+    .btn-logout {
+        padding: 5px 8px;
+        font-size: 0.8rem;
+    }
+
+    .btn-tema {
+        padding: 5px 8px;
+    }
+
+    /* Asistencia ultra compacta */
+    .fila-asistencia {
+        grid-template-columns: 65px 30px 1fr;
+        padding: 8px 10px;
+        gap: 8px;
+    }
+
+    .botones-asistencia {
+        gap: 3px;
+    }
+
+    .btn-asist, .btn-falta {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+
+    .num-asiento {
+        font-size: 0.75rem;
+        padding: 2px 3px;
+    }
+
+    .student-name {
+        font-size: 0.85rem;
+    }
+
+    .btn-observacion,
+    .btn-justificar {
+        display: none;
+    }
+
+    /* Notas */
+    .input-nota {
+        width: 48px;
+        padding: 5px;
+        font-size: 0.85rem;
+    }
+
+    /* Tabs */
+    .tab-btn {
+        min-width: 80px;
+        padding: 8px 6px;
+        font-size: 0.8rem;
+    }
+
+    .tab-btn i {
+        font-size: 0.9rem;
+    }
+
+    /* Stats */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .stat-card {
+        padding: 12px;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+    }
+
+    /* Form actividades */
+    .form-create-activity {
+        padding: 12px;
+    }
+
+    .form-grid input,
+    .form-grid select {
+        padding: 8px;
+        font-size: 0.9rem;
+    }
+
+    /* Content card */
+    .content-card {
+        padding: 12px;
+    }
+
+    /* Resumen asistencia */
+    .resumen-asistencia {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .resumen-item {
+        font-size: 0.8rem;
+        gap: 5px;
+    }
+
+    .resumen-item i {
+        font-size: 1rem;
+    }
+
+    /* Date picker */
+    .date-picker-group {
+        font-size: 0.85rem;
+    }
+
+    .date-picker-group input {
+        padding: 6px;
+    }
+
+    /* Search */
+    .search-group input {
+        padding: 6px 10px 6px 30px;
+        font-size: 0.85rem;
+    }
+
+    /* Tabla reporte */
+    .tabla-reporte.moderno th,
+    .tabla-reporte.moderno td {
+        padding: 6px 4px;
+        font-size: 0.75rem;
+    }
+
+    .tabla-reporte.moderno th:nth-child(2),
+    .tabla-reporte.moderno td:nth-child(2) {
+        min-width: 120px;
+        padding-left: 8px;
+    }
+
+    /* Cards historial */
+    .card-historial {
+        padding: 10px;
+    }
+
+    .card-historial > div {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+    }
+
+    .card-historial input[type="text"],
+    .card-historial input[type="date"] {
+        padding: 6px !important;
+        font-size: 0.85rem;
+    }
+
+    /* Categorías */
+    .cat-config-header,
+    .cat-config-row {
+        grid-template-columns: 25px 1fr 55px 70px 35px !important;
+        gap: 4px !important;
+        padding: 8px 6px !important;
+    }
+
+    .cat-config-header {
+        font-size: 0.75rem !important;
+    }
+
+    .cat-config-row input[type="text"] {
+        padding: 5px !important;
+        font-size: 0.8rem !important;
+    }
+
+    .cat-config-row input[type="number"] {
+        width: 45px !important;
+        padding: 5px !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Botón finalizar */
+    .btn-finalizar {
+        margin-top: 15px;
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+
+    /* Toast */
+    .toast {
+        min-width: 240px;
+        max-width: 320px;
+        padding: 12px 15px;
+        font-size: 0.85rem;
+    }
+
+    /* Modal */
+    .modal-header h3 {
+        font-size: 1rem;
+    }
+
+    .modal-body {
+        padding: 12px;
+    }
+
+    /* Observaciones */
+    .obs-item {
+        padding: 8px;
+        font-size: 0.8rem;
+    }
+
+    /* Recordatorios */
+    .rec-item {
+        padding: 8px;
+        gap: 8px;
+    }
+
+    .rec-texto {
+        font-size: 0.85rem;
+    }
+
+    /* Grid grupos */
+    .grid-grupos {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 12px;
+    }
+
+    .card-grupo {
+        padding: 20px 15px;
+    }
+
+    .card-grupo h3 {
+        font-size: 1rem;
+    }
+
+    /* Auth */
+    .auth-card {
+        padding: 25px 20px;
+    }
+
+    .input-group input {
+        padding: 10px 10px 10px 40px;
+        font-size: 0.95rem;
+    }
+
+    /* Group header */
+    .group-title-area h2 {
+        font-size: 1.1rem;
+    }
+
+    .btn-back {
+        font-size: 0.9rem;
+    }
 }
 
 
@@ -1224,6 +1792,49 @@ body.dark-mode .ga-input-nombre:focus {
    RESPONSIVE - GESTIÓN ALUMNOS
    ========================================= */
 
+/* Tablet (769px - 1024px) */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .fila-gestion-alumno {
+        padding: 10px 12px;
+        gap: 12px;
+    }
+
+    .ga-numero {
+        width: 60px;
+    }
+
+    .ga-input-asiento {
+        width: 52px;
+        padding: 6px;
+        font-size: 0.95rem;
+    }
+
+    .ga-foto {
+        width: 60px;
+    }
+
+    .foto-alumno-gestion {
+        width: 42px;
+        height: 42px;
+    }
+
+    .foto-placeholder-gestion {
+        width: 42px;
+        height: 42px;
+    }
+
+    .ga-input-nombre {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+    }
+
+    .ga-acciones {
+        width: 90px;
+        gap: 8px;
+    }
+}
+
+/* Móvil (hasta 768px) */
 @media (max-width: 768px) {
     .gestion-alumnos-header {
         display: none;
@@ -1232,8 +1843,9 @@ body.dark-mode .ga-input-nombre:focus {
     .fila-gestion-alumno {
         flex-direction: column;
         align-items: stretch;
-        gap: 10px;
-        padding: 15px;
+        gap: 8px;
+        padding: 12px;
+        border-bottom: 1px solid var(--border-color);
     }
 
     .ga-numero,
@@ -1243,18 +1855,106 @@ body.dark-mode .ga-input-nombre:focus {
         width: 100%;
     }
 
+    .ga-numero {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ga-numero::before {
+        content: 'Asiento:';
+        font-size: 0.8rem;
+        color: var(--text-light);
+        font-weight: 500;
+    }
+
     .ga-input-asiento {
-        width: 100%;
+        width: 70px;
+        padding: 6px 8px;
+        font-size: 0.9rem;
     }
 
     .ga-foto {
         justify-content: flex-start;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ga-foto::before {
+        content: 'Foto:';
+        font-size: 0.8rem;
+        color: var(--text-light);
+        font-weight: 500;
+    }
+
+    .foto-alumno-gestion {
+        width: 36px;
+        height: 36px;
+    }
+
+    .foto-placeholder-gestion {
+        width: 36px;
+        height: 36px;
+        font-size: 0.85rem;
+    }
+
+    .ga-nombre {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ga-nombre::before {
+        content: 'Nombre:';
+        font-size: 0.8rem;
+        color: var(--text-light);
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .ga-input-nombre {
+        padding: 8px 10px;
+        font-size: 0.9rem;
     }
 
     .ga-acciones {
         justify-content: flex-start;
-        padding-top: 10px;
+        padding-top: 8px;
         border-top: 1px solid var(--border-color);
+        margin-top: 4px;
+        gap: 12px;
+    }
+
+    .btn-eliminar-alumno,
+    .fila-gestion-alumno .btn-observacion {
+        font-size: 1rem;
+        padding: 6px;
+    }
+}
+
+/* Móvil pequeño (hasta 480px) */
+@media (max-width: 480px) {
+    .fila-gestion-alumno {
+        padding: 10px;
+        gap: 6px;
+    }
+
+    .ga-input-asiento {
+        width: 60px;
+        padding: 5px 6px;
+        font-size: 0.85rem;
+    }
+
+    .ga-input-nombre {
+        padding: 6px 8px;
+        font-size: 0.85rem;
+    }
+
+    .foto-alumno-gestion,
+    .foto-placeholder-gestion {
+        width: 32px;
+        height: 32px;
     }
 }
 
