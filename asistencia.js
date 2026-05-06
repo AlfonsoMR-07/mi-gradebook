@@ -135,7 +135,9 @@ async function guardarAsistenciaBD() {
         // Si hay internet, sincronizar con Supabase
         if (navigator.onLine) {
             try {
-                const { error } = await clienteSupabase.from('asistencia').insert(registros);
+                const { error } = await fetchConRetry(() =>
+                    clienteSupabase.from('asistencia').insert(registros)
+                );
                 if (error) {
                     console.error('Error sync Supabase:', error);
                     mostrarToast('Guardado local. Se sincronizará cuando haya internet.', 'warning');

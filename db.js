@@ -373,7 +373,9 @@ async function sincronizarTodo() {
             const datos = JSON.parse(cambio.datos);
 
             if (cambio.tipo === 'asistencia') {
-                const { error } = await clienteSupabase.from('asistencia').insert(datos);
+                const { error } = await fetchConRetry(() =>
+                    clienteSupabase.from('asistencia').insert(datos)
+                );
                 if (!error) {
                     await eliminarCambioPendiente(cambio.local_id);
                     exitosos++;
@@ -382,7 +384,9 @@ async function sincronizarTodo() {
                     console.error('Error sync asistencia:', error);
                 }
             } else if (cambio.tipo === 'calificaciones') {
-                const { error } = await clienteSupabase.from('calificaciones').insert(datos);
+                const { error } = await fetchConRetry(() =>
+                    clienteSupabase.from('calificaciones').insert(datos)
+                );
                 if (!error) {
                     await eliminarCambioPendiente(cambio.local_id);
                     exitosos++;
@@ -391,13 +395,48 @@ async function sincronizarTodo() {
                     console.error('Error sync calificaciones:', error);
                 }
             } else if (cambio.tipo === 'observaciones') {
-                const { error } = await clienteSupabase.from('observaciones').insert(datos);
+                const { error } = await fetchConRetry(() =>
+                    clienteSupabase.from('observaciones').insert(datos)
+                );
                 if (!error) {
                     await eliminarCambioPendiente(cambio.local_id);
                     exitosos++;
                 } else {
                     fallidos++;
                     console.error('Error sync observaciones:', error);
+                }
+            } else if (cambio.tipo === 'actividades') {
+                const { error } = await fetchConRetry(() =>
+                    clienteSupabase.from('actividades').insert(datos)
+                );
+                if (!error) {
+                    await eliminarCambioPendiente(cambio.local_id);
+                    exitosos++;
+                } else {
+                    fallidos++;
+                    console.error('Error sync actividades:', error);
+                }
+            } else if (cambio.tipo === 'plantillas') {
+                const { error } = await fetchConRetry(() =>
+                    clienteSupabase.from('plantillas').insert(datos)
+                );
+                if (!error) {
+                    await eliminarCambioPendiente(cambio.local_id);
+                    exitosos++;
+                } else {
+                    fallidos++;
+                    console.error('Error sync plantillas:', error);
+                }
+            } else if (cambio.tipo === 'categorias') {
+                const { error } = await fetchConRetry(() =>
+                    clienteSupabase.from('categorias').insert(datos)
+                );
+                if (!error) {
+                    await eliminarCambioPendiente(cambio.local_id);
+                    exitosos++;
+                } else {
+                    fallidos++;
+                    console.error('Error sync categorias:', error);
                 }
             }
         } catch (err) {
@@ -419,6 +458,12 @@ async function sincronizarTodo() {
     const pendientes = await obtenerCambiosPendientes();
     const el = document.getElementById('offline-count');
     if (el) el.textContent = `${pendientes.length} cambios pendientes`;
+
+    // Actualizar timestamp de última sincronización
+    const lastSyncEl = document.getElementById('last-sync-time');
+    if (lastSyncEl) {
+        lastSyncEl.textContent = 'Última sincronización: ' + new Date().toLocaleString('es-MX');
+    }
 
     return { exitosos, fallidos };
 }

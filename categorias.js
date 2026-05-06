@@ -23,11 +23,13 @@ async function cargarCategoriasGrupo() {
 
         // Intentar cargar desde Supabase
         if (navigator.onLine) {
-            const result = await clienteSupabase
-                .from('categorias')
-                .select('*')
-                .eq('grupo_id', state.grupoSeleccionadoId)
-                .order('orden', { ascending: true });
+            const result = await fetchConRetry(() =>
+                    clienteSupabase
+                        .from('categorias')
+                        .select('*')
+                        .eq('grupo_id', state.grupoSeleccionadoId)
+                        .order('orden', { ascending: true })
+                );
 
             data = result.data;
             error = result.error;
@@ -83,7 +85,9 @@ async function crearCategoriasDefault() {
 
     try {
         if (navigator.onLine) {
-            await clienteSupabase.from('categorias').insert(categoriasParaInsertar);
+            await fetchConRetry(() =>
+                    clienteSupabase.from('categorias').insert(categoriasParaInsertar)
+                );
         }
     } catch (e) {
         console.log('[Categorías] No se pudieron crear categorías default en Supabase');
@@ -149,17 +153,21 @@ async function guardarCategoria(id, nombre, porcentaje, esAsistencia, orden) {
         if (navigator.onLine) {
             if (id && !String(id).startsWith('local_')) {
                 // Actualizar en Supabase
-                const { error } = await clienteSupabase
-                    .from('categorias')
-                    .update(datos)
-                    .eq('id', id);
+                const { error } = await fetchConRetry(() =>
+                    clienteSupabase
+                        .from('categorias')
+                        .update(datos)
+                        .eq('id', id)
+                );
                 if (error) throw error;
             } else {
                 // Crear nueva en Supabase
-                const { data, error } = await clienteSupabase
-                    .from('categorias')
-                    .insert(datos)
-                    .select();
+                const { data, error } = await fetchConRetry(() =>
+                    clienteSupabase
+                        .from('categorias')
+                        .insert(datos)
+                        .select()
+                );
                 if (error) throw error;
                 if (data && data[0]) datos.id = data[0].id;
             }

@@ -29,6 +29,48 @@ let cambiosPendientes = [];
 let estaOnline = navigator.onLine;
 
 // =========================================
+// FETCH CON RETRY - PARA SAFARI/iOS
+// =========================================
+
+async function fetchConRetry(supabaseQueryFn, maxRetries = 3, delayMs = 1000) {
+    let lastError = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            // Crear un timeout para Safari
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error('TIMEOUT')), 15000);
+            });
+
+            // Ejecutar la query con timeout
+            const result = await Promise.race([
+                supabaseQueryFn(),
+                timeoutPromise
+            ]);
+
+            // Si llegamos aquí, la llamada fue exitosa
+            return result;
+
+        } catch (error) {
+            lastError = error;
+            console.warn(`[fetchConRetry] Intento ${attempt}/${maxRetries} falló:`, error.message || error);
+
+            // Si es el último intento, lanzar el error
+            if (attempt === maxRetries) {
+                break;
+            }
+
+            // Esperar antes de reintentar (backoff exponencial)
+            const delay = delayMs * Math.pow(2, attempt - 1);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+
+    // Todos los intentos fallaron
+    throw lastError;
+}
+
+// =========================================
 // UTILIDADES
 // =========================================
 

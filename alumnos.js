@@ -8,10 +8,12 @@ async function cargarAlumnos() {
     let alumnosReal = null;
     let errorSupabase = null;
 
-    // 1. Intentar cargar desde Supabase
+    // 1. Intentar cargar desde Supabase con retry
     try {
-        const { data, error } = await clienteSupabase.from('estudiantes')
-            .select('*').eq('grupo_id', state.grupoSeleccionadoId).order('asiento', { ascending: true });
+        const { data, error } = await fetchConRetry(() =>
+            clienteSupabase.from('estudiantes')
+                .select('*').eq('grupo_id', state.grupoSeleccionadoId).order('asiento', { ascending: true })
+        );
 
         if (error) {
             errorSupabase = error;

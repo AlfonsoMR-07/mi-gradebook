@@ -7,7 +7,9 @@ let recordatorios = [];
 async function cargarRecordatorios() {
     try {
         if (navigator.onLine) {
-            const { data: { session } } = await clienteSupabase.auth.getSession();
+            const { data: { session } } = await fetchConRetry(() =>
+                    clienteSupabase.auth.getSession()
+                );
             if (!session) return;
 
             const { data } = await clienteSupabase.from('recordatorios')
@@ -95,7 +97,9 @@ async function crearRecordatorio() {
         let nuevoRec = null;
 
         if (navigator.onLine) {
-            const { data: { session } } = await clienteSupabase.auth.getSession();
+            const { data: { session } } = await fetchConRetry(() =>
+                    clienteSupabase.auth.getSession()
+                );
             if (!session) return;
 
             const { data, error } = await clienteSupabase.from('recordatorios').insert({
@@ -162,7 +166,9 @@ async function eliminarRecordatorio(id) {
     if (!confirm('¿Eliminar este recordatorio?')) return;
     try {
         if (navigator.onLine) {
-            const { error } = await clienteSupabase.from('recordatorios').delete().eq('id', id);
+            const { error } = await fetchConRetry(() =>
+                    clienteSupabase.from('recordatorios').delete().eq('id', id)
+                );
             if (error) {
                 mostrarToast('Error al eliminar', 'error');
                 return;

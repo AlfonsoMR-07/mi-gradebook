@@ -5,11 +5,13 @@
 async function cargarConfiguracionGrupo() {
     try {
         if (navigator.onLine) {
-            const { data } = await clienteSupabase
-                .from('configuraciones')
-                .select('*')
-                .eq('grupo_id', state.grupoSeleccionadoId)
-                .single();
+            const { data } = await fetchConRetry(() =>
+                clienteSupabase
+                    .from('configuraciones')
+                    .select('*')
+                    .eq('grupo_id', state.grupoSeleccionadoId)
+                    .single()
+            );
             if (data) {
                 state.categoriasDefecto[0].valor = data.asistencia;
                 state.categoriasDefecto[1].valor = data.trabajo;
@@ -43,11 +45,16 @@ async function generarReporte() {
         let asistencias = [];
         let notas = [];
 
-        // Cargar actividades
+        // Cargar actividades - PRIMERO LOCAL, luego Supabase
         try {
             if (navigator.onLine) {
-                const { data, error: errAct } = await clienteSupabase
-                    .from('actividades').select('*').eq('grupo_id', state.grupoSeleccionadoId).order('fecha_actividad', { ascending: true });
+                const { data, error: errAct } = await fetchConRetry(() =>
+                    clienteSupabase
+                        .from('actividades')
+                        .select('*')
+                        .eq('grupo_id', state.grupoSeleccionadoId)
+                        .order('fecha_actividad', { ascending: true })
+                );
                 if (!errAct && data) {
                     actividades = data;
                     await guardarActividadesLocal(data);
@@ -60,13 +67,26 @@ async function generarReporte() {
             actividades = await obtenerActividadesPorGrupoLocal(state.grupoSeleccionadoId);
         }
 
-        // Cargar asistencias
+        // Cargar asistencia - PRIMERO LOCAL, luego Supabase
         try {
             if (navigator.onLine) {
-                const { data, error: errAsis } = await clienteSupabase
-                    .from('asistencia').select('*').in('estudiante_id', idsAlumnos);
+                const { data, error: errAsis } = await fetchConRetry(() =>
+                    clienteSupabase
+                        .from('asistencia')
+                        .select('*')
+                        .in('estudiante_id', idsAlumnos)
+                );
                 if (!errAsis && data) {
                     asistencias = data;
+                    // Guardar en local para futuro uso offline
+                    for (const a of data) {
+                        await guardarEnStore('asistencia', {
+                            ...a,
+                            local_id: a.id || `sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                            synced: true,
+                            last_sync: new Date().toISOString()
+                        });
+                    }
                 }
             } else {
                 const asistLocal = await obtenerTodosDeStore('asistencia');
@@ -78,15 +98,27 @@ async function generarReporte() {
             asistencias = asistLocal.filter(a => idsAlumnos.includes(a.estudiante_id));
         }
 
-        // Cargar calificaciones
+        // Cargar calificaciones - PRIMERO LOCAL, luego Supabase
         const idsActividades = actividades.map(a => a.id);
         if (idsActividades.length > 0) {
             try {
                 if (navigator.onLine) {
-                    const { data: notasData, error: errNotas } = await clienteSupabase
-                        .from('calificaciones').select('*').in('actividad_id', idsActividades);
+                    const { data: notasData, error: errNotas } = await fetchConRetry(() =>
+                        clienteSupabase
+                            .from('calificaciones')
+                            .select('*')
+                            .in('actividad_id', idsActividades)
+                    );
                     if (!errNotas && notasData) {
                         notas = notasData;
+                        // Guardar en local para futuro uso offline
+                        for (const n of notasData) {
+                            await guardarEnStore('calificaciones', {
+                                ...n,
+                                synced: true,
+                                last_sync: new Date().toISOString()
+                            });
+                        }
                     }
                 } else {
                     const notasLocal = await obtenerTodosDeStore('calificaciones');
@@ -282,7 +314,7 @@ function exportarCSV() {
     }
 
     const { alumnos, actividades, asistencias, notas, fechasAsist } = state.reporteData;
-    let csv = '\uFEFF';
+    let csv = '﻿';
 
     const headers = ['#', 'Alumno'];
     fechasAsist.forEach(f => headers.push('Asist. ' + f.split('-').slice(1).reverse().join('/')));
@@ -340,8 +372,12 @@ async function generarEstadisticas() {
         // Cargar actividades
         try {
             if (navigator.onLine) {
-                const { data } = await clienteSupabase
-                    .from('actividades').select('*').eq('grupo_id', state.grupoSeleccionadoId);
+                const { data } = await fetchConRetry(() =>
+                    clienteSupabase
+                        .from('actividades')
+                        .select('*')
+                        .eq('grupo_id', state.grupoSeleccionadoId)
+                );
                 if (data) {
                     actividades = data;
                     await guardarActividadesLocal(data);
@@ -356,8 +392,12 @@ async function generarEstadisticas() {
         // Cargar asistencias
         try {
             if (navigator.onLine) {
-                const { data } = await clienteSupabase
-                    .from('asistencia').select('*').in('estudiante_id', idsAlumnos);
+                const { data } = await fetchConRetry(() =>
+                    clienteSupabase
+                        .from('asistencia')
+                        .select('*')
+                        .in('estudiante_id', idsAlumnos)
+                );
                 if (data) asistencias = data;
             } else {
                 const asistLocal = await obtenerTodosDeStore('asistencia');
@@ -373,8 +413,12 @@ async function generarEstadisticas() {
         if (idsAct.length > 0) {
             try {
                 if (navigator.onLine) {
-                    const { data: notasData } = await clienteSupabase
-                        .from('calificaciones').select('*').in('actividad_id', idsAct);
+                    const { data: notasData } = await fetchConRetry(() =>
+                        clienteSupabase
+                            .from('calificaciones')
+                            .select('*')
+                            .in('actividad_id', idsAct)
+                    );
                     if (notasData) notas = notasData;
                 } else {
                     const notasLocal = await obtenerTodosDeStore('calificaciones');

@@ -6,8 +6,10 @@ async function cargarGrupos() {
     mostrarSpinner('Cargando grupos...');
 
     try {
-        // 1. Intentar cargar desde Supabase
-        const { data: grupos, error } = await clienteSupabase.from('grupos').select('*');
+        // 1. Intentar cargar desde Supabase con retry
+        const { data: grupos, error } = await fetchConRetry(() =>
+            clienteSupabase.from('grupos').select('*')
+        );
 
         if (error) {
             console.error('[Grupos] Error Supabase:', error);

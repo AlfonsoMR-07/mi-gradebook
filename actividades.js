@@ -29,16 +29,18 @@ async function crearActividad() {
         // Intentar crear en Supabase si hay conexión
         if (navigator.onLine) {
             try {
-                const { data, error } = await clienteSupabase
-                    .from('actividades')
-                    .insert([{ 
-                        grupo_id: state.grupoSeleccionadoId, 
-                        nombre_actividad: nombre, 
-                        fecha_actividad: fecha, 
-                        tipo: cat,
-                        ponderacion: 100 
-                    }])
-                    .select();
+                const { data, error } = await fetchConRetry(() =>
+                    clienteSupabase
+                        .from('actividades')
+                        .insert([{ 
+                            grupo_id: state.grupoSeleccionadoId, 
+                            nombre_actividad: nombre, 
+                            fecha_actividad: fecha, 
+                            tipo: cat,
+                            ponderacion: 100 
+                        }])
+                        .select()
+                );
 
                 if (error) {
                     console.warn('[Actividad] Error Supabase:', error);
@@ -197,8 +199,10 @@ async function cargarPlantillasSelector() {
 
         // Intentar cargar desde Supabase
         if (navigator.onLine) {
-            const { data } = await clienteSupabase.from('plantillas')
-                .select('*').eq('grupo_id', state.grupoSeleccionadoId);
+            const { data } = await fetchConRetry(() =>
+                    clienteSupabase.from('plantillas')
+                        .select('*').eq('grupo_id', state.grupoSeleccionadoId)
+                );
 
             if (data) {
                 plantillas = data;
@@ -270,7 +274,8 @@ async function guardarPlantillaDesdeModal() {
         // Intentar guardar en Supabase
         if (navigator.onLine) {
             try {
-                const { data, error } = await clienteSupabase.from('plantillas').insert({
+                const { data, error } = await fetchConRetry(() =>
+                    clienteSupabase.from('plantillas').insert({
                     grupo_id: state.grupoSeleccionadoId,
                     nombre: nombre,
                     categoria: cat
@@ -327,7 +332,9 @@ async function duplicarActividad(id) {
 
         // Intentar obtener de Supabase
         if (navigator.onLine) {
-            const { data } = await clienteSupabase.from('actividades').select('*').eq('id', id).single();
+            const { data } = await fetchConRetry(() =>
+                    clienteSupabase.from('actividades').select('*').eq('id', id).single()
+                );
             if (data) actOriginal = data;
         }
 
@@ -351,7 +358,9 @@ async function duplicarActividad(id) {
         };
 
         if (navigator.onLine) {
-            const { data: nuevaActData, error: errInsert } = await clienteSupabase.from('actividades').insert(nuevaAct).select();
+            const { data: nuevaActData, error: errInsert } = await fetchConRetry(() =>
+                    clienteSupabase.from('actividades').insert(nuevaAct).select()
+                );
             if (errInsert) {
                 mostrarToast('Error al duplicar: ' + errInsert.message, 'error');
                 return;
@@ -359,7 +368,9 @@ async function duplicarActividad(id) {
 
             // Copiar calificaciones
             if (nuevaActData && nuevaActData.length > 0) {
-                const { data: notasOrig } = await clienteSupabase.from('calificaciones').select('*').eq('actividad_id', id);
+                const { data: notasOrig } = await fetchConRetry(() =>
+                    clienteSupabase.from('calificaciones').select('*').eq('actividad_id', id)
+                );
                 if (notasOrig && notasOrig.length > 0) {
                     const nuevasNotas = notasOrig.map(n => ({
                         estudiante_id: n.estudiante_id,

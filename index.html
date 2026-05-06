@@ -137,6 +137,12 @@
             <div class="page-header">
                 <h2><i class="fas fa-th-large"></i> Mis Grupos <span class="badge" id="contador-grupos">0</span></h2>
             </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <button onclick="sincronizarTodoElSistema()" class="btn-secondary" id="btn-sync-masivo" title="Descargar todos los datos para uso offline">
+                    <i class="fas fa-sync-alt"></i> Sincronizar Todo
+                </button>
+                <span id="last-sync-time" style="font-size: 0.8rem; color: var(--text-light);"></span>
+            </div>
             <div id="lista-grupos" class="grid-grupos"></div>
         </section>
 
@@ -411,6 +417,7 @@
     <script src="reportes.js"></script>
     <script src="recordatorios.js"></script>
     <script src="historial.js"></script>
+    <script src="sync.js"></script>
     <script src="main.js"></script>
 
     <!-- Modal Crear Plantilla -->

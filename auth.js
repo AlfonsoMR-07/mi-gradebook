@@ -27,7 +27,9 @@ function initAuth() {
 
             mostrarSpinner('Iniciando sesión...');
             try {
-                const { data, error } = await clienteSupabase.auth.signInWithPassword({ email, password });
+                const { data, error } = await fetchConRetry(() =>
+                    clienteSupabase.auth.signInWithPassword({ email, password })
+                );
                 if (error) {
                     mostrarToast('Error: ' + error.message, 'error');
                 } else {
@@ -59,7 +61,9 @@ async function verificarSesion() {
     mostrarSpinner('Verificando sesión...');
     try {
         // Intentar obtener sesión de Supabase
-        const { data: { session } } = await clienteSupabase.auth.getSession();
+        const { data: { session } } = await fetchConRetry(() =>
+                    clienteSupabase.auth.getSession()
+                );
 
         if (session) {
             mostrarDashboard(session);

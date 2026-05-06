@@ -15,8 +15,10 @@ async function cargarHistorial(tipo) {
             let data = [];
 
             if (navigator.onLine) {
-                const result = await clienteSupabase
-                    .from('actividades').select('*').eq('grupo_id', state.grupoSeleccionadoId).order('fecha_actividad', { ascending: false });
+                const result = await fetchConRetry(() =>
+                    clienteSupabase
+                        .from('actividades').select('*').eq('grupo_id', state.grupoSeleccionadoId).order('fecha_actividad', { ascending: false })
+                );
                 if (result.data) {
                     data = result.data;
                     await guardarActividadesLocal(data);
@@ -64,8 +66,10 @@ async function cargarHistorial(tipo) {
             let data = [];
 
             if (navigator.onLine) {
-                const result = await clienteSupabase.from('asistencia')
-                    .select('fecha').in('estudiante_id', state.alumnosActuales.map(al => al.id));
+                const result = await fetchConRetry(() =>
+                    clienteSupabase.from('asistencia')
+                        .select('fecha').in('estudiante_id', state.alumnosActuales.map(al => al.id))
+                );
                 if (result.data) data = result.data;
             } else {
                 const asistLocal = await obtenerTodosDeStore('asistencia');
@@ -98,8 +102,10 @@ async function cargarHistorial(tipo) {
             let data = [];
 
             if (navigator.onLine) {
-                const result = await clienteSupabase.from('plantillas')
-                    .select('*').eq('grupo_id', state.grupoSeleccionadoId).order('created_at', { ascending: false });
+                const result = await fetchConRetry(() =>
+                    clienteSupabase.from('plantillas')
+                        .select('*').eq('grupo_id', state.grupoSeleccionadoId).order('created_at', { ascending: false })
+                );
                 if (result.data) {
                     data = result.data;
                     await guardarPlantillasLocal(data);
@@ -148,7 +154,9 @@ async function eliminarPlantilla(id) {
     if (!confirm('¿Eliminar esta plantilla?')) return;
     try {
         if (navigator.onLine && !String(id).startsWith('local_')) {
-            await clienteSupabase.from('plantillas').delete().eq('id', id);
+            await fetchConRetry(() =>
+                    clienteSupabase.from('plantillas').delete().eq('id', id)
+                );
         }
         await eliminarDeStore('plantillas', id);
         mostrarToast('Plantilla eliminada', 'success');
@@ -164,8 +172,12 @@ async function eliminarActividad(id) {
     mostrarSpinner('Eliminando...');
     try {
         if (navigator.onLine && !String(id).startsWith('local_')) {
-            await clienteSupabase.from('calificaciones').delete().eq('actividad_id', id);
-            await clienteSupabase.from('actividades').delete().eq('id', id);
+            await fetchConRetry(() =>
+                    clienteSupabase.from('calificaciones').delete().eq('actividad_id', id)
+                );
+            await fetchConRetry(() =>
+                    clienteSupabase.from('actividades').delete().eq('id', id)
+                );
         }
         await eliminarDeStore('actividades', id);
         mostrarToast('Actividad eliminada', 'success');
@@ -183,7 +195,9 @@ async function eliminarAsistenciaDia(fecha) {
     try {
         const idsAlumnos = state.alumnosActuales.map(al => al.id);
         if (navigator.onLine) {
-            await clienteSupabase.from('asistencia').delete().eq('fecha', fecha).in('estudiante_id', idsAlumnos);
+            await fetchConRetry(() =>
+                    clienteSupabase.from('asistencia').delete().eq('fecha', fecha).in('estudiante_id', idsAlumnos)
+                );
         }
         // Eliminar locales
         const asistLocal = await obtenerTodosDeStore('asistencia');
@@ -211,9 +225,11 @@ async function actualizarActividad(id) {
     mostrarSpinner('Actualizando...');
     try {
         if (navigator.onLine && !String(id).startsWith('local_')) {
-            const { error } = await clienteSupabase.from('actividades').update({ 
-                nombre_actividad: nombre, fecha_actividad: fecha 
-            }).eq('id', id);
+            const { error } = await fetchConRetry(() =>
+                    clienteSupabase.from('actividades').update({ 
+                        nombre_actividad: nombre, fecha_actividad: fecha 
+                    }).eq('id', id)
+                );
             if (!error) mostrarToast('Actividad actualizada', 'success');
             else mostrarToast('Error al actualizar', 'error');
         } else {
@@ -246,7 +262,9 @@ async function actualizarFechaAsistencia(fechaOriginal) {
     try {
         const idsAlumnos = state.alumnosActuales.map(al => al.id);
         if (navigator.onLine) {
-            await clienteSupabase.from('asistencia').update({ fecha: nuevaFecha }).eq('fecha', fechaOriginal).in('estudiante_id', idsAlumnos);
+            await fetchConRetry(() =>
+                    clienteSupabase.from('asistencia').update({ fecha: nuevaFecha }).eq('fecha', fechaOriginal).in('estudiante_id', idsAlumnos)
+                );
         }
         // Actualizar locales
         const asistLocal = await obtenerTodosDeStore('asistencia');

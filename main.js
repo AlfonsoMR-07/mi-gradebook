@@ -19,5 +19,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     initAuth();
     initTemaOscuro();
     initOffline();
-    verificarSesion();
+
+    // Verificar sesión primero
+    await verificarSesion();
+
+    // Si hay sesión, iniciar sincronización masiva de todos los datos
+    // Esto asegura que TODOS los grupos tengan sus datos disponibles offline
+    if (navigator.onLine) {
+        try {
+            const { data: { session } } = await clienteSupabase.auth.getSession();
+            if (session) {
+                console.log('[Main] Iniciando sincronización masiva de todos los datos...');
+                // Usar setTimeout para no bloquear la UI
+                setTimeout(async () => {
+                    await sincronizarTodoElSistema();
+                }, 1000);
+            }
+        } catch (e) {
+            console.log('[Main] No hay sesión activa para sincronizar');
+        }
+    }
 });

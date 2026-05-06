@@ -11,8 +11,10 @@ async function precargarObservaciones() {
     try {
         // Intentar cargar desde Supabase
         if (navigator.onLine) {
-            const { data } = await clienteSupabase.from('observaciones')
-                .select('*').in('estudiante_id', ids).order('created_at', { ascending: false });
+            const { data } = await fetchConRetry(() =>
+                    clienteSupabase.from('observaciones')
+                        .select('*').in('estudiante_id', ids).order('created_at', { ascending: false })
+                );
 
             if (data) {
                 data.forEach(obs => {
@@ -110,7 +112,9 @@ async function guardarObservacion() {
         // Si hay internet, sincronizar con Supabase
         if (navigator.onLine) {
             try {
-                const { data, error } = await clienteSupabase.from('observaciones').insert(datos).select();
+                const { data, error } = await fetchConRetry(() =>
+                    clienteSupabase.from('observaciones').insert(datos).select()
+                );
                 if (error) {
                     console.error('Error sync Supabase:', error);
                     mostrarToast('Guardado local. Se sincronizará cuando haya internet.', 'warning');
@@ -148,8 +152,10 @@ async function precargarJustificaciones() {
 
     try {
         if (navigator.onLine) {
-            const { data } = await clienteSupabase.from('asistencia')
-                .select('*').in('estudiante_id', ids).not('justificacion', 'is', null);
+            const { data } = await fetchConRetry(() =>
+                    clienteSupabase.from('asistencia')
+                        .select('*').in('estudiante_id', ids).not('justificacion', 'is', null)
+                );
 
             if (data) {
                 data.forEach(j => {
@@ -205,12 +211,14 @@ async function guardarJustificacion() {
         await guardarAsistenciaLocal(datos);
 
         if (navigator.onLine) {
-            const { error } = await clienteSupabase.from('asistencia').upsert({
-                estudiante_id: estudianteId,
-                fecha: fecha,
-                estado: 'Falta',
-                justificacion: texto
-            }, { onConflict: 'estudiante_id, fecha' });
+            const { error } = await fetchConRetry(() =>
+                    clienteSupabase.from('asistencia').upsert({
+                        estudiante_id: estudianteId,
+                        fecha: fecha,
+                        estado: 'Falta',
+                        justificacion: texto
+                    }, { onConflict: 'estudiante_id, fecha' })
+                );
 
             if (error) {
                 mostrarToast('Guardado local. Se sincronizará cuando haya internet.', 'warning');
