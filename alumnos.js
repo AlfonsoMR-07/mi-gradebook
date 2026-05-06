@@ -1,82 +1,29 @@
 // =========================================
-// ALUMNOS - GESTIÓN COMPLETA CON OFFLINE
+// ALUMNOS - GESTIÓN COMPLETA
 // =========================================
 
 async function cargarAlumnos() {
     mostrarSpinner('Cargando alumnos...');
-
-    let alumnosReal = null;
-    let errorSupabase = null;
-
-    // 1. Intentar cargar desde Supabase con retry
     try {
-        const { data, error } = await fetchConRetry(() =>
-            clienteSupabase.from('estudiantes')
-                .select('*').eq('grupo_id', state.grupoSeleccionadoId).order('asiento', { ascending: true })
-        );
+        const { data: alumnosReal, error } = await clienteSupabase.from('estudiantes')
+            .select('*').eq('grupo_id', state.grupoSeleccionadoId).order('asiento', { ascending: true });
 
         if (error) {
-            errorSupabase = error;
-            console.warn('[Alumnos] Error Supabase:', error.message);
-        } else if (data && data.length > 0) {
-            alumnosReal = data;
-            // Guardar en IndexedDB para uso offline
-            await guardarAlumnosLocal(alumnosReal);
-            console.log(`[Alumnos] ${alumnosReal.length} alumnos guardados en local`);
+            mostrarToast('Error al cargar alumnos: ' + error.message, 'error');
+            return;
+        }
+        if (alumnosReal) {
+            state.alumnosActuales = alumnosReal;
+            // Precargar observaciones y justificaciones
+            await precargarObservaciones();
+            await precargarJustificaciones();
+            prepararPaseLista(alumnosReal);
         }
     } catch (err) {
-        errorSupabase = err;
-        console.warn('[Alumnos] Fallo conexión Supabase:', err.message || err);
+        mostrarToast('Error al cargar alumnos', 'error');
+    } finally {
+        ocultarSpinner();
     }
-
-    // 2. Si no se obtuvieron de Supabase, intentar cargar desde IndexedDB
-    if (!alumnosReal || alumnosReal.length === 0) {
-        try {
-            const alumnosLocal = await obtenerAlumnosPorGrupoLocal(state.grupoSeleccionadoId);
-            if (alumnosLocal && alumnosLocal.length > 0) {
-                alumnosReal = alumnosLocal;
-                console.log(`[Alumnos] ${alumnosReal.length} alumnos cargados desde local`);
-                if (errorSupabase) {
-                    mostrarToast('Modo offline: usando datos locales', 'warning');
-                }
-            }
-        } catch (err) {
-            console.error('[Alumnos] Error cargando local:', err);
-        }
-    }
-
-    // 3. Procesar los alumnos (de Supabase o local)
-    if (alumnosReal && alumnosReal.length > 0) {
-        state.alumnosActuales = alumnosReal;
-
-        // Precargar observaciones y justificaciones (no bloqueantes)
-        try {
-            await precargarObservaciones();
-        } catch (e) {
-            console.log('[Alumnos] No se pudieron precargar observaciones');
-        }
-
-        try {
-            await precargarJustificaciones();
-        } catch (e) {
-            console.log('[Alumnos] No se pudieron precargar justificaciones');
-        }
-
-        prepararPaseLista(alumnosReal);
-    } else {
-        // No hay alumnos en ningún lado
-        state.alumnosActuales = [];
-        const cont = document.getElementById('lista-asistencia-tabla');
-        if (cont) {
-            cont.innerHTML = `<div style="text-align: center; padding: 30px; color: var(--text-light);"><i class="fas fa-user-slash" style="font-size: 2rem; margin-bottom: 10px;"></i><p>No hay alumnos en este grupo</p></div>`;
-        }
-
-        if (errorSupabase) {
-            mostrarToast('Error al cargar alumnos: ' + (errorSupabase.message || 'Error de conexión'), 'error');
-        }
-    }
-
-    ocultarSpinner();
 }
 
 async function importarAlumnos() {
@@ -101,34 +48,17 @@ async function importarAlumnos() {
     }
 
     mostrarSpinner('Guardando alumnos...');
-
     try {
-        // Guardar en Supabase si hay conexión
-        if (navigator.onLine) {
-            const { error } = await clienteSupabase.from('estudiantes').insert(datos);
-            if (error) {
-                // Si falla Supabase, guardar localmente como cambio pendiente
-                console.warn('[Importar] Error Supabase, guardando local:', error);
-                for (const alumno of datos) {
-                    await guardarAlumnoLocal({ ...alumno, id: `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` });
-                }
-                mostrarToast(`${datos.length} alumnos guardados localmente (sin conexión)`, 'warning');
-            } else {
-                mostrarToast(`${datos.length} alumnos cargados correctamente`, 'success');
-            }
+        const { error } = await clienteSupabase.from('estudiantes').insert(datos);
+        if (error) {
+            mostrarToast('Error: ' + error.message, 'error');
         } else {
-            // Offline: guardar localmente
-            for (const alumno of datos) {
-                await guardarAlumnoLocal({ ...alumno, id: `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}` });
-            }
-            mostrarToast(`${datos.length} alumnos guardados localmente (sin conexión)`, 'warning');
+            mostrarToast(`${datos.length} alumnos cargados correctamente`, 'success');
+            document.getElementById('nombres-masivos').value = '';
+            await cargarAlumnos();
         }
-
-        document.getElementById('nombres-masivos').value = '';
-        await cargarAlumnos();
     } catch (err) {
         mostrarToast('Error al guardar alumnos', 'error');
-        console.error(err);
     } finally {
         ocultarSpinner();
     }
@@ -193,27 +123,19 @@ async function actualizarAsientoAlumno(alumnoId, nuevoAsiento) {
 
     mostrarSpinner('Actualizando asiento...');
     try {
-        // Actualizar en Supabase si hay conexión
-        if (navigator.onLine) {
-            const { error } = await clienteSupabase.from('estudiantes')
-                .update({ asiento: asiento })
-                .eq('id', alumnoId);
+        const { error } = await clienteSupabase.from('estudiantes')
+            .update({ asiento: asiento })
+            .eq('id', alumnoId);
 
-            if (error) {
-                console.warn('[Asiento] Error Supabase, actualizando local:', error);
-            }
+        if (error) {
+            mostrarToast('Error al actualizar asiento: ' + error.message, 'error');
+        } else {
+            mostrarToast('Asiento actualizado', 'success');
+            const alumno = state.alumnosActuales.find(a => a.id === alumnoId);
+            if (alumno) alumno.asiento = asiento;
+            state.alumnosActuales.sort((a, b) => (a.asiento || 0) - (b.asiento || 0));
+            renderizarGestionAlumnos();
         }
-
-        // Siempre actualizar local
-        const alumno = state.alumnosActuales.find(a => a.id === alumnoId);
-        if (alumno) {
-            alumno.asiento = asiento;
-            await guardarAlumnoLocal(alumno);
-        }
-
-        mostrarToast('Asiento actualizado', 'success');
-        state.alumnosActuales.sort((a, b) => (a.asiento || 0) - (b.asiento || 0));
-        renderizarGestionAlumnos();
     } catch (err) {
         mostrarToast('Error al actualizar asiento', 'error');
     } finally {
@@ -230,26 +152,18 @@ async function actualizarNombreAlumno(alumnoId, nuevoNombre) {
 
     mostrarSpinner('Actualizando nombre...');
     try {
-        // Actualizar en Supabase si hay conexión
-        if (navigator.onLine) {
-            const { error } = await clienteSupabase.from('estudiantes')
-                .update({ nombre_completo: nombre })
-                .eq('id', alumnoId);
+        const { error } = await clienteSupabase.from('estudiantes')
+            .update({ nombre_completo: nombre })
+            .eq('id', alumnoId);
 
-            if (error) {
-                console.warn('[Nombre] Error Supabase, actualizando local:', error);
-            }
+        if (error) {
+            mostrarToast('Error al actualizar nombre: ' + error.message, 'error');
+        } else {
+            mostrarToast('Nombre actualizado', 'success');
+            const alumno = state.alumnosActuales.find(a => a.id === alumnoId);
+            if (alumno) alumno.nombre_completo = nombre;
+            renderizarGestionAlumnos();
         }
-
-        // Siempre actualizar local
-        const alumno = state.alumnosActuales.find(a => a.id === alumnoId);
-        if (alumno) {
-            alumno.nombre_completo = nombre;
-            await guardarAlumnoLocal(alumno);
-        }
-
-        mostrarToast('Nombre actualizado', 'success');
-        renderizarGestionAlumnos();
     } catch (err) {
         mostrarToast('Error al actualizar nombre', 'error');
     } finally {
@@ -265,25 +179,24 @@ async function eliminarAlumno(alumnoId) {
 
     mostrarSpinner('Eliminando alumno...');
     try {
-        // Eliminar en Supabase si hay conexión
-        if (navigator.onLine) {
-            await clienteSupabase.from('calificaciones').delete().eq('estudiante_id', alumnoId);
-            await clienteSupabase.from('asistencia').delete().eq('estudiante_id', alumnoId);
-            await clienteSupabase.from('observaciones').delete().eq('estudiante_id', alumnoId);
-            await clienteSupabase.from('estudiantes').delete().eq('id', alumnoId);
+        // Eliminar dependencias primero
+        await clienteSupabase.from('calificaciones').delete().eq('estudiante_id', alumnoId);
+        await clienteSupabase.from('asistencia').delete().eq('estudiante_id', alumnoId);
+        await clienteSupabase.from('observaciones').delete().eq('estudiante_id', alumnoId);
+
+        // Eliminar alumno
+        const { error } = await clienteSupabase.from('estudiantes').delete().eq('id', alumnoId);
+
+        if (error) {
+            mostrarToast('Error al eliminar: ' + error.message, 'error');
+        } else {
+            mostrarToast('Alumno eliminado correctamente', 'success');
+            state.alumnosActuales = state.alumnosActuales.filter(a => a.id !== alumnoId);
+            delete state.observacionesCache[alumnoId];
+            renderizarGestionAlumnos();
         }
-
-        // Siempre eliminar local
-        await eliminarAlumnoLocal(alumnoId);
-        await eliminarDeStore('asistencia', alumnoId); // Esto no funcionará directamente, pero limpiaremos en sync
-
-        mostrarToast('Alumno eliminado correctamente', 'success');
-        state.alumnosActuales = state.alumnosActuales.filter(a => a.id !== alumnoId);
-        delete state.observacionesCache[alumnoId];
-        renderizarGestionAlumnos();
     } catch (err) {
         mostrarToast('Error al eliminar alumno', 'error');
-        console.error(err);
     } finally {
         ocultarSpinner();
     }

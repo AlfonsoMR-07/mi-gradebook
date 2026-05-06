@@ -29,48 +29,6 @@ let cambiosPendientes = [];
 let estaOnline = navigator.onLine;
 
 // =========================================
-// FETCH CON RETRY - PARA SAFARI/iOS
-// =========================================
-
-async function fetchConRetry(supabaseQueryFn, maxRetries = 3, delayMs = 1000) {
-    let lastError = null;
-
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-        try {
-            // Crear un timeout para Safari
-            const timeoutPromise = new Promise((_, reject) => {
-                setTimeout(() => reject(new Error('TIMEOUT')), 15000);
-            });
-
-            // Ejecutar la query con timeout
-            const result = await Promise.race([
-                supabaseQueryFn(),
-                timeoutPromise
-            ]);
-
-            // Si llegamos aquí, la llamada fue exitosa
-            return result;
-
-        } catch (error) {
-            lastError = error;
-            console.warn(`[fetchConRetry] Intento ${attempt}/${maxRetries} falló:`, error.message || error);
-
-            // Si es el último intento, lanzar el error
-            if (attempt === maxRetries) {
-                break;
-            }
-
-            // Esperar antes de reintentar (backoff exponencial)
-            const delay = delayMs * Math.pow(2, attempt - 1);
-            await new Promise(resolve => setTimeout(resolve, delay));
-        }
-    }
-
-    // Todos los intentos fallaron
-    throw lastError;
-}
-
-// =========================================
 // UTILIDADES
 // =========================================
 
@@ -114,38 +72,22 @@ function escapeHtml(texto) {
 }
 
 // =========================================
-// MODO OFFLINE - MEJORADO
+// MODO OFFLINE
 // =========================================
 
 function initOffline() {
-    // Estado inicial
-    estaOnline = navigator.onLine;
-
     window.addEventListener('online', async () => {
         estaOnline = true;
         document.getElementById('offline-indicator').classList.add('hidden');
         mostrarToast('Conexión restaurada. Sincronizando...', 'success');
 
         // Intentar sincronizar con Supabase
-        try {
-            await sincronizarTodo();
-        } catch (e) {
-            console.error('[Offline] Error sincronizando:', e);
-        }
+        await sincronizarTodo();
 
         // También intentar registrar sync en background
         if ('serviceWorker' in navigator && 'SyncManager' in window) {
-            try {
-                const registration = await navigator.serviceWorker.ready;
-                registration.sync.register('sync-eduhub-data');
-            } catch (err) {
-                console.log('[SW] Sync no soportado:', err);
-            }
-        }
-
-        // Recargar datos actuales si estamos en un grupo
-        if (state.grupoSeleccionadoId) {
-            await cargarAlumnos();
+            const registration = await navigator.serviceWorker.ready;
+            registration.sync.register('sync-eduhub-data');
         }
     });
 
@@ -160,31 +102,18 @@ function initOffline() {
     }
 
     // Verificar cambios pendientes al iniciar
-    setTimeout(async () => {
-        try {
-            const pendientes = await obtenerCambiosPendientes();
-            if (pendientes.length > 0) {
-                const el = document.getElementById('offline-count');
-                if (el) el.textContent = `${pendientes.length} cambios pendientes`;
-
-                // Si hay conexión, intentar sincronizar automáticamente
-                if (navigator.onLine) {
-                    mostrarToast(`${pendientes.length} cambios pendientes. Sincronizando...`, 'warning');
-                    await sincronizarTodo();
-                }
-            }
-        } catch (e) {
-            console.error('[Offline] Error verificando pendientes:', e);
+    obtenerCambiosPendientes().then(pendientes => {
+        if (pendientes.length > 0) {
+            const el = document.getElementById('offline-count');
+            if (el) el.textContent = `${pendientes.length} cambios pendientes`;
         }
-    }, 2000);
+    });
 }
 
 function guardarCambioPendiente(tipo, datos) {
     // Guardar en IndexedDB para persistencia real
     agregarCambioPendiente(tipo, datos).then(() => {
         actualizarContadorOffline();
-    }).catch(err => {
-        console.error('[Offline] Error guardando pendiente:', err);
     });
 
     // También mantener en memoria para compatibilidad
@@ -192,13 +121,8 @@ function guardarCambioPendiente(tipo, datos) {
 }
 
 function actualizarContadorOffline() {
-    obtenerCambiosPendientes().then(pendientes => {
-        const el = document.getElementById('offline-count');
-        if (el) el.textContent = `${pendientes.length} cambios pendientes`;
-        cambiosPendientes = pendientes; // Sincronizar memoria
-    }).catch(err => {
-        console.error('[Offline] Error actualizando contador:', err);
-    });
+    const el = document.getElementById('offline-count');
+    if (el) el.textContent = `${cambiosPendientes.length} cambios pendientes`;
 }
 
 async function sincronizarCambiosPendientes() {

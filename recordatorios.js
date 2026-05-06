@@ -1,39 +1,22 @@
 // =========================================
-// RECORDATORIOS - CON SOPORTE OFFLINE
+// RECORDATORIOS
 // =========================================
 
 let recordatorios = [];
 
 async function cargarRecordatorios() {
     try {
-        if (navigator.onLine) {
-            const { data: { session } } = await fetchConRetry(() =>
-                    clienteSupabase.auth.getSession()
-                );
-            if (!session) return;
+        const { data: { session } } = await clienteSupabase.auth.getSession();
+        if (!session) return;
 
-            const { data } = await clienteSupabase.from('recordatorios')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .order('created_at', { ascending: false });
+        const { data } = await clienteSupabase.from('recordatorios')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .order('created_at', { ascending: false });
 
-            if (data) {
-                recordatorios = data;
-                // Guardar en localStorage para offline
-                localStorage.setItem('eduhub_recordatorios', JSON.stringify(data));
-            }
-        } else {
-            // Cargar desde localStorage
-            const local = localStorage.getItem('eduhub_recordatorios');
-            if (local) {
-                recordatorios = JSON.parse(local);
-            }
-        }
+        if (data) recordatorios = data;
     } catch (e) {
-        console.log('[Recordatorios] Error cargando:', e);
-        // Fallback a localStorage
-        const local = localStorage.getItem('eduhub_recordatorios');
-        if (local) recordatorios = JSON.parse(local);
+        console.log('No hay tabla de recordatorios');
     }
 }
 
@@ -94,44 +77,20 @@ async function crearRecordatorio() {
     }
 
     try {
-        let nuevoRec = null;
+        const { data: { session } } = await clienteSupabase.auth.getSession();
+        if (!session) return;
 
-        if (navigator.onLine) {
-            const { data: { session } } = await fetchConRetry(() =>
-                    clienteSupabase.auth.getSession()
-                );
-            if (!session) return;
+        const { data, error } = await clienteSupabase.from('recordatorios').insert({
+            user_id: session.user.id,
+            texto: texto
+        }).select();
 
-            const { data, error } = await clienteSupabase.from('recordatorios').insert({
-                user_id: session.user.id,
-                texto: texto
-            }).select();
-
-            if (error) {
-                mostrarToast('Error: ' + error.message, 'error');
-                return;
-            }
-
-            if (data) {
-                nuevoRec = data[0];
-                mostrarToast('Recordatorio creado', 'success');
-            }
+        if (error) {
+            mostrarToast('Error: ' + error.message, 'error');
         } else {
-            // Crear localmente
-            nuevoRec = {
-                id: Date.now(),
-                user_id: 'local',
-                texto: texto,
-                completado: false,
-                created_at: new Date().toISOString()
-            };
-            mostrarToast('Recordatorio creado localmente', 'warning');
-        }
-
-        if (nuevoRec) {
-            recordatorios.unshift(nuevoRec);
-            localStorage.setItem('eduhub_recordatorios', JSON.stringify(recordatorios));
+            mostrarToast('Recordatorio creado', 'success');
             document.getElementById('nuevo-recordatorio').value = '';
+            if (data) recordatorios.unshift(data[0]);
             renderizarRecordatorios();
             await mostrarRecordatoriosGrupo();
         }
@@ -142,21 +101,17 @@ async function crearRecordatorio() {
 
 async function toggleRecordatorio(id, completado) {
     try {
-        if (navigator.onLine) {
-            const { error } = await clienteSupabase.from('recordatorios')
-                .update({ completado }).eq('id', id);
+        const { error } = await clienteSupabase.from('recordatorios')
+            .update({ completado }).eq('id', id);
 
-            if (error) {
-                mostrarToast('Error al actualizar', 'error');
-                return;
-            }
+        if (error) {
+            mostrarToast('Error al actualizar', 'error');
+        } else {
+            const rec = recordatorios.find(r => r.id === id);
+            if (rec) rec.completado = completado;
+            renderizarRecordatorios();
+            await mostrarRecordatoriosGrupo();
         }
-
-        const rec = recordatorios.find(r => r.id === id);
-        if (rec) rec.completado = completado;
-        localStorage.setItem('eduhub_recordatorios', JSON.stringify(recordatorios));
-        renderizarRecordatorios();
-        await mostrarRecordatoriosGrupo();
     } catch (err) {
         mostrarToast('Error', 'error');
     }
@@ -165,20 +120,14 @@ async function toggleRecordatorio(id, completado) {
 async function eliminarRecordatorio(id) {
     if (!confirm('¿Eliminar este recordatorio?')) return;
     try {
-        if (navigator.onLine) {
-            const { error } = await fetchConRetry(() =>
-                    clienteSupabase.from('recordatorios').delete().eq('id', id)
-                );
-            if (error) {
-                mostrarToast('Error al eliminar', 'error');
-                return;
-            }
+        const { error } = await clienteSupabase.from('recordatorios').delete().eq('id', id);
+        if (error) {
+            mostrarToast('Error al eliminar', 'error');
+        } else {
+            recordatorios = recordatorios.filter(r => r.id !== id);
+            renderizarRecordatorios();
+            await mostrarRecordatoriosGrupo();
         }
-
-        recordatorios = recordatorios.filter(r => r.id !== id);
-        localStorage.setItem('eduhub_recordatorios', JSON.stringify(recordatorios));
-        renderizarRecordatorios();
-        await mostrarRecordatoriosGrupo();
     } catch (err) {
         mostrarToast('Error', 'error');
     }

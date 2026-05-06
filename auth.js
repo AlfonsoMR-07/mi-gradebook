@@ -1,5 +1,5 @@
 // =========================================
-// AUTENTICACIÓN - CON SOPORTE OFFLINE
+// AUTENTICACIÓN
 // =========================================
 
 function initAuth() {
@@ -20,26 +20,13 @@ function initAuth() {
                 return;
             }
 
-            if (!navigator.onLine) {
-                mostrarToast('Sin conexión. No se puede iniciar sesión.', 'warning');
-                return;
-            }
-
             mostrarSpinner('Iniciando sesión...');
             try {
-                const { data, error } = await fetchConRetry(() =>
-                    clienteSupabase.auth.signInWithPassword({ email, password })
-                );
+                const { data, error } = await clienteSupabase.auth.signInWithPassword({ email, password });
                 if (error) {
                     mostrarToast('Error: ' + error.message, 'error');
                 } else {
                     mostrarToast('¡Bienvenido!', 'success');
-                    // Guardar sesión en localStorage para uso offline
-                    localStorage.setItem('eduhub_session', JSON.stringify({
-                        email: data.user.email,
-                        id: data.user.id,
-                        timestamp: new Date().toISOString()
-                    }));
                     await verificarSesion();
                 }
             } catch (err) {
@@ -60,64 +47,31 @@ function initAuth() {
 async function verificarSesion() {
     mostrarSpinner('Verificando sesión...');
     try {
-        // Intentar obtener sesión de Supabase
-        const { data: { session } } = await fetchConRetry(() =>
-                    clienteSupabase.auth.getSession()
-                );
-
+        const { data: { session } } = await clienteSupabase.auth.getSession();
         if (session) {
-            mostrarDashboard(session);
-            return;
-        }
-
-        // Si no hay sesión online, verificar si hay sesión guardada localmente
-        const sesionLocal = localStorage.getItem('eduhub_session');
-        if (sesionLocal && !navigator.onLine) {
-            const sesionData = JSON.parse(sesionLocal);
-            // Verificar que la sesión no sea muy vieja (7 días)
-            const diasTranscurridos = (new Date() - new Date(sesionData.timestamp)) / (1000 * 60 * 60 * 24);
-            if (diasTranscurridos < 7) {
-                mostrarDashboard({ user: { email: sesionData.email } });
-                mostrarToast('Sesión offline activa', 'warning');
-                return;
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            const userEmail = document.getElementById('user-email');
+            if (userEmail) {
+                userEmail.textContent = session.user.email;
+                userEmail.classList.remove('hidden');
             }
-        }
-
-        // No hay sesión
-        document.getElementById('auth-section').classList.remove('hidden');
-        document.getElementById('dashboard').classList.add('hidden');
-        document.getElementById('vista-grupo').classList.add('hidden');
-    } catch (err) {
-        console.error('Error al verificar sesión:', err);
-        // Intentar sesión local como fallback
-        const sesionLocal = localStorage.getItem('eduhub_session');
-        if (sesionLocal && !navigator.onLine) {
-            const sesionData = JSON.parse(sesionLocal);
-            mostrarDashboard({ user: { email: sesionData.email } });
+            await cargarGrupos();
+            await cargarRecordatorios();
         } else {
             document.getElementById('auth-section').classList.remove('hidden');
             document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('vista-grupo').classList.add('hidden');
         }
+    } catch (err) {
+        console.error('Error al verificar sesión:', err);
     } finally {
         ocultarSpinner();
     }
 }
 
-function mostrarDashboard(session) {
-    document.getElementById('auth-section').classList.add('hidden');
-    document.getElementById('dashboard').classList.remove('hidden');
-    const userEmail = document.getElementById('user-email');
-    if (userEmail) {
-        userEmail.textContent = session.user.email;
-        userEmail.classList.remove('hidden');
-    }
-    cargarGrupos();
-    cargarRecordatorios();
-}
-
 async function cerrarSesion() {
     mostrarSpinner('Cerrando sesión...');
-    localStorage.removeItem('eduhub_session');
     await clienteSupabase.auth.signOut();
     location.reload();
 }
