@@ -1,12 +1,13 @@
 // =========================================
-// SERVICE WORKER - EDUHUB CONNECT
+// SERVICE WORKER - EDUHUB CONNECT v2
 // =========================================
 
-const CACHE_NAME = 'eduhub-v1';
+const CACHE_NAME = 'eduhub-v2';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
     '/style.css',
+    '/db.js',
     '/utils.js',
     '/auth.js',
     '/grupos.js',
@@ -58,21 +59,26 @@ self.addEventListener('activate', (event) => {
                     .map((name) => caches.delete(name))
             );
         }).then(() => {
-            console.log('[SW] Service Worker activado');
+            console.log('[SW] Service Worker activado v2');
             return self.clients.claim();
         })
     );
 });
 
 // =========================================
-// FETCH - Estrategia: Cache First, luego Network
+// FETCH - Estrategia mejorada
 // =========================================
 self.addEventListener('fetch', (event) => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // No interceptar requests de Supabase (API)
+    // No interceptar requests de Supabase (API) - dejar que pasen directo
     if (url.hostname.includes('supabase.co')) {
+        return;
+    }
+
+    // No interceptar requests de Google Fonts API
+    if (url.hostname.includes('fonts.googleapis.com') && request.mode === 'cors') {
         return;
     }
 

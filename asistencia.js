@@ -1,5 +1,5 @@
 // =========================================
-// ASISTENCIA
+// ASISTENCIA - CON SOPORTE OFFLINE
 // =========================================
 
 function prepararPaseLista(alumnos) {
@@ -116,11 +116,13 @@ async function guardarAsistenciaBD() {
     if (!confirm(`¿Guardar asistencia del ${fecha}?\n\n✓ Presentes: ${presentes}\n✗ Faltas: ${faltas}\nTotal: ${total}`)) return;
 
     mostrarSpinner('Guardando asistencia...');
+
     try {
         const registros = Object.keys(state.asistenciasHoy).map(id => ({
             estudiante_id: id,
             estado: state.asistenciasHoy[id],
-            fecha: fecha
+            fecha: fecha,
+            grupo_id: state.grupoSeleccionadoId
         }));
 
         // SIEMPRE guardar en IndexedDB primero (para offline)
@@ -131,24 +133,32 @@ async function guardarAsistenciaBD() {
         mostrarToast('Asistencia guardada localmente', 'success');
 
         // Si hay internet, sincronizar con Supabase
-        if (estaOnline) {
-            const { error } = await clienteSupabase.from('asistencia').insert(registros);
-            if (error) {
-                console.error('Error sync Supabase:', error);
-                mostrarToast('Guardado local. Se sincronizará cuando haya internet.', 'warning');
-            } else {
-                // Marcar como sincronizado en IndexedDB
-                const asistenciasLocales = await obtenerTodosDeStore('asistencia', 'fecha', fecha);
-                for (const a of asistenciasLocales) {
-                    if (a.synced === false) {
-                        await marcarComoSync('asistencia', a.local_id);
+        if (navigator.onLine) {
+            try {
+                const { error } = await clienteSupabase.from('asistencia').insert(registros);
+                if (error) {
+                    console.error('Error sync Supabase:', error);
+                    mostrarToast('Guardado local. Se sincronizará cuando haya internet.', 'warning');
+                } else {
+                    // Marcar como sincronizado en IndexedDB
+                    const asistenciasLocales = await obtenerTodosDeStore('asistencia', 'fecha', fecha);
+                    for (const a of asistenciasLocales) {
+                        if (a.synced === false && a.grupo_id === state.grupoSeleccionadoId) {
+                            await marcarComoSync('asistencia', a.local_id);
+                        }
                     }
+                    mostrarToast('Asistencia sincronizada con la nube', 'success');
                 }
-                mostrarToast('Asistencia sincronizada con la nube', 'success');
+            } catch (syncErr) {
+                console.error('Error en sync:', syncErr);
+                mostrarToast('Guardado local. Se sincronizará cuando haya internet.', 'warning');
             }
         } else {
             mostrarToast('Sin conexión. Los datos se sincronizarán automáticamente.', 'warning');
         }
+
+        // Actualizar contador offline
+        actualizarContadorOffline();
     } catch (err) {
         mostrarToast('Error al guardar asistencia', 'error');
         console.error(err);

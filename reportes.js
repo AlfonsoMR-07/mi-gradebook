@@ -1,21 +1,23 @@
 // =========================================
-// REPORTES Y PROMEDIOS
+// REPORTES Y PROMEDIOS - CON SOPORTE OFFLINE
 // =========================================
 
 async function cargarConfiguracionGrupo() {
     try {
-        const { data } = await clienteSupabase
-            .from('configuraciones')
-            .select('*')
-            .eq('grupo_id', state.grupoSeleccionadoId)
-            .single();
-        if (data) {
-            state.categoriasDefecto[0].valor = data.asistencia;
-            state.categoriasDefecto[1].valor = data.trabajo;
-            state.categoriasDefecto[2].valor = data.examen;
+        if (navigator.onLine) {
+            const { data } = await clienteSupabase
+                .from('configuraciones')
+                .select('*')
+                .eq('grupo_id', state.grupoSeleccionadoId)
+                .single();
+            if (data) {
+                state.categoriasDefecto[0].valor = data.asistencia;
+                state.categoriasDefecto[1].valor = data.trabajo;
+                state.categoriasDefecto[2].valor = data.examen;
+            }
         }
     } catch (err) {
-        console.log('Usando configuración por defecto');
+        console.log('[Config] Usando configuración por defecto');
     }
 }
 
@@ -37,35 +39,63 @@ async function generarReporte() {
 
     try {
         const idsAlumnos = state.alumnosActuales.map(al => al.id);
-
-        const { data: actividades, error: errAct } = await clienteSupabase
-            .from('actividades').select('*').eq('grupo_id', state.grupoSeleccionadoId).order('fecha_actividad', { ascending: true });
-
-        if (errAct) {
-            mostrarToast('Error al cargar actividades: ' + errAct.message, 'error');
-            ocultarSpinner();
-            return;
-        }
-
-        const { data: asistencias, error: errAsis } = await clienteSupabase
-            .from('asistencia').select('*').in('estudiante_id', idsAlumnos);
-
-        if (errAsis) {
-            mostrarToast('Error al cargar asistencias: ' + errAsis.message, 'error');
-            ocultarSpinner();
-            return;
-        }
-
+        let actividades = [];
+        let asistencias = [];
         let notas = [];
-        const idsActividades = actividades ? actividades.map(a => a.id) : [];
 
+        // Cargar actividades
+        try {
+            if (navigator.onLine) {
+                const { data, error: errAct } = await clienteSupabase
+                    .from('actividades').select('*').eq('grupo_id', state.grupoSeleccionadoId).order('fecha_actividad', { ascending: true });
+                if (!errAct && data) {
+                    actividades = data;
+                    await guardarActividadesLocal(data);
+                }
+            } else {
+                actividades = await obtenerActividadesPorGrupoLocal(state.grupoSeleccionadoId);
+            }
+        } catch (e) {
+            console.warn('[Reporte] Error cargando actividades:', e);
+            actividades = await obtenerActividadesPorGrupoLocal(state.grupoSeleccionadoId);
+        }
+
+        // Cargar asistencias
+        try {
+            if (navigator.onLine) {
+                const { data, error: errAsis } = await clienteSupabase
+                    .from('asistencia').select('*').in('estudiante_id', idsAlumnos);
+                if (!errAsis && data) {
+                    asistencias = data;
+                }
+            } else {
+                const asistLocal = await obtenerTodosDeStore('asistencia');
+                asistencias = asistLocal.filter(a => idsAlumnos.includes(a.estudiante_id));
+            }
+        } catch (e) {
+            console.warn('[Reporte] Error cargando asistencias:', e);
+            const asistLocal = await obtenerTodosDeStore('asistencia');
+            asistencias = asistLocal.filter(a => idsAlumnos.includes(a.estudiante_id));
+        }
+
+        // Cargar calificaciones
+        const idsActividades = actividades.map(a => a.id);
         if (idsActividades.length > 0) {
-            const { data: notasData, error: errNotas } = await clienteSupabase
-                .from('calificaciones').select('*').in('actividad_id', idsActividades);
-            if (errNotas) {
-                mostrarToast('Error al cargar notas: ' + errNotas.message, 'error');
-            } else if (notasData) {
-                notas = notasData;
+            try {
+                if (navigator.onLine) {
+                    const { data: notasData, error: errNotas } = await clienteSupabase
+                        .from('calificaciones').select('*').in('actividad_id', idsActividades);
+                    if (!errNotas && notasData) {
+                        notas = notasData;
+                    }
+                } else {
+                    const notasLocal = await obtenerTodosDeStore('calificaciones');
+                    notas = notasLocal.filter(n => idsActividades.includes(n.actividad_id));
+                }
+            } catch (e) {
+                console.warn('[Reporte] Error cargando notas:', e);
+                const notasLocal = await obtenerTodosDeStore('calificaciones');
+                notas = notasLocal.filter(n => idsActividades.includes(n.actividad_id));
             }
         }
 
@@ -135,6 +165,7 @@ async function generarReporte() {
         mostrarToast('Reporte generado correctamente', 'success');
     } catch (err) {
         mostrarToast('Error al generar reporte', 'error');
+        console.error(err);
     } finally {
         ocultarSpinner();
     }
@@ -146,15 +177,34 @@ async function editarNota(estudianteId, actividadId, nuevaNota) {
         mostrarToast('La nota debe estar entre 0 y 10', 'warning');
         return;
     }
+
     try {
-        const { error } = await clienteSupabase.from('calificaciones').upsert({
+        // Guardar local primero
+        const datos = {
             estudiante_id: estudianteId,
             actividad_id: actividadId,
-            nota: valor
-        }, { onConflict: 'estudiante_id, actividad_id' });
+            nota: valor,
+            grupo_id: state.grupoSeleccionadoId
+        };
+        await guardarCalificacionLocal(datos);
 
-        if (error) mostrarToast('Error al actualizar nota', 'error');
-        else mostrarToast('Nota actualizada', 'success');
+        if (navigator.onLine) {
+            const { error } = await clienteSupabase.from('calificaciones').upsert({
+                estudiante_id: estudianteId,
+                actividad_id: actividadId,
+                nota: valor
+            }, { onConflict: 'estudiante_id, actividad_id' });
+
+            if (error) {
+                mostrarToast('Guardado local. Se sincronizará.', 'warning');
+            } else {
+                mostrarToast('Nota actualizada', 'success');
+            }
+        } else {
+            mostrarToast('Sin conexión. Guardado localmente.', 'warning');
+        }
+
+        actualizarContadorOffline();
     } catch (err) {
         mostrarToast('Error al actualizar nota', 'error');
     }
@@ -162,18 +212,33 @@ async function editarNota(estudianteId, actividadId, nuevaNota) {
 
 async function editarAsistencia(estudianteId, fecha, nuevoEstado) {
     try {
-        const { error } = await clienteSupabase.from('asistencia').upsert({
+        // Guardar local primero
+        const datos = {
             estudiante_id: estudianteId,
             fecha: fecha,
-            estado: nuevoEstado
-        }, { onConflict: 'estudiante_id, fecha' });
+            estado: nuevoEstado,
+            grupo_id: state.grupoSeleccionadoId
+        };
+        await guardarAsistenciaLocal(datos);
 
-        if (error) {
-            mostrarToast('Error al actualizar asistencia', 'error');
+        if (navigator.onLine) {
+            const { error } = await clienteSupabase.from('asistencia').upsert({
+                estudiante_id: estudianteId,
+                fecha: fecha,
+                estado: nuevoEstado
+            }, { onConflict: 'estudiante_id, fecha' });
+
+            if (error) {
+                mostrarToast('Guardado local. Se sincronizará.', 'warning');
+            } else {
+                mostrarToast('Asistencia actualizada', 'success');
+                generarReporte();
+            }
         } else {
-            mostrarToast('Asistencia actualizada', 'success');
-            generarReporte();
+            mostrarToast('Sin conexión. Guardado localmente.', 'warning');
         }
+
+        actualizarContadorOffline();
     } catch (err) {
         mostrarToast('Error al actualizar asistencia', 'error');
     }
@@ -268,17 +333,57 @@ async function generarEstadisticas() {
 
     try {
         const idsAlumnos = state.alumnosActuales.map(al => al.id);
-        const { data: actividades } = await clienteSupabase
-            .from('actividades').select('*').eq('grupo_id', state.grupoSeleccionadoId);
-        const { data: asistencias } = await clienteSupabase
-            .from('asistencia').select('*').in('estudiante_id', idsAlumnos);
-
+        let actividades = [];
+        let asistencias = [];
         let notas = [];
+
+        // Cargar actividades
+        try {
+            if (navigator.onLine) {
+                const { data } = await clienteSupabase
+                    .from('actividades').select('*').eq('grupo_id', state.grupoSeleccionadoId);
+                if (data) {
+                    actividades = data;
+                    await guardarActividadesLocal(data);
+                }
+            } else {
+                actividades = await obtenerActividadesPorGrupoLocal(state.grupoSeleccionadoId);
+            }
+        } catch (e) {
+            actividades = await obtenerActividadesPorGrupoLocal(state.grupoSeleccionadoId);
+        }
+
+        // Cargar asistencias
+        try {
+            if (navigator.onLine) {
+                const { data } = await clienteSupabase
+                    .from('asistencia').select('*').in('estudiante_id', idsAlumnos);
+                if (data) asistencias = data;
+            } else {
+                const asistLocal = await obtenerTodosDeStore('asistencia');
+                asistencias = asistLocal.filter(a => idsAlumnos.includes(a.estudiante_id));
+            }
+        } catch (e) {
+            const asistLocal = await obtenerTodosDeStore('asistencia');
+            asistencias = asistLocal.filter(a => idsAlumnos.includes(a.estudiante_id));
+        }
+
+        // Cargar notas
         const idsAct = actividades ? actividades.map(a => a.id) : [];
         if (idsAct.length > 0) {
-            const { data: notasData } = await clienteSupabase
-                .from('calificaciones').select('*').in('actividad_id', idsAct);
-            if (notasData) notas = notasData;
+            try {
+                if (navigator.onLine) {
+                    const { data: notasData } = await clienteSupabase
+                        .from('calificaciones').select('*').in('actividad_id', idsAct);
+                    if (notasData) notas = notasData;
+                } else {
+                    const notasLocal = await obtenerTodosDeStore('calificaciones');
+                    notas = notasLocal.filter(n => idsAct.includes(n.actividad_id));
+                }
+            } catch (e) {
+                const notasLocal = await obtenerTodosDeStore('calificaciones');
+                notas = notasLocal.filter(n => idsAct.includes(n.actividad_id));
+            }
         }
 
         const fechasAsist = [...new Set(asistencias?.map(a => a.fecha) || [])].sort();
@@ -424,7 +529,7 @@ async function generarEstadisticas() {
 }
 
 // =========================================
-// CONFIGURACIÓN
+// CONFIGURACIÓN DE CATEGORÍAS
 // =========================================
 
 async function cargarInterfazCategorias() {
@@ -546,26 +651,36 @@ async function guardarTodasCategorias() {
 
     mostrarSpinner('Guardando categorías...');
     try {
-        // Actualizar cada categoría
-        for (const cat of categoriasCache) {
-            await clienteSupabase.from('categorias').update({
-                nombre: cat.nombre,
-                porcentaje: cat.porcentaje,
-                orden: cat.orden
-            }).eq('id', cat.id);
+        // Guardar en local primero
+        await guardarCategoriasLocal(categoriasCache);
+
+        // Actualizar en Supabase si hay conexión
+        if (navigator.onLine) {
+            for (const cat of categoriasCache) {
+                await clienteSupabase.from('categorias').update({
+                    nombre: cat.nombre,
+                    porcentaje: cat.porcentaje,
+                    orden: cat.orden
+                }).eq('id', cat.id);
+            }
+
+            // Actualizar configuración legacy
+            const asistencia = categoriasCache.find(c => c.es_asistencia)?.porcentaje || 10;
+            const trabajo = categoriasCache.find(c => c.nombre === 'Trabajo en Clase')?.porcentaje || 50;
+            const examen = categoriasCache.find(c => c.nombre === 'Examen')?.porcentaje || 40;
+
+            await clienteSupabase.from('configuraciones').upsert({
+                grupo_id: state.grupoSeleccionadoId,
+                asistencia: asistencia,
+                trabajo: trabajo,
+                examen: examen
+            }, { onConflict: 'grupo_id' });
+        } else {
+            // Agregar como cambio pendiente
+            for (const cat of categoriasCache) {
+                await agregarCambioPendiente('categorias', cat);
+            }
         }
-
-        // Actualizar configuración legacy (para compatibilidad con reportes)
-        const asistencia = categoriasCache.find(c => c.es_asistencia)?.porcentaje || 10;
-        const trabajo = categoriasCache.find(c => c.nombre === 'Trabajo en Clase')?.porcentaje || 50;
-        const examen = categoriasCache.find(c => c.nombre === 'Examen')?.porcentaje || 40;
-
-        await clienteSupabase.from('configuraciones').upsert({
-            grupo_id: state.grupoSeleccionadoId,
-            asistencia: asistencia,
-            trabajo: trabajo,
-            examen: examen
-        }, { onConflict: 'grupo_id' });
 
         // Actualizar state
         state.categoriasDefecto = categoriasCache.map(c => ({
@@ -575,6 +690,7 @@ async function guardarTodasCategorias() {
 
         actualizarSelectoresCategorias();
         mostrarToast('Categorías guardadas correctamente', 'success');
+        actualizarContadorOffline();
     } catch (err) {
         mostrarToast('Error al guardar: ' + err.message, 'error');
     } finally {

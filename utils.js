@@ -72,22 +72,38 @@ function escapeHtml(texto) {
 }
 
 // =========================================
-// MODO OFFLINE
+// MODO OFFLINE - MEJORADO
 // =========================================
 
 function initOffline() {
+    // Estado inicial
+    estaOnline = navigator.onLine;
+
     window.addEventListener('online', async () => {
         estaOnline = true;
         document.getElementById('offline-indicator').classList.add('hidden');
         mostrarToast('Conexión restaurada. Sincronizando...', 'success');
 
         // Intentar sincronizar con Supabase
-        await sincronizarTodo();
+        try {
+            await sincronizarTodo();
+        } catch (e) {
+            console.error('[Offline] Error sincronizando:', e);
+        }
 
         // También intentar registrar sync en background
         if ('serviceWorker' in navigator && 'SyncManager' in window) {
-            const registration = await navigator.serviceWorker.ready;
-            registration.sync.register('sync-eduhub-data');
+            try {
+                const registration = await navigator.serviceWorker.ready;
+                registration.sync.register('sync-eduhub-data');
+            } catch (err) {
+                console.log('[SW] Sync no soportado:', err);
+            }
+        }
+
+        // Recargar datos actuales si estamos en un grupo
+        if (state.grupoSeleccionadoId) {
+            await cargarAlumnos();
         }
     });
 
@@ -102,18 +118,31 @@ function initOffline() {
     }
 
     // Verificar cambios pendientes al iniciar
-    obtenerCambiosPendientes().then(pendientes => {
-        if (pendientes.length > 0) {
-            const el = document.getElementById('offline-count');
-            if (el) el.textContent = `${pendientes.length} cambios pendientes`;
+    setTimeout(async () => {
+        try {
+            const pendientes = await obtenerCambiosPendientes();
+            if (pendientes.length > 0) {
+                const el = document.getElementById('offline-count');
+                if (el) el.textContent = `${pendientes.length} cambios pendientes`;
+
+                // Si hay conexión, intentar sincronizar automáticamente
+                if (navigator.onLine) {
+                    mostrarToast(`${pendientes.length} cambios pendientes. Sincronizando...`, 'warning');
+                    await sincronizarTodo();
+                }
+            }
+        } catch (e) {
+            console.error('[Offline] Error verificando pendientes:', e);
         }
-    });
+    }, 2000);
 }
 
 function guardarCambioPendiente(tipo, datos) {
     // Guardar en IndexedDB para persistencia real
     agregarCambioPendiente(tipo, datos).then(() => {
         actualizarContadorOffline();
+    }).catch(err => {
+        console.error('[Offline] Error guardando pendiente:', err);
     });
 
     // También mantener en memoria para compatibilidad
@@ -121,8 +150,13 @@ function guardarCambioPendiente(tipo, datos) {
 }
 
 function actualizarContadorOffline() {
-    const el = document.getElementById('offline-count');
-    if (el) el.textContent = `${cambiosPendientes.length} cambios pendientes`;
+    obtenerCambiosPendientes().then(pendientes => {
+        const el = document.getElementById('offline-count');
+        if (el) el.textContent = `${pendientes.length} cambios pendientes`;
+        cambiosPendientes = pendientes; // Sincronizar memoria
+    }).catch(err => {
+        console.error('[Offline] Error actualizando contador:', err);
+    });
 }
 
 async function sincronizarCambiosPendientes() {

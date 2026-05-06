@@ -1,5 +1,5 @@
 // =========================================
-// HISTORIAL
+// HISTORIAL - CON SOPORTE OFFLINE
 // =========================================
 
 async function cargarHistorial(tipo) {
@@ -12,10 +12,19 @@ async function cargarHistorial(tipo) {
 
     try {
         if (tipo === 'actividades') {
-            const { data, error } = await clienteSupabase
-                .from('actividades').select('*').eq('grupo_id', state.grupoSeleccionadoId).order('fecha_actividad', { ascending: false });
+            let data = [];
 
-            if (error) { mostrarToast('Error: ' + error.message, 'error'); return; }
+            if (navigator.onLine) {
+                const result = await clienteSupabase
+                    .from('actividades').select('*').eq('grupo_id', state.grupoSeleccionadoId).order('fecha_actividad', { ascending: false });
+                if (result.data) {
+                    data = result.data;
+                    await guardarActividadesLocal(data);
+                }
+            } else {
+                data = await obtenerActividadesPorGrupoLocal(state.grupoSeleccionadoId);
+            }
+
             if (!data || data.length === 0) {
                 contenedor.innerHTML = `<div style="text-align: center; padding: 30px; color: var(--text-light);"><i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px;"></i><p>No hay actividades registradas</p></div>`;
                 return;
@@ -46,14 +55,23 @@ async function cargarHistorial(tipo) {
                     </div>
                     <div style="margin-top: 8px; font-size: 0.8rem; color: var(--text-light);">
                         <span style="background: #eaf4f9; padding: 2px 8px; border-radius: 10px;">${escapeHtml(act.tipo || 'Sin categoría')}</span>
+                        ${!act.synced && act.local_id ? '<span style="background: #fff3cd; padding: 2px 8px; border-radius: 10px; margin-left: 5px;"><i class="fas fa-wifi-slash"></i> Offline</span>' : ''}
                     </div>
                 </div>
             `).join('');
-        } else if (tipo === 'asistencia') {
-            const { data, error } = await clienteSupabase.from('asistencia')
-                .select('fecha').in('estudiante_id', state.alumnosActuales.map(al => al.id));
 
-            if (error) { mostrarToast('Error: ' + error.message, 'error'); return; }
+        } else if (tipo === 'asistencia') {
+            let data = [];
+
+            if (navigator.onLine) {
+                const result = await clienteSupabase.from('asistencia')
+                    .select('fecha').in('estudiante_id', state.alumnosActuales.map(al => al.id));
+                if (result.data) data = result.data;
+            } else {
+                const asistLocal = await obtenerTodosDeStore('asistencia');
+                data = asistLocal.filter(a => state.alumnosActuales.map(al => al.id).includes(a.estudiante_id));
+            }
+
             if (!data || data.length === 0) {
                 contenedor.innerHTML = `<div style="text-align: center; padding: 30px; color: var(--text-light);"><i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px;"></i><p>No hay registros de asistencia</p></div>`;
                 return;
@@ -75,11 +93,21 @@ async function cargarHistorial(tipo) {
                     </div>
                 </div>
             `).join('');
-        } else if (tipo === 'plantillas') {
-            const { data, error } = await clienteSupabase.from('plantillas')
-                .select('*').eq('grupo_id', state.grupoSeleccionadoId).order('created_at', { ascending: false });
 
-            if (error) { mostrarToast('Error: ' + error.message, 'error'); return; }
+        } else if (tipo === 'plantillas') {
+            let data = [];
+
+            if (navigator.onLine) {
+                const result = await clienteSupabase.from('plantillas')
+                    .select('*').eq('grupo_id', state.grupoSeleccionadoId).order('created_at', { ascending: false });
+                if (result.data) {
+                    data = result.data;
+                    await guardarPlantillasLocal(data);
+                }
+            } else {
+                data = await obtenerPlantillasPorGrupoLocal(state.grupoSeleccionadoId);
+            }
+
             if (!data || data.length === 0) {
                 contenedor.innerHTML = `<div style="text-align: center; padding: 30px; color: var(--text-light);"><i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px;"></i><p>No hay plantillas guardadas</p></div>`;
                 return;
@@ -106,6 +134,7 @@ async function cargarHistorial(tipo) {
         }
     } catch (err) {
         mostrarToast('Error al cargar historial', 'error');
+        console.error(err);
     }
 }
 
@@ -118,7 +147,10 @@ function usarPlantillaDesdeHistorial(nombre, categoria) {
 async function eliminarPlantilla(id) {
     if (!confirm('¿Eliminar esta plantilla?')) return;
     try {
-        await clienteSupabase.from('plantillas').delete().eq('id', id);
+        if (navigator.onLine && !String(id).startsWith('local_')) {
+            await clienteSupabase.from('plantillas').delete().eq('id', id);
+        }
+        await eliminarDeStore('plantillas', id);
         mostrarToast('Plantilla eliminada', 'success');
         await cargarHistorial('plantillas');
         await cargarPlantillasSelector();
@@ -131,8 +163,11 @@ async function eliminarActividad(id) {
     if (!confirm("¿Eliminar esta actividad? Las calificaciones asociadas también se eliminarán.")) return;
     mostrarSpinner('Eliminando...');
     try {
-        await clienteSupabase.from('calificaciones').delete().eq('actividad_id', id);
-        await clienteSupabase.from('actividades').delete().eq('id', id);
+        if (navigator.onLine && !String(id).startsWith('local_')) {
+            await clienteSupabase.from('calificaciones').delete().eq('actividad_id', id);
+            await clienteSupabase.from('actividades').delete().eq('id', id);
+        }
+        await eliminarDeStore('actividades', id);
         mostrarToast('Actividad eliminada', 'success');
         await cargarHistorial('actividades');
     } catch (err) {
@@ -147,7 +182,16 @@ async function eliminarAsistenciaDia(fecha) {
     mostrarSpinner('Eliminando...');
     try {
         const idsAlumnos = state.alumnosActuales.map(al => al.id);
-        await clienteSupabase.from('asistencia').delete().eq('fecha', fecha).in('estudiante_id', idsAlumnos);
+        if (navigator.onLine) {
+            await clienteSupabase.from('asistencia').delete().eq('fecha', fecha).in('estudiante_id', idsAlumnos);
+        }
+        // Eliminar locales
+        const asistLocal = await obtenerTodosDeStore('asistencia');
+        for (const a of asistLocal) {
+            if (a.fecha === fecha && idsAlumnos.includes(a.estudiante_id)) {
+                await eliminarDeStore('asistencia', a.local_id);
+            }
+        }
         mostrarToast('Asistencia eliminada', 'success');
         await cargarHistorial('asistencia');
     } catch (err) {
@@ -166,11 +210,25 @@ async function actualizarActividad(id) {
     }
     mostrarSpinner('Actualizando...');
     try {
-        const { error } = await clienteSupabase.from('actividades').update({ 
-            nombre_actividad: nombre, fecha_actividad: fecha 
-        }).eq('id', id);
-        if (!error) mostrarToast('Actividad actualizada', 'success');
-        else mostrarToast('Error al actualizar', 'error');
+        if (navigator.onLine && !String(id).startsWith('local_')) {
+            const { error } = await clienteSupabase.from('actividades').update({ 
+                nombre_actividad: nombre, fecha_actividad: fecha 
+            }).eq('id', id);
+            if (!error) mostrarToast('Actividad actualizada', 'success');
+            else mostrarToast('Error al actualizar', 'error');
+        } else {
+            // Actualizar local
+            const act = await obtenerDeStore('actividades', id);
+            if (act) {
+                act.nombre_actividad = nombre;
+                act.fecha_actividad = fecha;
+                act.synced = false;
+                await guardarEnStore('actividades', act);
+                await agregarCambioPendiente('actividades', act);
+                mostrarToast('Actividad actualizada localmente', 'warning');
+            }
+        }
+        actualizarContadorOffline();
     } catch (err) {
         mostrarToast('Error al actualizar', 'error');
     } finally {
@@ -187,9 +245,21 @@ async function actualizarFechaAsistencia(fechaOriginal) {
     mostrarSpinner('Actualizando...');
     try {
         const idsAlumnos = state.alumnosActuales.map(al => al.id);
-        await clienteSupabase.from('asistencia').update({ fecha: nuevaFecha }).eq('fecha', fechaOriginal).in('estudiante_id', idsAlumnos);
+        if (navigator.onLine) {
+            await clienteSupabase.from('asistencia').update({ fecha: nuevaFecha }).eq('fecha', fechaOriginal).in('estudiante_id', idsAlumnos);
+        }
+        // Actualizar locales
+        const asistLocal = await obtenerTodosDeStore('asistencia');
+        for (const a of asistLocal) {
+            if (a.fecha === fechaOriginal && idsAlumnos.includes(a.estudiante_id)) {
+                a.fecha = nuevaFecha;
+                a.synced = false;
+                await guardarEnStore('asistencia', a);
+            }
+        }
         mostrarToast('Fecha actualizada', 'success');
         await cargarHistorial('asistencia');
+        actualizarContadorOffline();
     } catch (err) {
         mostrarToast('Error al actualizar fecha', 'error');
     } finally {

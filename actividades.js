@@ -1,5 +1,5 @@
 // =========================================
-// TAREAS Y NOTAS
+// TAREAS Y NOTAS - CON SOPORTE OFFLINE
 // =========================================
 
 async function crearActividad() {
@@ -21,33 +21,70 @@ async function crearActividad() {
     }
 
     mostrarSpinner('Creando actividad...');
+
     try {
-        const { data, error } = await clienteSupabase
-            .from('actividades')
-            .insert([{ 
-                grupo_id: state.grupoSeleccionadoId, 
-                nombre_actividad: nombre, 
-                fecha_actividad: fecha, 
+        let actividadId = null;
+        let actividadData = null;
+
+        // Intentar crear en Supabase si hay conexión
+        if (navigator.onLine) {
+            try {
+                const { data, error } = await clienteSupabase
+                    .from('actividades')
+                    .insert([{ 
+                        grupo_id: state.grupoSeleccionadoId, 
+                        nombre_actividad: nombre, 
+                        fecha_actividad: fecha, 
+                        tipo: cat,
+                        ponderacion: 100 
+                    }])
+                    .select();
+
+                if (error) {
+                    console.warn('[Actividad] Error Supabase:', error);
+                } else if (data && data.length > 0) {
+                    actividadId = data[0].id;
+                    actividadData = data[0];
+                    // Guardar en local
+                    await guardarEnStore('actividades', { ...data[0], synced: true, last_sync: new Date().toISOString() });
+                }
+            } catch (err) {
+                console.warn('[Actividad] Fallo conexión Supabase:', err);
+            }
+        }
+
+        // Si no se pudo crear en Supabase, crear localmente
+        if (!actividadId) {
+            actividadId = `local_act_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            actividadData = {
+                id: actividadId,
+                local_id: actividadId,
+                grupo_id: state.grupoSeleccionadoId,
+                nombre_actividad: nombre,
+                fecha_actividad: fecha,
                 tipo: cat,
-                ponderacion: 100 
-            }])
-            .select();
-
-        if (error) {
-            mostrarToast('Error de base de datos: ' + error.message, 'error');
-            return;
-        }
-
-        if (data && data.length > 0) {
-            state.actividadActualId = data[0].id;
-            document.getElementById('tabla-calificaciones').classList.remove('hidden');
-            generarCamposNotas();
+                ponderacion: 100,
+                synced: false,
+                timestamp: new Date().toISOString()
+            };
+            await guardarEnStore('actividades', actividadData);
+            await agregarCambioPendiente('actividades', actividadData);
+            mostrarToast('Actividad creada localmente (se sincronizará)', 'warning');
+        } else {
             mostrarToast('Actividad creada con éxito', 'success');
-            document.getElementById('nombre-tarea').value = '';
-            document.getElementById('fecha-tarea').value = '';
         }
+
+        state.actividadActualId = actividadId;
+        document.getElementById('tabla-calificaciones').classList.remove('hidden');
+        generarCamposNotas();
+
+        document.getElementById('nombre-tarea').value = '';
+        document.getElementById('fecha-tarea').value = '';
+
+        actualizarContadorOffline();
     } catch (err) {
         mostrarToast('Error al crear actividad', 'error');
+        console.error(err);
     } finally {
         ocultarSpinner();
     }
@@ -102,7 +139,8 @@ async function guardarNotasBD() {
     const notas = Array.from(document.querySelectorAll('.input-nota')).map(i => ({
         estudiante_id: i.id.replace('nota-', ''),
         actividad_id: state.actividadActualId,
-        nota: parseFloat(i.value) || 0
+        nota: parseFloat(i.value) || 0,
+        grupo_id: state.grupoSeleccionadoId
     }));
 
     if (notas.length === 0) {
@@ -111,6 +149,7 @@ async function guardarNotasBD() {
     }
 
     mostrarSpinner('Guardando calificaciones...');
+
     try {
         // SIEMPRE guardar en IndexedDB primero
         for (const nota of notas) {
@@ -120,18 +159,24 @@ async function guardarNotasBD() {
         mostrarToast('Calificaciones guardadas localmente', 'success');
 
         // Si hay internet, sincronizar con Supabase
-        if (estaOnline) {
-            const { error } = await clienteSupabase.from('calificaciones').insert(notas);
-            if (error) {
-                console.error('Error sync Supabase:', error);
+        if (navigator.onLine) {
+            try {
+                const { error } = await clienteSupabase.from('calificaciones').insert(notas);
+                if (error) {
+                    console.error('Error sync Supabase:', error);
+                    mostrarToast('Guardado local. Se sincronizará cuando haya internet.', 'warning');
+                } else {
+                    mostrarToast('Calificaciones sincronizadas con la nube', 'success');
+                }
+            } catch (syncErr) {
+                console.error('Error sync:', syncErr);
                 mostrarToast('Guardado local. Se sincronizará cuando haya internet.', 'warning');
-            } else {
-                mostrarToast('Calificaciones sincronizadas con la nube', 'success');
             }
         } else {
             mostrarToast('Sin conexión. Se sincronizará automáticamente.', 'warning');
         }
 
+        actualizarContadorOffline();
         document.getElementById('tabla-calificaciones').classList.add('hidden');
         state.actividadActualId = null;
     } catch (err) {
@@ -143,25 +188,39 @@ async function guardarNotasBD() {
 }
 
 // =========================================
-// PLANTILLAS
+// PLANTILLAS - CON SOPORTE OFFLINE
 // =========================================
 
 async function cargarPlantillasSelector() {
     try {
-        const { data } = await clienteSupabase.from('plantillas')
-            .select('*').eq('grupo_id', state.grupoSeleccionadoId);
+        let plantillas = [];
+
+        // Intentar cargar desde Supabase
+        if (navigator.onLine) {
+            const { data } = await clienteSupabase.from('plantillas')
+                .select('*').eq('grupo_id', state.grupoSeleccionadoId);
+
+            if (data) {
+                plantillas = data;
+                // Guardar en local
+                await guardarPlantillasLocal(data);
+            }
+        } else {
+            // Cargar desde local
+            plantillas = await obtenerPlantillasPorGrupoLocal(state.grupoSeleccionadoId);
+        }
 
         const sel = document.getElementById('selector-plantilla');
         if (!sel) return;
 
         sel.innerHTML = '<option value="">-- Seleccionar plantilla --</option>';
-        if (data) {
-            data.forEach(p => {
+        if (plantillas && plantillas.length > 0) {
+            plantillas.forEach(p => {
                 sel.innerHTML += `<option value="${p.id}" data-nombre="${escapeHtml(p.nombre)}" data-categoria="${escapeHtml(p.categoria)}">${escapeHtml(p.nombre)} (${escapeHtml(p.categoria)})</option>`;
             });
         }
     } catch (e) {
-        console.log('No hay tabla de plantillas aún');
+        console.log('[Plantillas] Error cargando:', e);
     }
 }
 
@@ -204,26 +263,49 @@ async function guardarPlantillaDesdeModal() {
     }
 
     mostrarSpinner('Guardando plantilla...');
-    try {
-        const { data, error } = await clienteSupabase.from('plantillas').insert({
-            grupo_id: state.grupoSeleccionadoId,
-            nombre: nombre,
-            categoria: cat
-        }).select();
 
-        if (error) {
-            console.error('Error detallado:', error);
-            if (error.message && error.message.includes('schema cache')) {
-                mostrarToast('Error: El schema de Supabase necesita actualizarse. Intenta recargar la página.', 'error', 6000);
-            } else if (error.code === '42703') {
-                mostrarToast('Error: La columna no existe. Ve a Supabase → Database → Tables → plantillas → Refresh schema.', 'error', 8000);
-            } else {
-                mostrarToast('Error: ' + error.message, 'error', 6000);
+    try {
+        let guardado = false;
+
+        // Intentar guardar en Supabase
+        if (navigator.onLine) {
+            try {
+                const { data, error } = await clienteSupabase.from('plantillas').insert({
+                    grupo_id: state.grupoSeleccionadoId,
+                    nombre: nombre,
+                    categoria: cat
+                }).select();
+
+                if (error) {
+                    console.warn('[Plantilla] Error Supabase:', error);
+                } else {
+                    mostrarToast('Plantilla guardada correctamente', 'success');
+                    cerrarModalPlantilla();
+                    await cargarPlantillasSelector();
+                    guardado = true;
+                }
+            } catch (err) {
+                console.warn('[Plantilla] Fallo conexión:', err);
             }
-        } else {
-            mostrarToast('Plantilla guardada correctamente', 'success');
+        }
+
+        // Si no se guardó en Supabase, guardar local
+        if (!guardado) {
+            const plantillaLocal = {
+                id: `local_plant_${Date.now()}`,
+                local_id: `local_plant_${Date.now()}`,
+                grupo_id: state.grupoSeleccionadoId,
+                nombre: nombre,
+                categoria: cat,
+                synced: false,
+                timestamp: new Date().toISOString()
+            };
+            await guardarEnStore('plantillas', plantillaLocal);
+            await agregarCambioPendiente('plantillas', plantillaLocal);
+            mostrarToast('Plantilla guardada localmente (se sincronizará)', 'warning');
             cerrarModalPlantilla();
             await cargarPlantillasSelector();
+            actualizarContadorOffline();
         }
     } catch (err) {
         console.error('Error catch:', err);
@@ -233,7 +315,7 @@ async function guardarPlantillaDesdeModal() {
     }
 }
 
-// Función antigua mantenida por compatibilidad (ya no se usa desde el UI)
+// Función antigua mantenida por compatibilidad
 async function guardarComoPlantilla() {
     abrirModalPlantilla();
 }
@@ -241,34 +323,64 @@ async function guardarComoPlantilla() {
 async function duplicarActividad(id) {
     mostrarSpinner('Duplicando actividad...');
     try {
-        const { data: actOriginal } = await clienteSupabase.from('actividades').select('*').eq('id', id).single();
+        let actOriginal = null;
+
+        // Intentar obtener de Supabase
+        if (navigator.onLine) {
+            const { data } = await clienteSupabase.from('actividades').select('*').eq('id', id).single();
+            if (data) actOriginal = data;
+        }
+
+        // Si no está en Supabase, buscar en local
+        if (!actOriginal) {
+            const actLocal = await obtenerDeStore('actividades', id);
+            if (actLocal) actOriginal = actLocal;
+        }
+
         if (!actOriginal) {
             mostrarToast('Actividad no encontrada', 'error');
             return;
         }
 
-        const { data: nuevaAct, error: errInsert } = await clienteSupabase.from('actividades').insert({
+        const nuevaAct = {
             grupo_id: actOriginal.grupo_id,
             nombre_actividad: actOriginal.nombre_actividad + ' (Copia)',
             fecha_actividad: new Date().toISOString().split('T')[0],
             tipo: actOriginal.tipo,
             ponderacion: actOriginal.ponderacion
-        }).select();
+        };
 
-        if (errInsert) {
-            mostrarToast('Error al duplicar: ' + errInsert.message, 'error');
-            return;
-        }
+        if (navigator.onLine) {
+            const { data: nuevaActData, error: errInsert } = await clienteSupabase.from('actividades').insert(nuevaAct).select();
+            if (errInsert) {
+                mostrarToast('Error al duplicar: ' + errInsert.message, 'error');
+                return;
+            }
 
-        // Copiar calificaciones
-        const { data: notasOrig } = await clienteSupabase.from('calificaciones').select('*').eq('actividad_id', id);
-        if (notasOrig && notasOrig.length > 0 && nuevaAct && nuevaAct.length > 0) {
-            const nuevasNotas = notasOrig.map(n => ({
-                estudiante_id: n.estudiante_id,
-                actividad_id: nuevaAct[0].id,
-                nota: n.nota
-            }));
-            await clienteSupabase.from('calificaciones').insert(nuevasNotas);
+            // Copiar calificaciones
+            if (nuevaActData && nuevaActData.length > 0) {
+                const { data: notasOrig } = await clienteSupabase.from('calificaciones').select('*').eq('actividad_id', id);
+                if (notasOrig && notasOrig.length > 0) {
+                    const nuevasNotas = notasOrig.map(n => ({
+                        estudiante_id: n.estudiante_id,
+                        actividad_id: nuevaActData[0].id,
+                        nota: n.nota,
+                        grupo_id: state.grupoSeleccionadoId
+                    }));
+                    await clienteSupabase.from('calificaciones').insert(nuevasNotas);
+                }
+            }
+        } else {
+            // Guardar localmente
+            const actLocal = {
+                ...nuevaAct,
+                id: `local_act_${Date.now()}`,
+                local_id: `local_act_${Date.now()}`,
+                synced: false,
+                timestamp: new Date().toISOString()
+            };
+            await guardarEnStore('actividades', actLocal);
+            await agregarCambioPendiente('actividades', actLocal);
         }
 
         mostrarToast('Actividad duplicada con éxito', 'success');

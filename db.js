@@ -3,7 +3,7 @@
 // =========================================
 
 const DB_NAME = 'EduHubDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Incrementamos versión para nueva estructura
 let db = null;
 
 // =========================================
@@ -17,7 +17,7 @@ function initDB() {
         request.onerror = () => reject(request.error);
         request.onsuccess = () => {
             db = request.result;
-            console.log('[DB] Base de datos local inicializada');
+            console.log('[DB] Base de datos local inicializada v' + DB_VERSION);
             resolve(db);
         };
 
@@ -42,6 +42,7 @@ function initDB() {
                 storeAsist.createIndex('estudiante_id', 'estudiante_id', { unique: false });
                 storeAsist.createIndex('fecha', 'fecha', { unique: false });
                 storeAsist.createIndex('synced', 'synced', { unique: false });
+                storeAsist.createIndex('grupo_id', 'grupo_id', { unique: false });
             }
 
             // Store para calificaciones
@@ -50,6 +51,7 @@ function initDB() {
                 storeCalif.createIndex('estudiante_id', 'estudiante_id', { unique: false });
                 storeCalif.createIndex('actividad_id', 'actividad_id', { unique: false });
                 storeCalif.createIndex('synced', 'synced', { unique: false });
+                storeCalif.createIndex('grupo_id', 'grupo_id', { unique: false });
             }
 
             // Store para actividades
@@ -64,6 +66,7 @@ function initDB() {
                 const storeObs = database.createObjectStore('observaciones', { keyPath: 'local_id', autoIncrement: true });
                 storeObs.createIndex('estudiante_id', 'estudiante_id', { unique: false });
                 storeObs.createIndex('synced', 'synced', { unique: false });
+                storeObs.createIndex('grupo_id', 'grupo_id', { unique: false });
             }
 
             // Store para categorías
@@ -77,11 +80,19 @@ function initDB() {
                 const storePend = database.createObjectStore('cambios_pendientes', { keyPath: 'local_id', autoIncrement: true });
                 storePend.createIndex('tipo', 'tipo', { unique: false });
                 storePend.createIndex('timestamp', 'timestamp', { unique: false });
+                storePend.createIndex('grupo_id', 'grupo_id', { unique: false });
             }
 
             // Store para configuración
             if (!database.objectStoreNames.contains('configuracion')) {
                 database.createObjectStore('configuracion', { keyPath: 'clave' });
+            }
+
+            // Store para plantillas
+            if (!database.objectStoreNames.contains('plantillas')) {
+                const storePlant = database.createObjectStore('plantillas', { keyPath: 'local_id', autoIncrement: true });
+                storePlant.createIndex('grupo_id', 'grupo_id', { unique: false });
+                storePlant.createIndex('synced', 'synced', { unique: false });
             }
         };
     });
@@ -155,16 +166,46 @@ function limpiarStore(storeName) {
 }
 
 // =========================================
-// FUNCIONES ESPECÍFICAS PARA EDUHUB
+// FUNCIONES ESPECÍFICAS PARA EDUHUB - GRUPOS
 // =========================================
 
-async function guardarGrupoLocal(grupo) {
-    return guardarEnStore('grupos', { ...grupo, last_sync: new Date().toISOString() });
+async function guardarGruposLocal(grupos) {
+    if (!Array.isArray(grupos)) return;
+    for (const grupo of grupos) {
+        await guardarEnStore('grupos', { ...grupo, last_sync: new Date().toISOString() });
+    }
+}
+
+async function obtenerGruposLocal() {
+    return obtenerTodosDeStore('grupos');
+}
+
+// =========================================
+// FUNCIONES ESPECÍFICAS PARA EDUHUB - ALUMNOS
+// =========================================
+
+async function guardarAlumnosLocal(alumnos) {
+    if (!Array.isArray(alumnos)) return;
+    for (const alumno of alumnos) {
+        await guardarEnStore('estudiantes', { ...alumno, last_sync: new Date().toISOString() });
+    }
+}
+
+async function obtenerAlumnosPorGrupoLocal(grupoId) {
+    return obtenerTodosDeStore('estudiantes', 'grupo_id', grupoId);
 }
 
 async function guardarAlumnoLocal(alumno) {
     return guardarEnStore('estudiantes', { ...alumno, last_sync: new Date().toISOString() });
 }
+
+async function eliminarAlumnoLocal(alumnoId) {
+    return eliminarDeStore('estudiantes', alumnoId);
+}
+
+// =========================================
+// FUNCIONES ESPECÍFICAS - ASISTENCIA
+// =========================================
 
 async function guardarAsistenciaLocal(asistencia) {
     const datos = {
@@ -177,6 +218,17 @@ async function guardarAsistenciaLocal(asistencia) {
     return id;
 }
 
+async function obtenerAsistenciasPorGrupoLocal(grupoId) {
+    // Necesitamos obtener por estudiante_id y luego filtrar, o usar un cursor
+    // Por simplicidad, obtenemos todas y filtramos
+    const todas = await obtenerTodosDeStore('asistencia');
+    return todas.filter(a => a.grupo_id === grupoId);
+}
+
+// =========================================
+// FUNCIONES ESPECÍFICAS - CALIFICACIONES
+// =========================================
+
 async function guardarCalificacionLocal(calificacion) {
     const datos = {
         ...calificacion,
@@ -187,6 +239,10 @@ async function guardarCalificacionLocal(calificacion) {
     await agregarCambioPendiente('calificaciones', datos);
     return id;
 }
+
+// =========================================
+// FUNCIONES ESPECÍFICAS - OBSERVACIONES
+// =========================================
 
 async function guardarObservacionLocal(observacion) {
     const datos = {
@@ -199,12 +255,69 @@ async function guardarObservacionLocal(observacion) {
     return id;
 }
 
+async function obtenerObservacionesPorGrupoLocal(grupoId) {
+    const todas = await obtenerTodosDeStore('observaciones');
+    return todas.filter(o => o.grupo_id === grupoId);
+}
+
+// =========================================
+// FUNCIONES ESPECÍFICAS - ACTIVIDADES
+// =========================================
+
+async function guardarActividadesLocal(actividades) {
+    if (!Array.isArray(actividades)) return;
+    for (const act of actividades) {
+        await guardarEnStore('actividades', { ...act, local_id: act.local_id || `local_${Date.now()}_${Math.random()}`, synced: true, last_sync: new Date().toISOString() });
+    }
+}
+
+async function obtenerActividadesPorGrupoLocal(grupoId) {
+    const todas = await obtenerTodosDeStore('actividades');
+    return todas.filter(a => a.grupo_id === grupoId);
+}
+
+// =========================================
+// FUNCIONES ESPECÍFICAS - CATEGORÍAS
+// =========================================
+
+async function guardarCategoriasLocal(categorias) {
+    if (!Array.isArray(categorias)) return;
+    for (const cat of categorias) {
+        await guardarEnStore('categorias', { ...cat, last_sync: new Date().toISOString() });
+    }
+}
+
+async function obtenerCategoriasPorGrupoLocal(grupoId) {
+    return obtenerTodosDeStore('categorias', 'grupo_id', grupoId);
+}
+
+// =========================================
+// FUNCIONES ESPECÍFICAS - PLANTILLAS
+// =========================================
+
+async function guardarPlantillasLocal(plantillas) {
+    if (!Array.isArray(plantillas)) return;
+    for (const p of plantillas) {
+        await guardarEnStore('plantillas', { ...p, synced: true, last_sync: new Date().toISOString() });
+    }
+}
+
+async function obtenerPlantillasPorGrupoLocal(grupoId) {
+    const todas = await obtenerTodosDeStore('plantillas');
+    return todas.filter(p => p.grupo_id === grupoId);
+}
+
+// =========================================
+// CAMBIOS PENDIENTES
+// =========================================
+
 async function agregarCambioPendiente(tipo, datos) {
     return guardarEnStore('cambios_pendientes', {
         tipo,
         datos: JSON.stringify(datos),
         timestamp: new Date().toISOString(),
-        intentos: 0
+        intentos: 0,
+        grupo_id: datos.grupo_id || state?.grupoSeleccionadoId || null
     });
 }
 
@@ -343,6 +456,7 @@ async function exportarDBLocal() {
         actividades: await obtenerTodosDeStore('actividades'),
         observaciones: await obtenerTodosDeStore('observaciones'),
         categorias: await obtenerTodosDeStore('categorias'),
+        plantillas: await obtenerTodosDeStore('plantillas'),
         cambios_pendientes: await obtenerTodosDeStore('cambios_pendientes'),
         export_date: new Date().toISOString()
     };
@@ -375,6 +489,7 @@ async function importarDBLocal(file) {
                 await limpiarStore('actividades');
                 await limpiarStore('observaciones');
                 await limpiarStore('categorias');
+                await limpiarStore('plantillas');
                 await limpiarStore('cambios_pendientes');
 
                 // Importar datos
@@ -385,6 +500,7 @@ async function importarDBLocal(file) {
                 for (const item of (datos.actividades || [])) await guardarEnStore('actividades', item);
                 for (const item of (datos.observaciones || [])) await guardarEnStore('observaciones', item);
                 for (const item of (datos.categorias || [])) await guardarEnStore('categorias', item);
+                for (const item of (datos.plantillas || [])) await guardarEnStore('plantillas', item);
                 for (const item of (datos.cambios_pendientes || [])) await guardarEnStore('cambios_pendientes', item);
 
                 mostrarToast('Backup importado correctamente', 'success');

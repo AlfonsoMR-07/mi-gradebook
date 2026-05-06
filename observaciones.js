@@ -1,17 +1,33 @@
 // =========================================
-// OBSERVACIONES
+// OBSERVACIONES - CON SOPORTE OFFLINE
 // =========================================
 
 async function precargarObservaciones() {
     if (state.alumnosActuales.length === 0) return;
     const ids = state.alumnosActuales.map(a => a.id);
-    try {
-        const { data } = await clienteSupabase.from('observaciones')
-            .select('*').in('estudiante_id', ids).order('created_at', { ascending: false });
 
-        state.observacionesCache = {};
-        if (data) {
-            data.forEach(obs => {
+    state.observacionesCache = {};
+
+    try {
+        // Intentar cargar desde Supabase
+        if (navigator.onLine) {
+            const { data } = await clienteSupabase.from('observaciones')
+                .select('*').in('estudiante_id', ids).order('created_at', { ascending: false });
+
+            if (data) {
+                data.forEach(obs => {
+                    if (!state.observacionesCache[obs.estudiante_id]) {
+                        state.observacionesCache[obs.estudiante_id] = [];
+                    }
+                    state.observacionesCache[obs.estudiante_id].push(obs);
+                });
+                // Guardar en local para offline
+                await guardarObservacionesLocal(data);
+            }
+        } else {
+            // Cargar desde local
+            const obsLocal = await obtenerObservacionesPorGrupoLocal(state.grupoSeleccionadoId);
+            obsLocal.forEach(obs => {
                 if (!state.observacionesCache[obs.estudiante_id]) {
                     state.observacionesCache[obs.estudiante_id] = [];
                 }
@@ -19,7 +35,19 @@ async function precargarObservaciones() {
             });
         }
     } catch (e) {
-        console.log('No hay tabla de observaciones aún');
+        console.log('[Observaciones] Error precargando:', e);
+        // Intentar cargar desde local como fallback
+        try {
+            const obsLocal = await obtenerObservacionesPorGrupoLocal(state.grupoSeleccionadoId);
+            obsLocal.forEach(obs => {
+                if (!state.observacionesCache[obs.estudiante_id]) {
+                    state.observacionesCache[obs.estudiante_id] = [];
+                }
+                state.observacionesCache[obs.estudiante_id].push(obs);
+            });
+        } catch (localErr) {
+            console.log('[Observaciones] No hay datos locales:', localErr);
+        }
     }
 }
 
@@ -35,7 +63,7 @@ function abrirModalObservaciones(estudianteId, nombre) {
     } else {
         lista.innerHTML = obs.map(o => `
             <div class="obs-item">
-                <div class="obs-fecha">${new Date(o.created_at).toLocaleString('es-MX')}</div>
+                <div class="obs-fecha">${new Date(o.created_at || o.timestamp).toLocaleString('es-MX')}</div>
                 <div>${escapeHtml(o.texto)}</div>
             </div>
         `).join('');
@@ -80,18 +108,25 @@ async function guardarObservacion() {
         mostrarToast('Observación guardada localmente', 'success');
 
         // Si hay internet, sincronizar con Supabase
-        if (estaOnline) {
-            const { data, error } = await clienteSupabase.from('observaciones').insert(datos).select();
-            if (error) {
-                console.error('Error sync Supabase:', error);
+        if (navigator.onLine) {
+            try {
+                const { data, error } = await clienteSupabase.from('observaciones').insert(datos).select();
+                if (error) {
+                    console.error('Error sync Supabase:', error);
+                    mostrarToast('Guardado local. Se sincronizará cuando haya internet.', 'warning');
+                } else {
+                    mostrarToast('Observación sincronizada con la nube', 'success');
+                }
+            } catch (syncErr) {
+                console.error('Error sync:', syncErr);
                 mostrarToast('Guardado local. Se sincronizará cuando haya internet.', 'warning');
-            } else {
-                mostrarToast('Observación sincronizada con la nube', 'success');
             }
         } else {
             mostrarToast('Sin conexión. Se sincronizará automáticamente.', 'warning');
         }
 
+        // Actualizar contador offline
+        actualizarContadorOffline();
         cerrarModalObservaciones();
     } catch (err) {
         mostrarToast('Error al guardar observación', 'error');
@@ -108,19 +143,23 @@ async function guardarObservacion() {
 async function precargarJustificaciones() {
     if (state.alumnosActuales.length === 0) return;
     const ids = state.alumnosActuales.map(a => a.id);
-    try {
-        const { data } = await clienteSupabase.from('asistencia')
-            .select('*').in('estudiante_id', ids).not('justificacion', 'is', null);
 
-        state.justificacionesCache = {};
-        if (data) {
-            data.forEach(j => {
-                const key = `${j.estudiante_id}_${j.fecha}`;
-                state.justificacionesCache[key] = j.justificacion;
-            });
+    state.justificacionesCache = {};
+
+    try {
+        if (navigator.onLine) {
+            const { data } = await clienteSupabase.from('asistencia')
+                .select('*').in('estudiante_id', ids).not('justificacion', 'is', null);
+
+            if (data) {
+                data.forEach(j => {
+                    const key = `${j.estudiante_id}_${j.fecha}`;
+                    state.justificacionesCache[key] = j.justificacion;
+                });
+            }
         }
     } catch (e) {
-        console.log('No hay justificaciones aún');
+        console.log('[Justificaciones] Error precargando:', e);
     }
 }
 
@@ -154,21 +193,41 @@ async function guardarJustificacion() {
 
     mostrarSpinner('Guardando...');
     try {
-        const { error } = await clienteSupabase.from('asistencia').upsert({
+        // Guardar local primero
+        const datos = {
             estudiante_id: estudianteId,
             fecha: fecha,
             estado: 'Falta',
-            justificacion: texto
-        }, { onConflict: 'estudiante_id, fecha' });
+            justificacion: texto,
+            grupo_id: state.grupoSeleccionadoId
+        };
 
-        if (error) {
-            mostrarToast('Error: ' + error.message, 'error');
+        await guardarAsistenciaLocal(datos);
+
+        if (navigator.onLine) {
+            const { error } = await clienteSupabase.from('asistencia').upsert({
+                estudiante_id: estudianteId,
+                fecha: fecha,
+                estado: 'Falta',
+                justificacion: texto
+            }, { onConflict: 'estudiante_id, fecha' });
+
+            if (error) {
+                mostrarToast('Guardado local. Se sincronizará cuando haya internet.', 'warning');
+            } else {
+                mostrarToast('Justificación guardada', 'success');
+                const key = `${estudianteId}_${fecha}`;
+                state.justificacionesCache[key] = texto;
+                cerrarModalJustificacion();
+            }
         } else {
-            mostrarToast('Justificación guardada', 'success');
+            mostrarToast('Sin conexión. Guardado localmente.', 'warning');
             const key = `${estudianteId}_${fecha}`;
             state.justificacionesCache[key] = texto;
             cerrarModalJustificacion();
         }
+
+        actualizarContadorOffline();
     } catch (err) {
         mostrarToast('Error al guardar justificación', 'error');
     } finally {
