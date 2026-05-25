@@ -118,7 +118,7 @@ async function guardarAsistenciaBD() {
     mostrarSpinner('Guardando asistencia...');
     try {
         const registros = Object.keys(state.asistenciasHoy).map(id => ({
-            estudiante_id: id,
+            estudiante_id: parseInt(id),
             estado: state.asistenciasHoy[id],
             fecha: fecha
         }));
@@ -130,17 +130,16 @@ async function guardarAsistenciaBD() {
 
         mostrarToast('Asistencia guardada localmente', 'success');
 
-        // Si hay internet, sincronizar con Supabase
-        if (estaOnline) {
-            // FIX: Usar upsert con onConflict para evitar error de clave duplicada
-            // cuando ya existe asistencia para ese estudiante en esa fecha
+        // FIX: Verificar conexión en tiempo real con navigator.onLine
+        // en lugar de depender de la variable estaOnline que puede estar desactualizada
+        if (navigator.onLine) {
             const { error } = await clienteSupabase
                 .from('asistencia')
                 .upsert(registros, { onConflict: 'estudiante_id,fecha' });
 
             if (error) {
                 console.error('Error sync Supabase:', error);
-                mostrarToast('Guardado local. Se sincronizará cuando haya internet.', 'warning');
+                mostrarToast('Error al sincronizar: ' + error.message, 'warning');
             } else {
                 // Marcar como sincronizado en IndexedDB
                 const asistenciasLocales = await obtenerTodosDeStore('asistencia', 'fecha', fecha);

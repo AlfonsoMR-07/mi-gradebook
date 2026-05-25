@@ -72,6 +72,26 @@ function escapeHtml(texto) {
 }
 
 // =========================================
+// FETCH CON RETRY (para Safari y conexiones inestables)
+// =========================================
+
+async function fetchConRetry(fn, maxRetries = 3, delay = 1000) {
+    let lastError;
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            const result = await fn();
+            return result;
+        } catch (err) {
+            lastError = err;
+            if (i < maxRetries - 1) {
+                await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+            }
+        }
+    }
+    throw lastError;
+}
+
+// =========================================
 // MODO OFFLINE
 // =========================================
 
@@ -82,7 +102,9 @@ function initOffline() {
         mostrarToast('Conexión restaurada. Sincronizando...', 'success');
 
         // Intentar sincronizar con Supabase
-        await sincronizarTodo();
+        if (typeof sincronizarTodo === 'function') {
+            await sincronizarTodo();
+        }
 
         // También intentar registrar sync en background
         if ('serviceWorker' in navigator && 'SyncManager' in window) {
@@ -101,33 +123,46 @@ function initOffline() {
         document.getElementById('offline-indicator').classList.remove('hidden');
     }
 
-    // Verificar cambios pendientes al iniciar
-    obtenerCambiosPendientes().then(pendientes => {
-        if (pendientes.length > 0) {
-            const el = document.getElementById('offline-count');
-            if (el) el.textContent = `${pendientes.length} cambios pendientes`;
-        }
-    });
+    // Verificar cambios pendientes al iniciar (solo si db.js está cargado)
+    if (typeof obtenerCambiosPendientes === 'function') {
+        obtenerCambiosPendientes().then(pendientes => {
+            if (pendientes.length > 0) {
+                const el = document.getElementById('offline-count');
+                if (el) el.textContent = `${pendientes.length} cambios pendientes`;
+            }
+        }).catch(() => {
+            // IndexedDB no disponible aún, ignorar
+        });
+    }
 }
 
 function guardarCambioPendiente(tipo, datos) {
-    // Guardar en IndexedDB para persistencia real
-    agregarCambioPendiente(tipo, datos).then(() => {
-        actualizarContadorOffline();
-    });
-
+    // Guardar en IndexedDB para persistencia real (si está disponible)
+    if (typeof agregarCambioPendiente === 'function') {
+        agregarCambioPendiente(tipo, datos).then(() => {
+            actualizarContadorOffline();
+        }).catch(err => {
+            console.log('[Offline] No se pudo guardar en IndexedDB:', err);
+        });
+    }
     // También mantener en memoria para compatibilidad
     cambiosPendientes.push({ tipo, datos, timestamp: new Date().toISOString() });
+    actualizarContadorOffline();
 }
 
 function actualizarContadorOffline() {
     const el = document.getElementById('offline-count');
-    if (el) el.textContent = `${cambiosPendientes.length} cambios pendientes`;
+    if (el) {
+        const count = cambiosPendientes.length;
+        el.textContent = `${count} cambio${count !== 1 ? 's' : ''} pendiente${count !== 1 ? 's' : ''}`;
+    }
 }
 
 async function sincronizarCambiosPendientes() {
-    // Usar la nueva función de db.js
-    await sincronizarTodo();
+    // Usar la nueva función de db.js si está disponible
+    if (typeof sincronizarTodo === 'function') {
+        await sincronizarTodo();
+    }
 }
 
 // =========================================

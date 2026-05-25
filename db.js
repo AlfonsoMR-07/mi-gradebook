@@ -1,9 +1,9 @@
 // =========================================
-// BASE DE DATOS LOCAL (IndexedDB)
+// INDEXEDDB - BASE DE DATOS LOCAL OFFLINE
 // =========================================
 
 const DB_NAME = 'EduHubDB';
-const DB_VERSION = 1;
+const DB_VERSION = 3;  // Incrementado para forzar actualización
 let db = null;
 
 // =========================================
@@ -14,88 +14,117 @@ function initDB() {
     return new Promise((resolve, reject) => {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-        request.onerror = () => reject(request.error);
+        request.onerror = (event) => {
+            console.error('[DB] Error abriendo:', event.target.error);
+            // Si hay error de versión, intentar borrar y recrear
+            if (event.target.error.name === 'VersionError') {
+                console.log('[DB] Error de versión, borrando base antigua...');
+                const deleteReq = indexedDB.deleteDatabase(DB_NAME);
+                deleteReq.onsuccess = () => {
+                    console.log('[DB] Base antigua borrada, reintentando...');
+                    // Reintentar con versión 1
+                    const retryReq = indexedDB.open(DB_NAME, 1);
+                    retryReq.onerror = () => reject(retryReq.error);
+                    retryReq.onsuccess = () => {
+                        db = retryReq.result;
+                        console.log('[DB] Base de datos local inicializada (nueva)');
+                        resolve(db);
+                    };
+                    retryReq.onupgradeneeded = (event) => createSchema(event.target.result);
+                };
+                deleteReq.onerror = () => reject(deleteReq.error);
+            } else {
+                reject(event.target.error);
+            }
+        };
+
         request.onsuccess = () => {
             db = request.result;
             console.log('[DB] Base de datos local inicializada');
             resolve(db);
         };
 
-        request.onupgradeneeded = (event) => {
-            const database = event.target.result;
-
-            // Store para alumnos
-            if (!database.objectStoreNames.contains('estudiantes')) {
-                const storeEstudiantes = database.createObjectStore('estudiantes', { keyPath: 'id' });
-                storeEstudiantes.createIndex('grupo_id', 'grupo_id', { unique: false });
-                storeEstudiantes.createIndex('asiento', 'asiento', { unique: false });
-            }
-
-            // Store para grupos
-            if (!database.objectStoreNames.contains('grupos')) {
-                database.createObjectStore('grupos', { keyPath: 'id' });
-            }
-
-            // Store para asistencia
-            if (!database.objectStoreNames.contains('asistencia')) {
-                const storeAsist = database.createObjectStore('asistencia', { keyPath: 'local_id', autoIncrement: true });
-                storeAsist.createIndex('estudiante_id', 'estudiante_id', { unique: false });
-                storeAsist.createIndex('fecha', 'fecha', { unique: false });
-                storeAsist.createIndex('synced', 'synced', { unique: false });
-            }
-
-            // Store para calificaciones
-            if (!database.objectStoreNames.contains('calificaciones')) {
-                const storeCalif = database.createObjectStore('calificaciones', { keyPath: 'local_id', autoIncrement: true });
-                storeCalif.createIndex('estudiante_id', 'estudiante_id', { unique: false });
-                storeCalif.createIndex('actividad_id', 'actividad_id', { unique: false });
-                storeCalif.createIndex('synced', 'synced', { unique: false });
-            }
-
-            // Store para actividades
-            if (!database.objectStoreNames.contains('actividades')) {
-                const storeAct = database.createObjectStore('actividades', { keyPath: 'local_id', autoIncrement: true });
-                storeAct.createIndex('grupo_id', 'grupo_id', { unique: false });
-                storeAct.createIndex('synced', 'synced', { unique: false });
-            }
-
-            // Store para observaciones
-            if (!database.objectStoreNames.contains('observaciones')) {
-                const storeObs = database.createObjectStore('observaciones', { keyPath: 'local_id', autoIncrement: true });
-                storeObs.createIndex('estudiante_id', 'estudiante_id', { unique: false });
-                storeObs.createIndex('synced', 'synced', { unique: false });
-            }
-
-            // Store para categorías
-            if (!database.objectStoreNames.contains('categorias')) {
-                const storeCat = database.createObjectStore('categorias', { keyPath: 'id' });
-                storeCat.createIndex('grupo_id', 'grupo_id', { unique: false });
-            }
-
-            // Store para cambios pendientes
-            if (!database.objectStoreNames.contains('cambios_pendientes')) {
-                const storePend = database.createObjectStore('cambios_pendientes', { keyPath: 'local_id', autoIncrement: true });
-                storePend.createIndex('tipo', 'tipo', { unique: false });
-                storePend.createIndex('timestamp', 'timestamp', { unique: false });
-            }
-
-            // Store para configuración
-            if (!database.objectStoreNames.contains('configuracion')) {
-                database.createObjectStore('configuracion', { keyPath: 'clave' });
-            }
-        };
+        request.onupgradeneeded = (event) => createSchema(event.target.result);
     });
 }
 
+function createSchema(database) {
+    console.log('[DB] Creando/actualizando schema...');
+
+    // Store para asistencia
+    if (!database.objectStoreNames.contains('asistencia')) {
+        const store = database.createObjectStore('asistencia', { keyPath: 'local_id', autoIncrement: true });
+        store.createIndex('estudiante_id', 'estudiante_id', { unique: false });
+        store.createIndex('fecha', 'fecha', { unique: false });
+        store.createIndex('synced', 'synced', { unique: false });
+    }
+
+    // Store para calificaciones
+    if (!database.objectStoreNames.contains('calificaciones')) {
+        const store = database.createObjectStore('calificaciones', { keyPath: 'local_id', autoIncrement: true });
+        store.createIndex('estudiante_id', 'estudiante_id', { unique: false });
+        store.createIndex('actividad_id', 'actividad_id', { unique: false });
+        store.createIndex('synced', 'synced', { unique: false });
+    }
+
+    // Store para observaciones
+    if (!database.objectStoreNames.contains('observaciones')) {
+        const store = database.createObjectStore('observaciones', { keyPath: 'local_id', autoIncrement: true });
+        store.createIndex('estudiante_id', 'estudiante_id', { unique: false });
+        store.createIndex('synced', 'synced', { unique: false });
+    }
+
+    // Store para cambios pendientes (cola de sync)
+    if (!database.objectStoreNames.contains('cambios_pendientes')) {
+        const store = database.createObjectStore('cambios_pendientes', { keyPath: 'local_id', autoIncrement: true });
+        store.createIndex('tipo', 'tipo', { unique: false });
+        store.createIndex('timestamp', 'timestamp', { unique: false });
+    }
+
+    // Store para grupos (cache offline)
+    if (!database.objectStoreNames.contains('grupos')) {
+        database.createObjectStore('grupos', { keyPath: 'id' });
+    }
+
+    // Store para estudiantes (cache offline)
+    if (!database.objectStoreNames.contains('estudiantes')) {
+        const store = database.createObjectStore('estudiantes', { keyPath: 'id' });
+        store.createIndex('grupo_id', 'grupo_id', { unique: false });
+    }
+
+    // Store para actividades (cache offline)
+    if (!database.objectStoreNames.contains('actividades')) {
+        const store = database.createObjectStore('actividades', { keyPath: 'id' });
+        store.createIndex('grupo_id', 'grupo_id', { unique: false });
+    }
+
+    // Store para plantillas (cache offline)
+    if (!database.objectStoreNames.contains('plantillas')) {
+        const store = database.createObjectStore('plantillas', { keyPath: 'id' });
+        store.createIndex('grupo_id', 'grupo_id', { unique: false });
+    }
+
+    // Store para categorías (cache offline)
+    if (!database.objectStoreNames.contains('categorias')) {
+        const store = database.createObjectStore('categorias', { keyPath: 'id' });
+        store.createIndex('grupo_id', 'grupo_id', { unique: false });
+    }
+
+    // Store para configuración
+    if (!database.objectStoreNames.contains('configuracion')) {
+        database.createObjectStore('configuracion', { keyPath: 'clave' });
+    }
+}
+
 // =========================================
-// OPERACIONES CRUD GENÉRICAS
+// OPERACIONES GENÉRICAS
 // =========================================
 
 function guardarEnStore(storeName, datos) {
     return new Promise((resolve, reject) => {
         if (!db) { reject(new Error('DB no inicializada')); return; }
-        const transaction = db.transaction([storeName], 'readwrite');
-        const store = transaction.objectStore(storeName);
+        const tx = db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
         const request = store.put(datos);
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
@@ -105,24 +134,24 @@ function guardarEnStore(storeName, datos) {
 function obtenerDeStore(storeName, id) {
     return new Promise((resolve, reject) => {
         if (!db) { reject(new Error('DB no inicializada')); return; }
-        const transaction = db.transaction([storeName], 'readonly');
-        const store = transaction.objectStore(storeName);
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
         const request = store.get(id);
         request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
     });
 }
 
-function obtenerTodosDeStore(storeName, indexName = null, valor = null) {
+function obtenerTodosDeStore(storeName, indexName = null, indexValue = null) {
     return new Promise((resolve, reject) => {
         if (!db) { reject(new Error('DB no inicializada')); return; }
-        const transaction = db.transaction([storeName], 'readonly');
-        const store = transaction.objectStore(storeName);
+        const tx = db.transaction(storeName, 'readonly');
+        const store = tx.objectStore(storeName);
 
         let request;
-        if (indexName && valor !== null) {
+        if (indexName && indexValue !== null) {
             const index = store.index(indexName);
-            request = index.getAll(valor);
+            request = index.getAll(indexValue);
         } else {
             request = store.getAll();
         }
@@ -135,8 +164,8 @@ function obtenerTodosDeStore(storeName, indexName = null, valor = null) {
 function eliminarDeStore(storeName, id) {
     return new Promise((resolve, reject) => {
         if (!db) { reject(new Error('DB no inicializada')); return; }
-        const transaction = db.transaction([storeName], 'readwrite');
-        const store = transaction.objectStore(storeName);
+        const tx = db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
         const request = store.delete(id);
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
@@ -146,8 +175,8 @@ function eliminarDeStore(storeName, id) {
 function limpiarStore(storeName) {
     return new Promise((resolve, reject) => {
         if (!db) { reject(new Error('DB no inicializada')); return; }
-        const transaction = db.transaction([storeName], 'readwrite');
-        const store = transaction.objectStore(storeName);
+        const tx = db.transaction(storeName, 'readwrite');
+        const store = tx.objectStore(storeName);
         const request = store.clear();
         request.onsuccess = () => resolve();
         request.onerror = () => reject(request.error);
@@ -155,89 +184,169 @@ function limpiarStore(storeName) {
 }
 
 // =========================================
-// FUNCIONES ESPECÍFICAS PARA EDUHUB
+// ASISTENCIA LOCAL
 // =========================================
 
-async function guardarGrupoLocal(grupo) {
-    return guardarEnStore('grupos', { ...grupo, last_sync: new Date().toISOString() });
-}
-
-async function guardarAlumnoLocal(alumno) {
-    return guardarEnStore('estudiantes', { ...alumno, last_sync: new Date().toISOString() });
-}
-
-async function guardarAsistenciaLocal(asistencia) {
-    const datos = {
-        ...asistencia,
+async function guardarAsistenciaLocal(datos) {
+    const registro = {
+        ...datos,
+        local_id: datos.local_id || `asist_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         synced: false,
         timestamp: new Date().toISOString()
     };
-    const id = await guardarEnStore('asistencia', datos);
-    await agregarCambioPendiente('asistencia', datos);
-    return id;
+    await guardarEnStore('asistencia', registro);
+    return registro;
 }
 
-async function guardarCalificacionLocal(calificacion) {
-    const datos = {
-        ...calificacion,
+async function obtenerAsistenciaLocal(estudianteId, fecha) {
+    const todos = await obtenerTodosDeStore('asistencia');
+    return todos.find(a => a.estudiante_id == estudianteId && a.fecha === fecha);
+}
+
+// =========================================
+// CALIFICACIONES LOCAL
+// =========================================
+
+async function guardarCalificacionLocal(datos) {
+    const registro = {
+        ...datos,
+        local_id: datos.local_id || `calif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         synced: false,
         timestamp: new Date().toISOString()
     };
-    const id = await guardarEnStore('calificaciones', datos);
-    await agregarCambioPendiente('calificaciones', datos);
-    return id;
+    await guardarEnStore('calificaciones', registro);
+    return registro;
 }
 
-async function guardarObservacionLocal(observacion) {
-    const datos = {
-        ...observacion,
+// =========================================
+// OBSERVACIONES LOCAL
+// =========================================
+
+async function guardarObservacionLocal(datos) {
+    const registro = {
+        ...datos,
+        local_id: datos.local_id || `obs_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         synced: false,
         timestamp: new Date().toISOString()
     };
-    const id = await guardarEnStore('observaciones', datos);
-    await agregarCambioPendiente('observaciones', datos);
-    return id;
+    await guardarEnStore('observaciones', registro);
+    return registro;
 }
+
+// =========================================
+// CAMBIOS PENDIENTES (COLA DE SYNC)
+// =========================================
 
 async function agregarCambioPendiente(tipo, datos) {
-    return guardarEnStore('cambios_pendientes', {
-        tipo,
+    const cambio = {
+        tipo: tipo,
         datos: JSON.stringify(datos),
         timestamp: new Date().toISOString(),
         intentos: 0
-    });
+    };
+    await guardarEnStore('cambios_pendientes', cambio);
 }
 
 async function obtenerCambiosPendientes() {
-    return obtenerTodosDeStore('cambios_pendientes');
+    return await obtenerTodosDeStore('cambios_pendientes');
 }
 
-async function marcarComoSync(storeName, local_id) {
-    return new Promise((resolve, reject) => {
-        if (!db) { reject(new Error('DB no inicializada')); return; }
-        const transaction = db.transaction([storeName], 'readwrite');
-        const store = transaction.objectStore(storeName);
-        const request = store.get(local_id);
-
-        request.onsuccess = () => {
-            const data = request.result;
-            if (data) {
-                data.synced = true;
-                data.sync_date = new Date().toISOString();
-                store.put(data);
-            }
-            resolve();
-        };
-        request.onerror = () => reject(request.error);
-    });
-}
-
-async function eliminarCambioPendiente(local_id) {
-    return eliminarDeStore('cambios_pendientes', local_id);
+async function eliminarCambioPendiente(localId) {
+    await eliminarDeStore('cambios_pendientes', localId);
 }
 
 // =========================================
-// SINCRONIZACIÓN CON SUPABASE
+// MARCAR COMO SINCRONIZADO
+// =========================================
+
+async function marcarComoSync(storeName, localId) {
+    const registro = await obtenerDeStore(storeName, localId);
+    if (registro) {
+        registro.synced = true;
+        registro.last_sync = new Date().toISOString();
+        await guardarEnStore(storeName, registro);
+    }
+}
+
+// =========================================
+// CACHE DE DATOS (GRUPOS, ALUMNOS, ETC)
+// =========================================
+
+async function guardarGruposLocal(grupos) {
+    for (const g of grupos) {
+        await guardarEnStore('grupos', g);
+    }
+}
+
+async function guardarAlumnosLocal(alumnos) {
+    for (const a of alumnos) {
+        await guardarEnStore('estudiantes', a);
+    }
+}
+
+async function guardarActividadesLocal(actividades) {
+    for (const a of actividades) {
+        await guardarEnStore('actividades', a);
+    }
+}
+
+async function guardarPlantillasLocal(plantillas) {
+    for (const p of plantillas) {
+        await guardarEnStore('plantillas', p);
+    }
+}
+
+async function guardarCategoriasLocal(categorias) {
+    for (const c of categorias) {
+        await guardarEnStore('categorias', c);
+    }
+}
+
+// =========================================
+// BACKUP / RESTORE
+// =========================================
+
+async function exportarDBLocal() {
+    const backup = {};
+    const stores = ['grupos', 'estudiantes', 'actividades', 'calificaciones', 
+                    'asistencia', 'observaciones', 'plantillas', 'categorias', 
+                    'cambios_pendientes', 'configuracion'];
+
+    for (const storeName of stores) {
+        backup[storeName] = await obtenerTodosDeStore(storeName);
+    }
+
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `eduhub_backup_${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    mostrarToast('Backup exportado correctamente', 'success');
+}
+
+async function importarDBLocal(file) {
+    try {
+        const texto = await file.text();
+        const backup = JSON.parse(texto);
+
+        for (const [storeName, registros] of Object.entries(backup)) {
+            if (Array.isArray(registros)) {
+                await limpiarStore(storeName);
+                for (const reg of registros) {
+                    await guardarEnStore(storeName, reg);
+                }
+            }
+        }
+
+        mostrarToast('Backup importado correctamente', 'success');
+        location.reload();
+    } catch (err) {
+        mostrarToast('Error al importar backup: ' + err.message, 'error');
+    }
+}
+
+// =========================================
+// SINCRONIZACIÓN CON SUPABASE (UPLOAD)
 // =========================================
 
 async function sincronizarTodo() {
@@ -260,7 +369,9 @@ async function sincronizarTodo() {
             const datos = JSON.parse(cambio.datos);
 
             if (cambio.tipo === 'asistencia') {
-                const { error } = await clienteSupabase.from('asistencia').insert(datos);
+                const { error } = await clienteSupabase
+                    .from('asistencia')
+                    .upsert(datos, { onConflict: 'estudiante_id,fecha' });
                 if (!error) {
                     await eliminarCambioPendiente(cambio.local_id);
                     exitosos++;
@@ -269,7 +380,9 @@ async function sincronizarTodo() {
                     console.error('Error sync asistencia:', error);
                 }
             } else if (cambio.tipo === 'calificaciones') {
-                const { error } = await clienteSupabase.from('calificaciones').insert(datos);
+                const { error } = await clienteSupabase
+                    .from('calificaciones')
+                    .upsert(datos, { onConflict: 'estudiante_id,actividad_id' });
                 if (!error) {
                     await eliminarCambioPendiente(cambio.local_id);
                     exitosos++;
@@ -278,7 +391,9 @@ async function sincronizarTodo() {
                     console.error('Error sync calificaciones:', error);
                 }
             } else if (cambio.tipo === 'observaciones') {
-                const { error } = await clienteSupabase.from('observaciones').insert(datos);
+                const { error } = await clienteSupabase
+                    .from('observaciones')
+                    .upsert(datos, { onConflict: 'estudiante_id,created_at' });
                 if (!error) {
                     await eliminarCambioPendiente(cambio.local_id);
                     exitosos++;
@@ -308,92 +423,4 @@ async function sincronizarTodo() {
     if (el) el.textContent = `${pendientes.length} cambios pendientes`;
 
     return { exitosos, fallidos };
-}
-
-// =========================================
-// CACHE DE DATOS DE SUPABASE
-// =========================================
-
-async function cachearDatosGrupo(grupoId, datos) {
-    await guardarEnStore('configuracion', {
-        clave: `grupo_${grupoId}_cache`,
-        datos: JSON.stringify(datos),
-        timestamp: new Date().toISOString()
-    });
-}
-
-async function obtenerDatosGrupoCache(grupoId) {
-    const config = await obtenerDeStore('configuracion', `grupo_${grupoId}_cache`);
-    if (config && config.datos) {
-        return JSON.parse(config.datos);
-    }
-    return null;
-}
-
-// =========================================
-// EXPORTAR/IMPORTAR BASE DE DATOS LOCAL
-// =========================================
-
-async function exportarDBLocal() {
-    const datos = {
-        estudiantes: await obtenerTodosDeStore('estudiantes'),
-        grupos: await obtenerTodosDeStore('grupos'),
-        asistencia: await obtenerTodosDeStore('asistencia'),
-        calificaciones: await obtenerTodosDeStore('calificaciones'),
-        actividades: await obtenerTodosDeStore('actividades'),
-        observaciones: await obtenerTodosDeStore('observaciones'),
-        categorias: await obtenerTodosDeStore('categorias'),
-        cambios_pendientes: await obtenerTodosDeStore('cambios_pendientes'),
-        export_date: new Date().toISOString()
-    };
-
-    const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `eduhub_backup_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    mostrarToast('Backup local descargado', 'success');
-}
-
-async function importarDBLocal(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            try {
-                const datos = JSON.parse(e.target.result);
-
-                // Limpiar stores
-                await limpiarStore('estudiantes');
-                await limpiarStore('grupos');
-                await limpiarStore('asistencia');
-                await limpiarStore('calificaciones');
-                await limpiarStore('actividades');
-                await limpiarStore('observaciones');
-                await limpiarStore('categorias');
-                await limpiarStore('cambios_pendientes');
-
-                // Importar datos
-                for (const item of (datos.estudiantes || [])) await guardarEnStore('estudiantes', item);
-                for (const item of (datos.grupos || [])) await guardarEnStore('grupos', item);
-                for (const item of (datos.asistencia || [])) await guardarEnStore('asistencia', item);
-                for (const item of (datos.calificaciones || [])) await guardarEnStore('calificaciones', item);
-                for (const item of (datos.actividades || [])) await guardarEnStore('actividades', item);
-                for (const item of (datos.observaciones || [])) await guardarEnStore('observaciones', item);
-                for (const item of (datos.categorias || [])) await guardarEnStore('categorias', item);
-                for (const item of (datos.cambios_pendientes || [])) await guardarEnStore('cambios_pendientes', item);
-
-                mostrarToast('Backup importado correctamente', 'success');
-                resolve();
-            } catch (err) {
-                mostrarToast('Error al importar backup: ' + err.message, 'error');
-                reject(err);
-            }
-        };
-        reader.readAsText(file);
-    });
 }
