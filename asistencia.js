@@ -132,7 +132,12 @@ async function guardarAsistenciaBD() {
 
         // Si hay internet, sincronizar con Supabase
         if (estaOnline) {
-            const { error } = await clienteSupabase.from('asistencia').insert(registros);
+            // FIX: Usar upsert con onConflict para evitar error de clave duplicada
+            // cuando ya existe asistencia para ese estudiante en esa fecha
+            const { error } = await clienteSupabase
+                .from('asistencia')
+                .upsert(registros, { onConflict: 'estudiante_id,fecha' });
+
             if (error) {
                 console.error('Error sync Supabase:', error);
                 mostrarToast('Guardado local. Se sincronizará cuando haya internet.', 'warning');
