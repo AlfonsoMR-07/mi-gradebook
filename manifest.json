@@ -2,12 +2,12 @@
   "name": "EduHub Connect - Gradebook Pro",
   "short_name": "EduHub",
   "description": "Sistema de gestión escolar para docentes",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#2c3e50",
   "theme_color": "#3498db",
   "orientation": "any",
-  "scope": "/",
+  "scope": "./",
   "icons": [
     {
       "src": "icons/icon-72x72.png",
