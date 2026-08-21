@@ -5,22 +5,48 @@
 async function cargarAlumnos() {
     mostrarSpinner('Cargando alumnos...');
     try {
-        const { data: alumnosReal, error } = await clienteSupabase.from('estudiantes')
-            .select('*').eq('grupo_id', state.grupoSeleccionadoId).order('asiento', { ascending: true });
+        let alumnosReal = null;
 
-        if (error) {
-            mostrarToast('Error al cargar alumnos: ' + error.message, 'error');
-            return;
+        // Solo intentamos la red si el navegador reporta conexión
+        if (navigator.onLine) {
+            try {
+                const { data, error } = await clienteSupabase.from('estudiantes')
+                    .select('*').eq('grupo_id', state.grupoSeleccionadoId).order('asiento', { ascending: true });
+
+                if (error) throw error;
+                alumnosReal = data || [];
+
+                // Refrescamos el caché local con lo último del servidor,
+                // así queda disponible la próxima vez que se pierda la conexión.
+                for (const a of alumnosReal) {
+                    await guardarEnStore('estudiantes', a);
+                }
+            } catch (err) {
+                console.warn('[Alumnos] No se pudo consultar Supabase, se usará el caché local:', err);
+                alumnosReal = null; // fuerza el fallback de abajo
+            }
         }
-        if (alumnosReal) {
-            state.alumnosActuales = alumnosReal;
-            // Precargar observaciones y justificaciones
-            await precargarObservaciones();
-            await precargarJustificaciones();
-            prepararPaseLista(alumnosReal);
+
+        // Sin conexión, o la petición anterior falló: leer de IndexedDB
+        if (!alumnosReal) {
+            alumnosReal = await obtenerTodosDeStore('estudiantes', 'grupo_id', state.grupoSeleccionadoId);
+            alumnosReal.sort((a, b) => (a.asiento || 0) - (b.asiento || 0));
+
+            if (alumnosReal.length > 0) {
+                mostrarToast('Sin conexión: mostrando alumnos guardados localmente', 'warning');
+            } else {
+                mostrarToast('Sin conexión y sin datos locales de este grupo todavía', 'error');
+            }
         }
+
+        state.alumnosActuales = alumnosReal;
+        // Precargar observaciones y justificaciones
+        await precargarObservaciones();
+        await precargarJustificaciones();
+        prepararPaseLista(alumnosReal);
     } catch (err) {
         mostrarToast('Error al cargar alumnos', 'error');
+        console.error(err);
     } finally {
         ocultarSpinner();
     }

@@ -5,11 +5,33 @@
 async function cargarGrupos() {
     mostrarSpinner('Cargando grupos...');
     try {
-        const { data: grupos, error } = await clienteSupabase.from('grupos').select('*');
-        if (error) {
-            mostrarToast('Error al cargar grupos: ' + error.message, 'error');
-            return;
+        let grupos = null;
+
+        if (navigator.onLine) {
+            try {
+                const { data, error } = await clienteSupabase.from('grupos').select('*');
+                if (error) throw error;
+                grupos = data || [];
+
+                // Refrescar caché local para tenerlos disponibles sin conexión
+                for (const g of grupos) {
+                    await guardarEnStore('grupos', g);
+                }
+            } catch (err) {
+                console.warn('[Grupos] No se pudo consultar Supabase, se usará el caché local:', err);
+                grupos = null;
+            }
         }
+
+        if (!grupos) {
+            grupos = await obtenerTodosDeStore('grupos');
+            if (grupos.length > 0) {
+                mostrarToast('Sin conexión: mostrando grupos guardados localmente', 'warning');
+            } else {
+                mostrarToast('Sin conexión y sin grupos guardados localmente todavía', 'error');
+            }
+        }
+
         const lista = document.getElementById('lista-grupos');
         if (!lista) return;
         lista.innerHTML = '';
@@ -31,16 +53,27 @@ async function cargarGrupos() {
         });
     } catch (err) {
         mostrarToast('Error al cargar grupos', 'error');
+        console.error(err);
     } finally {
         ocultarSpinner();
     }
 }
 
 async function abrirGrupo(id, nombre) {
+    // ─── Control de concurrencia ───────────────────────────────────────────
+    // Genera un ID único para esta apertura. Si el maestro hace clic en otro
+    // grupo antes de que éste termine de cargar, el ID cambia y las
+    // operaciones pendientes se cancelan antes de aplicar sus resultados.
+    const operacionId = Date.now();
+    state.operacionActualId = operacionId;
+    // ──────────────────────────────────────────────────────────────────────
+
     state.grupoSeleccionadoId = id;
     state.asistenciasHoy = {};
     state.actividadActualId = null;
+    state.alumnosActuales = [];
 
+    // Limpiar UI inmediatamente para evitar mostrar datos del grupo anterior
     const listaAsistencia = document.getElementById('lista-asistencia-tabla');
     if (listaAsistencia) listaAsistencia.innerHTML = '';
 
@@ -68,7 +101,33 @@ async function abrirGrupo(id, nombre) {
     document.getElementById('tabla-calificaciones').classList.add('hidden');
     document.getElementById('resumen-asistencia').classList.add('hidden');
 
+    // ── Carga de alumnos ──────────────────────────────────────────────────
     await cargarAlumnos();
+
+    // Si el maestro ya abrió otro grupo mientras cargaba, cancelar aquí
+    if (state.operacionActualId !== operacionId) {
+        console.log('[Concurrencia] Apertura de grupo cancelada (alumnos) — el usuario cambió de grupo');
+        return;
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
+    // ── Carga de plantillas ───────────────────────────────────────────────
     await cargarPlantillasSelector();
+
+    if (state.operacionActualId !== operacionId) {
+        console.log('[Concurrencia] Apertura de grupo cancelada (plantillas) — el usuario cambió de grupo');
+        return;
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
+    // ── Recordatorios ─────────────────────────────────────────────────────
     await mostrarRecordatoriosGrupo();
+
+    if (state.operacionActualId !== operacionId) {
+        console.log('[Concurrencia] Apertura de grupo cancelada (recordatorios) — el usuario cambió de grupo');
+        return;
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
+    console.log(`[Grupos] Grupo "${nombre}" cargado correctamente (op: ${operacionId})`);
 }
