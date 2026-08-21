@@ -12,7 +12,7 @@
 //
 // Al cambiar CACHE_VERSION, el SW instalará el nuevo cache y limpiará
 // el anterior automáticamente en el evento 'activate'.
-const CACHE_VERSION = '2026-08-21-sync-fix';
+const CACHE_VERSION = '2026-08-21-fecha-local-fix';
 const CACHE_NAME = `eduhub-${CACHE_VERSION}`;
 // ─────────────────────────────────────────────────────────────────────────────
 // CORREGIDO: rutas relativas (sin "/" al inicio) para que funcionen tanto en

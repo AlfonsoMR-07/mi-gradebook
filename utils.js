@@ -6,9 +6,30 @@ const URL_PROYECTO = "https://gdxpwvltqzpgtedhawti.supabase.co";
 const LLAVE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkeHB3dmx0cXpwZ3RlZGhhd3RpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU5OTU4NTQsImV4cCI6MjA5MTU3MTg1NH0.jakqg7FAXBKseM2GtZLlK3DxGYfnYgY-Y6R78_cWhug";
 const clienteSupabase = supabase.createClient(URL_PROYECTO, LLAVE_ANON);
 
+// CORREGIDO: helper para obtener la fecha de HOY en la zona horaria local
+// del usuario, en formato YYYY-MM-DD (el que usan los <input type="date">).
+//
+// ANTES: se usaba new Date().toISOString().split('T')[0], pero
+// toISOString() siempre convierte a UTC. En México (UTC-6), a partir de
+// que oscurece (~6pm en horario estándar) el reloj en UTC ya marca el
+// día siguiente, así que el campo de fecha se autocompletaba con
+// "mañana" en vez de "hoy".
+//
+// AHORA: se arma la fecha a mano con los componentes LOCALES
+// (getFullYear/getMonth/getDate), que sí respetan la zona horaria
+// del dispositivo del usuario.
+function obtenerFechaLocalISO() {
+    const hoy = new Date();
+    const anio = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+    return `${anio}-${mes}-${dia}`;
+}
+
 // Estado centralizado
 const state = {
     grupoSeleccionadoId: null,
+    operacionActualId: null,       // Controla concurrencia al abrir grupos
     actividadActualId: null,
     asistenciasHoy: {},
     alumnosActuales: [],
@@ -24,9 +45,27 @@ const state = {
     justificacionesCache: {}
 };
 
-// Modo offline
-let cambiosPendientes = [];
+// =========================================
+// ESTADO DE CONEXIÓN — ÚNICO PUNTO DE VERDAD
+// =========================================
+// ANTES: había dos variables desincronizadas:
+//   let estaOnline = navigator.onLine     ← en utils.js
+//   navigator.onLine                      ← usado directamente en asistencia.js
+//
+// AHORA: una sola función que siempre consulta el estado real del navegador.
+// Todos los archivos deben usar estaConectado() en lugar de estaOnline.
+//
+// La variable estaOnline se mantiene por compatibilidad con código existente
+// pero siempre se sincroniza con navigator.onLine en initOffline().
+
 let estaOnline = navigator.onLine;
+
+function estaConectado() {
+    return navigator.onLine;
+}
+
+// Modo offline — cola de cambios pendientes en memoria
+let cambiosPendientes = [];
 
 // =========================================
 // UTILIDADES
@@ -97,16 +136,15 @@ async function fetchConRetry(fn, maxRetries = 3, delay = 1000) {
 
 function initOffline() {
     window.addEventListener('online', async () => {
+        // Sincronizar ambas fuentes de verdad
         estaOnline = true;
         document.getElementById('offline-indicator').classList.add('hidden');
         mostrarToast('Conexión restaurada. Sincronizando...', 'success');
 
-        // Intentar sincronizar con Supabase
         if (typeof sincronizarTodo === 'function') {
             await sincronizarTodo();
         }
 
-        // También intentar registrar sync en background
         if ('serviceWorker' in navigator && 'SyncManager' in window) {
             const registration = await navigator.serviceWorker.ready;
             registration.sync.register('sync-eduhub-data');
@@ -114,30 +152,27 @@ function initOffline() {
     });
 
     window.addEventListener('offline', () => {
+        // Sincronizar ambas fuentes de verdad
         estaOnline = false;
         document.getElementById('offline-indicator').classList.remove('hidden');
         mostrarToast('Sin conexión. Los cambios se guardarán localmente.', 'warning');
     });
 
-    if (!estaOnline) {
+    if (!estaConectado()) {
         document.getElementById('offline-indicator').classList.remove('hidden');
     }
 
-    // Verificar cambios pendientes al iniciar (solo si db.js está cargado)
     if (typeof obtenerCambiosPendientes === 'function') {
         obtenerCambiosPendientes().then(pendientes => {
             if (pendientes.length > 0) {
                 const el = document.getElementById('offline-count');
                 if (el) el.textContent = `${pendientes.length} cambios pendientes`;
             }
-        }).catch(() => {
-            // IndexedDB no disponible aún, ignorar
-        });
+        }).catch(() => {});
     }
 }
 
 function guardarCambioPendiente(tipo, datos) {
-    // Guardar en IndexedDB para persistencia real (si está disponible)
     if (typeof agregarCambioPendiente === 'function') {
         agregarCambioPendiente(tipo, datos).then(() => {
             actualizarContadorOffline();
@@ -145,7 +180,6 @@ function guardarCambioPendiente(tipo, datos) {
             console.log('[Offline] No se pudo guardar en IndexedDB:', err);
         });
     }
-    // También mantener en memoria para compatibilidad
     cambiosPendientes.push({ tipo, datos, timestamp: new Date().toISOString() });
     actualizarContadorOffline();
 }
@@ -159,7 +193,6 @@ function actualizarContadorOffline() {
 }
 
 async function sincronizarCambiosPendientes() {
-    // Usar la nueva función de db.js si está disponible
     if (typeof sincronizarTodo === 'function') {
         await sincronizarTodo();
     }
@@ -182,7 +215,6 @@ function toggleTemaOscuro() {
     localStorage.setItem('tema_oscuro', esOscuro);
     actualizarIconoTema(esOscuro);
 
-    // Actualizar gráficas si existen
     if (state.charts.promedios) state.charts.promedios.destroy();
     if (state.charts.asistencia) state.charts.asistencia.destroy();
     if (state.charts.distribucion) state.charts.distribucion.destroy();
@@ -235,10 +267,10 @@ function regresarADashboard() {
     document.getElementById('vista-grupo').classList.add('hidden');
     document.getElementById('dashboard').classList.remove('hidden');
     state.grupoSeleccionadoId = null;
+    state.operacionActualId = null;
     state.asistenciasHoy = {};
     state.actividadActualId = null;
     state.alumnosActuales = [];
-    // Limpiar charts
     Object.values(state.charts).forEach(c => c?.destroy?.());
     state.charts = {};
 }

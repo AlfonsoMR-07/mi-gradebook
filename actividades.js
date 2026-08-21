@@ -269,7 +269,7 @@ async function duplicarActividad(id) {
         const { data: nuevaAct, error: errInsert } = await clienteSupabase.from('actividades').insert({
             grupo_id: actOriginal.grupo_id,
             nombre_actividad: actOriginal.nombre_actividad + ' (Copia)',
-            fecha_actividad: new Date().toISOString().split('T')[0],
+            fecha_actividad: obtenerFechaLocalISO(),
             tipo: actOriginal.tipo,
             ponderacion: actOriginal.ponderacion
         }).select();

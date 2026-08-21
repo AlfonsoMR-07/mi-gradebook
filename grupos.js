@@ -79,7 +79,7 @@ async function abrirGrupo(id, nombre) {
 
     const fechaAsistencia = document.getElementById('fecha-asistencia');
     if (fechaAsistencia) {
-        fechaAsistencia.value = new Date().toISOString().split('T')[0];
+        fechaAsistencia.value = obtenerFechaLocalISO();
     }
 
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
