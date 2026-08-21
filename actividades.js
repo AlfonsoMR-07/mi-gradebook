@@ -81,8 +81,24 @@ function validarNota(input) {
     let valor = parseFloat(input.value);
     if (isNaN(valor) || valor < 0) valor = 0;
     if (valor > 10) valor = 10;
-    input.value = valor;
+    // Redondear a 1 decimal para evitar valores como 9.999999
+    input.value = Math.round(valor * 10) / 10;
 }
+
+// ── NUEVO: sanitizar notas justo antes de guardar ─────────────────────────────
+// validarNota() se dispara con onchange, pero si el maestro pega un valor
+// o el input no dispara el evento, la nota podría llegar sin validar.
+// Esta función garantiza que TODAS las notas sean válidas antes de ir a la BD.
+function sanitizarNotas(notas) {
+    return notas.map(n => {
+        let nota = parseFloat(n.nota);
+        if (isNaN(nota) || nota < 0) nota = 0;
+        if (nota > 10) nota = 10;
+        nota = Math.round(nota * 10) / 10;
+        return { ...n, nota };
+    });
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 function filtrarAlumnosNotas() {
     const filtro = document.getElementById('buscar-alumno-notas').value.toLowerCase().trim();
@@ -99,16 +115,19 @@ async function guardarNotasBD() {
         return;
     }
 
-    const notas = Array.from(document.querySelectorAll('.input-nota')).map(i => ({
+    const notasCrudas = Array.from(document.querySelectorAll('.input-nota')).map(i => ({
         estudiante_id: i.id.replace('nota-', ''),
         actividad_id: state.actividadActualId,
         nota: parseFloat(i.value) || 0
     }));
 
-    if (notas.length === 0) {
+    if (notasCrudas.length === 0) {
         mostrarToast('No hay notas para guardar', 'warning');
         return;
     }
+
+    // ✅ NUEVO: sanitizar antes de guardar, independientemente de onchange
+    const notas = sanitizarNotas(notasCrudas);
 
     mostrarSpinner('Guardando calificaciones...');
     try {
@@ -119,13 +138,13 @@ async function guardarNotasBD() {
 
         mostrarToast('Calificaciones guardadas localmente', 'success');
 
-        // Si hay internet, sincronizar con Supabase
-        if (estaOnline) {
-            const { error } = await clienteSupabase.from('calificaciones').insert(notas);
-            if (error) {
-                console.error('Error sync Supabase:', error);
-                mostrarToast('Guardado local. Se sincronizará cuando haya internet.', 'warning');
-            } else {
+        // CORREGIDO: usar sincronizarTodo() en vez de un insert directo,
+        // así se limpia la cola cambios_pendientes y no queda duplicado.
+        if (estaConectado()) {
+            const resultado = await sincronizarTodo();
+            if (resultado.fallidos > 0) {
+                mostrarToast('Guardado local. Reintentaremos la sincronización.', 'warning');
+            } else if (resultado.exitosos > 0) {
                 mostrarToast('Calificaciones sincronizadas con la nube', 'success');
             }
         } else {

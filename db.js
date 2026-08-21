@@ -195,6 +195,12 @@ async function guardarAsistenciaLocal(datos) {
         timestamp: new Date().toISOString()
     };
     await guardarEnStore('asistencia', registro);
+
+    // CORREGIDO: sin esto, el registro quedaba marcado como "synced: false"
+    // pero sincronizarTodo() nunca lo encontraba, porque solo revisa la cola
+    // 'cambios_pendientes' (no revisa la marca synced de cada store).
+    await agregarCambioPendiente('asistencia', datos);
+
     return registro;
 }
 
@@ -215,6 +221,7 @@ async function guardarCalificacionLocal(datos) {
         timestamp: new Date().toISOString()
     };
     await guardarEnStore('calificaciones', registro);
+    await agregarCambioPendiente('calificaciones', datos);
     return registro;
 }
 
@@ -230,6 +237,7 @@ async function guardarObservacionLocal(datos) {
         timestamp: new Date().toISOString()
     };
     await guardarEnStore('observaciones', registro);
+    await agregarCambioPendiente('observaciones', datos);
     return registro;
 }
 

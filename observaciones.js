@@ -79,13 +79,13 @@ async function guardarObservacion() {
 
         mostrarToast('Observación guardada localmente', 'success');
 
-        // Si hay internet, sincronizar con Supabase
+        // CORREGIDO: usar sincronizarTodo() en vez de un insert directo,
+        // así se limpia la cola cambios_pendientes y no queda duplicado.
         if (estaOnline) {
-            const { data, error } = await clienteSupabase.from('observaciones').insert(datos).select();
-            if (error) {
-                console.error('Error sync Supabase:', error);
-                mostrarToast('Guardado local. Se sincronizará cuando haya internet.', 'warning');
-            } else {
+            const resultado = await sincronizarTodo();
+            if (resultado.fallidos > 0) {
+                mostrarToast('Guardado local. Reintentaremos la sincronización.', 'warning');
+            } else if (resultado.exitosos > 0) {
                 mostrarToast('Observación sincronizada con la nube', 'success');
             }
         } else {

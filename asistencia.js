@@ -130,24 +130,15 @@ async function guardarAsistenciaBD() {
 
         mostrarToast('Asistencia guardada localmente', 'success');
 
-        // FIX: Verificar conexión en tiempo real con navigator.onLine
-        // en lugar de depender de la variable estaOnline que puede estar desactualizada
+        // CORREGIDO: en vez de sincronizar directo a Supabase por su cuenta
+        // (lo que dejaba una copia "fantasma" en la cola cambios_pendientes
+        // que nunca se limpiaba), ahora usamos sincronizarTodo(), que sube
+        // TODO lo pendiente (incluida esta asistencia) y sí limpia la cola.
         if (navigator.onLine) {
-            const { error } = await clienteSupabase
-                .from('asistencia')
-                .upsert(registros, { onConflict: 'estudiante_id,fecha' });
-
-            if (error) {
-                console.error('Error sync Supabase:', error);
-                mostrarToast('Error al sincronizar: ' + error.message, 'warning');
-            } else {
-                // Marcar como sincronizado en IndexedDB
-                const asistenciasLocales = await obtenerTodosDeStore('asistencia', 'fecha', fecha);
-                for (const a of asistenciasLocales) {
-                    if (a.synced === false) {
-                        await marcarComoSync('asistencia', a.local_id);
-                    }
-                }
+            const resultado = await sincronizarTodo();
+            if (resultado.fallidos > 0) {
+                mostrarToast('Guardado local. Reintentaremos la sincronización.', 'warning');
+            } else if (resultado.exitosos > 0) {
                 mostrarToast('Asistencia sincronizada con la nube', 'success');
             }
         } else {
