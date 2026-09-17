@@ -29,7 +29,8 @@ async function crearActividad() {
                 nombre_actividad: nombre, 
                 fecha_actividad: fecha, 
                 tipo: cat,
-                ponderacion: 100 
+                ponderacion: 100,
+                trimestre: state.trimestreActual
             }])
             .select();
 
@@ -271,7 +272,8 @@ async function duplicarActividad(id) {
             nombre_actividad: actOriginal.nombre_actividad + ' (Copia)',
             fecha_actividad: obtenerFechaLocalISO(),
             tipo: actOriginal.tipo,
-            ponderacion: actOriginal.ponderacion
+            ponderacion: actOriginal.ponderacion,
+            trimestre: state.trimestreActual
         }).select();
 
         if (errInsert) {

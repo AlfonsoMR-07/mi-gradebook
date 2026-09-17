@@ -26,6 +26,39 @@ function obtenerFechaLocalISO() {
     return `${anio}-${mes}-${dia}`;
 }
 
+// =========================================
+// CICLOS ESCOLARES Y TRIMESTRES
+// =========================================
+
+// Recuerda qué ciclo escolar estás viendo en "Mis Grupos" (ej. "2025-2026").
+// Se guarda en localStorage para que no se te olvide entre sesiones.
+function obtenerCicloSeleccionado() {
+    return localStorage.getItem('eduhub_ciclo_seleccionado') || null;
+}
+
+function guardarCicloSeleccionado(ciclo) {
+    localStorage.setItem('eduhub_ciclo_seleccionado', ciclo);
+}
+
+// Dado "2025-2026" devuelve "2026-2027"
+function calcularSiguienteCiclo(cicloActual) {
+    const partes = (cicloActual || '').split('-').map(n => parseInt(n, 10));
+    if (partes.length !== 2 || isNaN(partes[0]) || isNaN(partes[1])) {
+        // Si el formato no es el esperado, no adivinamos: dejamos que el usuario lo escriba
+        return null;
+    }
+    return `${partes[0] + 1}-${partes[1] + 1}`;
+}
+
+// Dado "1º A" devuelve "2º A" (incrementa el número, conserva el resto del texto)
+function calcularSiguienteGrado(nombreGrupo) {
+    const match = (nombreGrupo || '').match(/(\d+)/);
+    if (!match) return null;
+    const numeroActual = parseInt(match[1], 10);
+    const numeroNuevo = numeroActual + 1;
+    return { nombreNuevo: nombreGrupo.replace(match[1], String(numeroNuevo)), numeroActual, numeroNuevo };
+}
+
 // Estado centralizado
 const state = {
     grupoSeleccionadoId: null,
@@ -33,6 +66,8 @@ const state = {
     actividadActualId: null,
     asistenciasHoy: {},
     alumnosActuales: [],
+    trimestreActual: 3,            // NUEVO: 1, 2 o 3 — trimestre que se está viendo/editando
+    cicloGrupoActual: '2025-2026', // NUEVO: ciclo escolar del grupo abierto actualmente
     categoriasDefecto: [
         { nombre: 'Asistencia', valor: 10 },
         { nombre: 'Trabajo en Clase', valor: 50 },
@@ -261,6 +296,34 @@ async function mostrarSeccion(s) {
         await cargarAlumnos();
         renderizarGestionAlumnos();
     }
+}
+
+// NUEVO: cambia el trimestre activo y recarga lo que se esté viendo en ese momento
+async function cambiarTrimestre(t) {
+    if (state.trimestreActual === t) return;
+    state.trimestreActual = t;
+    renderizarSelectorTrimestre();
+
+    const btnActivo = document.querySelector('.tab-btn.active');
+    const seccionActual = btnActivo ? btnActivo.dataset.section : 'asistencia';
+    await mostrarSeccion(seccionActual);
+    mostrarToast(`Viendo Trimestre ${t}`, 'success');
+}
+
+// Dibuja los 3 botones (T1/T2/T3) dentro del header del grupo
+function renderizarSelectorTrimestre() {
+    const cont = document.getElementById('selector-trimestre-container');
+    if (!cont) return;
+    cont.innerHTML = [1, 2, 3].map(t => {
+        const activo = t === state.trimestreActual;
+        return `<button onclick="cambiarTrimestre(${t})"
+            style="padding:4px 12px; margin-right:6px; border-radius:6px; border:1px solid var(--accent-color);
+                   cursor:pointer; font-weight:600;
+                   background:${activo ? 'var(--accent-color)' : 'transparent'};
+                   color:${activo ? '#fff' : 'var(--accent-color)'};">
+            Trimestre ${t}
+        </button>`;
+    }).join('');
 }
 
 function regresarADashboard() {

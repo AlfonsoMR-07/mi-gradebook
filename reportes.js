@@ -3,19 +3,21 @@
 // =========================================
 
 async function cargarConfiguracionGrupo() {
+    // CORREGIDO: antes se leía de la tabla "configuraciones", que solo
+    // guardaba UN valor por grupo (sin distinguir trimestre). Como ahora
+    // los porcentajes pueden cambiar de un trimestre a otro, los tomamos
+    // directamente de las categorías ya filtradas por trimestre actual.
     try {
-        const { data } = await clienteSupabase
-            .from('configuraciones')
-            .select('*')
-            .eq('grupo_id', state.grupoSeleccionadoId)
-            .single();
-        if (data) {
-            state.categoriasDefecto[0].valor = data.asistencia;
-            state.categoriasDefecto[1].valor = data.trabajo;
-            state.categoriasDefecto[2].valor = data.examen;
-        }
+        const categorias = await cargarCategoriasGrupo();
+        const catAsistencia = categorias.find(c => c.es_asistencia);
+        const catTrabajo = categorias.find(c => !c.es_asistencia && c.nombre === 'Trabajo en Clase');
+        const catExamen = categorias.find(c => !c.es_asistencia && c.nombre === 'Examen');
+
+        if (catAsistencia) state.categoriasDefecto[0].valor = catAsistencia.porcentaje;
+        if (catTrabajo) state.categoriasDefecto[1].valor = catTrabajo.porcentaje;
+        if (catExamen) state.categoriasDefecto[2].valor = catExamen.porcentaje;
     } catch (err) {
-        console.log('Usando configuración por defecto');
+        console.log('Usando configuración por defecto', err);
     }
 }
 
@@ -39,7 +41,7 @@ async function generarReporte() {
         const idsAlumnos = state.alumnosActuales.map(al => al.id);
 
         const { data: actividades, error: errAct } = await clienteSupabase
-            .from('actividades').select('*').eq('grupo_id', state.grupoSeleccionadoId).order('fecha_actividad', { ascending: true });
+            .from('actividades').select('*').eq('grupo_id', state.grupoSeleccionadoId).eq('trimestre', state.trimestreActual).order('fecha_actividad', { ascending: true });
 
         if (errAct) {
             mostrarToast('Error al cargar actividades: ' + errAct.message, 'error');
@@ -48,7 +50,7 @@ async function generarReporte() {
         }
 
         const { data: asistencias, error: errAsis } = await clienteSupabase
-            .from('asistencia').select('*').in('estudiante_id', idsAlumnos);
+            .from('asistencia').select('*').in('estudiante_id', idsAlumnos).eq('trimestre', state.trimestreActual);
 
         if (errAsis) {
             mostrarToast('Error al cargar asistencias: ' + errAsis.message, 'error');
@@ -165,7 +167,8 @@ async function editarAsistencia(estudianteId, fecha, nuevoEstado) {
         const { error } = await clienteSupabase.from('asistencia').upsert({
             estudiante_id: estudianteId,
             fecha: fecha,
-            estado: nuevoEstado
+            estado: nuevoEstado,
+            trimestre: state.trimestreActual
         }, { onConflict: 'estudiante_id, fecha' });
 
         if (error) {
@@ -269,9 +272,9 @@ async function generarEstadisticas() {
     try {
         const idsAlumnos = state.alumnosActuales.map(al => al.id);
         const { data: actividades } = await clienteSupabase
-            .from('actividades').select('*').eq('grupo_id', state.grupoSeleccionadoId);
+            .from('actividades').select('*').eq('grupo_id', state.grupoSeleccionadoId).eq('trimestre', state.trimestreActual);
         const { data: asistencias } = await clienteSupabase
-            .from('asistencia').select('*').in('estudiante_id', idsAlumnos);
+            .from('asistencia').select('*').in('estudiante_id', idsAlumnos).eq('trimestre', state.trimestreActual);
 
         let notas = [];
         const idsAct = actividades ? actividades.map(a => a.id) : [];
@@ -437,13 +440,14 @@ async function cargarInterfazCategorias() {
     let html = `
         <div style="margin-top: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3><i class="fas fa-sliders-h"></i> Categorías de Evaluación</h3>
+                <h3><i class="fas fa-sliders-h"></i> Categorías de Evaluación — Trimestre ${state.trimestreActual}</h3>
                 <button onclick="abrirModalNuevaCategoria()" class="btn-success btn-sm">
                     <i class="fas fa-plus"></i> Nueva Categoría
                 </button>
             </div>
             <p class="help-text">
                 <i class="fas fa-info-circle"></i> 
+                Los porcentajes que edites aquí aplican solo al <strong>Trimestre ${state.trimestreActual}</strong>. 
                 La categoría <strong>Asistencia</strong> es automática y no se incluye en actividades. 
                 La suma de porcentajes debe ser exactamente 100%.
             </p>
@@ -502,6 +506,19 @@ async function cargarInterfazCategorias() {
             </button>
         </div>
 
+        <!-- SECCIÓN DE PROMOCIÓN DE GRUPO -->
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid var(--border-color);">
+            <h3><i class="fas fa-graduation-cap"></i> Promoción al Siguiente Ciclo</h3>
+            <p class="help-text">
+                Crea un grupo nuevo para el siguiente ciclo escolar (ej. "1º A" → "2º A"),
+                copiando los alumnos actuales. Este grupo (${escapeHtml(state.cicloGrupoActual || '')}) 
+                no se modifica ni se borra, se queda disponible para consulta.
+            </p>
+            <button onclick="promoverGrupo()" class="btn-secondary" style="margin-top: 10px;">
+                <i class="fas fa-arrow-up"></i> Promover este grupo al siguiente ciclo
+            </button>
+        </div>
+
         <!-- SECCIÓN DE BACKUP LOCAL -->
         <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid var(--border-color);">
             <h3><i class="fas fa-hdd"></i> Respaldo Local</h3>
@@ -555,17 +572,12 @@ async function guardarTodasCategorias() {
             }).eq('id', cat.id);
         }
 
-        // Actualizar configuración legacy (para compatibilidad con reportes)
-        const asistencia = categoriasCache.find(c => c.es_asistencia)?.porcentaje || 10;
-        const trabajo = categoriasCache.find(c => c.nombre === 'Trabajo en Clase')?.porcentaje || 50;
-        const examen = categoriasCache.find(c => c.nombre === 'Examen')?.porcentaje || 40;
-
-        await clienteSupabase.from('configuraciones').upsert({
-            grupo_id: state.grupoSeleccionadoId,
-            asistencia: asistencia,
-            trabajo: trabajo,
-            examen: examen
-        }, { onConflict: 'grupo_id' });
+        // NOTA: ya NO actualizamos la tabla "configuraciones" (legacy).
+        // Esa tabla guardaba un solo valor por grupo, sin distinguir
+        // trimestre, así que dejó de ser confiable ahora que los
+        // porcentajes pueden cambiar de un trimestre a otro.
+        // cargarConfiguracionGrupo() ahora lee directo de "categorias"
+        // filtrando por trimestre, que es la fuente de verdad correcta.
 
         // Actualizar state
         state.categoriasDefecto = categoriasCache.map(c => ({

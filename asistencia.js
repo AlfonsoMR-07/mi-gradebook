@@ -120,7 +120,8 @@ async function guardarAsistenciaBD() {
         const registros = Object.keys(state.asistenciasHoy).map(id => ({
             estudiante_id: parseInt(id),
             estado: state.asistenciasHoy[id],
-            fecha: fecha
+            fecha: fecha,
+            trimestre: state.trimestreActual
         }));
 
         // SIEMPRE guardar en IndexedDB primero (para offline)

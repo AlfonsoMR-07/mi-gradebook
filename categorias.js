@@ -22,6 +22,7 @@ async function cargarCategoriasGrupo() {
             .from('categorias')
             .select('*')
             .eq('grupo_id', state.grupoSeleccionadoId)
+            .eq('trimestre', state.trimestreActual)
             .order('orden', { ascending: true });
 
         if (error) {
@@ -33,9 +34,9 @@ async function cargarCategoriasGrupo() {
         if (data && data.length > 0) {
             categoriasCache = data;
         } else {
-            // Si no hay categorías, crear las default
+            // Si no hay categorías para este trimestre todavía, crear las default
             await crearCategoriasDefault();
-            categoriasCache = [...categoriasDefault.map(c => ({ ...c, grupo_id: state.grupoSeleccionadoId }))];
+            categoriasCache = [...categoriasDefault.map(c => ({ ...c, grupo_id: state.grupoSeleccionadoId, trimestre: state.trimestreActual }))];
         }
 
         return categoriasCache;
@@ -52,7 +53,8 @@ async function crearCategoriasDefault() {
         nombre: c.nombre,
         porcentaje: c.porcentaje,
         orden: c.orden,
-        es_asistencia: c.es_asistencia
+        es_asistencia: c.es_asistencia,
+        trimestre: state.trimestreActual
     }));
 
     try {
@@ -114,7 +116,8 @@ async function guardarCategoria(id, nombre, porcentaje, esAsistencia, orden) {
         nombre: nombre.trim(),
         porcentaje: parseInt(porcentaje) || 0,
         es_asistencia: esAsistencia,
-        orden: parseInt(orden) || 99
+        orden: parseInt(orden) || 99,
+        trimestre: state.trimestreActual
     };
 
     try {

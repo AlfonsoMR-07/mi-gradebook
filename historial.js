@@ -13,7 +13,7 @@ async function cargarHistorial(tipo) {
     try {
         if (tipo === 'actividades') {
             const { data, error } = await clienteSupabase
-                .from('actividades').select('*').eq('grupo_id', state.grupoSeleccionadoId).order('fecha_actividad', { ascending: false });
+                .from('actividades').select('*').eq('grupo_id', state.grupoSeleccionadoId).eq('trimestre', state.trimestreActual).order('fecha_actividad', { ascending: false });
 
             if (error) { mostrarToast('Error: ' + error.message, 'error'); return; }
             if (!data || data.length === 0) {
@@ -21,6 +21,7 @@ async function cargarHistorial(tipo) {
                 return;
             }
 
+            // ── IDs numéricos en onclick son seguros (no son texto del usuario)
             contenedor.innerHTML = data.map(act => `
                 <div class="card-historial" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #fff;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr auto auto; gap: 10px; align-items: end;">
@@ -49,9 +50,10 @@ async function cargarHistorial(tipo) {
                     </div>
                 </div>
             `).join('');
+
         } else if (tipo === 'asistencia') {
             const { data, error } = await clienteSupabase.from('asistencia')
-                .select('fecha').in('estudiante_id', state.alumnosActuales.map(al => al.id));
+                .select('fecha').in('estudiante_id', state.alumnosActuales.map(al => al.id)).eq('trimestre', state.trimestreActual);
 
             if (error) { mostrarToast('Error: ' + error.message, 'error'); return; }
             if (!data || data.length === 0) {
@@ -60,21 +62,39 @@ async function cargarHistorial(tipo) {
             }
 
             const fechasUnicas = [...new Set(data.map(d => d.fecha))].sort().reverse();
+
+            // ── CORREGIDO: fechas en data-* en lugar de onclick con string ──
+            // Las fechas tienen formato YYYY-MM-DD (solo números y guiones),
+            // pero usamos data-* de todas formas para consistencia y seguridad.
             contenedor.innerHTML = fechasUnicas.map(fecha => `
                 <div class="card-historial" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #fdfdfd;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div><strong>Sesión:</strong> <input type="date" id="old-fecha-${fecha}" value="${fecha}" style="padding: 6px; border: 1px solid var(--border-color); border-radius: var(--radius-sm);"></div>
+                        <div>
+                            <strong>Sesión:</strong>
+                            <input type="date" id="old-fecha-${fecha}" value="${fecha}" style="padding: 6px; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+                        </div>
                         <div style="display: flex; gap: 5px;">
-                            <button onclick="actualizarFechaAsistencia('${fecha}')" style="background:#3498db; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;" title="Cambiar fecha">
+                            <button
+                                class="btn-accion-historial"
+                                data-accion="actualizar-fecha"
+                                data-fecha="${fecha}"
+                                style="background:#3498db; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;"
+                                title="Cambiar fecha">
                                 <i class="fas fa-calendar-alt"></i>
                             </button>
-                            <button onclick="eliminarAsistenciaDia('${fecha}')" style="background:#e74c3c; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;" title="Eliminar día">
+                            <button
+                                class="btn-accion-historial"
+                                data-accion="eliminar-asistencia"
+                                data-fecha="${fecha}"
+                                style="background:#e74c3c; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;"
+                                title="Eliminar día">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </div>
                 </div>
             `).join('');
+
         } else if (tipo === 'plantillas') {
             const { data, error } = await clienteSupabase.from('plantillas')
                 .select('*').eq('grupo_id', state.grupoSeleccionadoId).order('created_at', { ascending: false });
@@ -85,6 +105,10 @@ async function cargarHistorial(tipo) {
                 return;
             }
 
+            // ── CORREGIDO: nombre y categoria en data-* en lugar de onclick ──
+            // Antes: onclick="usarPlantillaDesdeHistorial('${nombre}', '${cat}')"
+            // Un nombre con apóstrofe (ej. "d'oral") rompía el atributo onclick.
+            // Ahora los datos van en data-* y se leen en el event listener.
             contenedor.innerHTML = data.map(p => `
                 <div class="card-historial" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 8px; background: #fff;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -93,10 +117,21 @@ async function cargarHistorial(tipo) {
                             <span style="background: #eaf4f9; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; margin-left: 10px;">${escapeHtml(p.categoria)}</span>
                         </div>
                         <div style="display: flex; gap: 5px;">
-                            <button onclick="usarPlantillaDesdeHistorial('${escapeHtml(p.nombre)}', '${escapeHtml(p.categoria)}')" style="background:#3498db; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;" title="Usar">
+                            <button
+                                class="btn-accion-historial"
+                                data-accion="usar-plantilla"
+                                data-nombre="${escapeHtml(p.nombre)}"
+                                data-categoria="${escapeHtml(p.categoria)}"
+                                style="background:#3498db; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;"
+                                title="Usar plantilla">
                                 <i class="fas fa-check"></i>
                             </button>
-                            <button onclick="eliminarPlantilla(${p.id})" style="background:#e74c3c; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;" title="Eliminar">
+                            <button
+                                class="btn-accion-historial"
+                                data-accion="eliminar-plantilla"
+                                data-id="${p.id}"
+                                style="background:#e74c3c; color:white; border:none; padding:8px 12px; border-radius:4px; cursor:pointer;"
+                                title="Eliminar plantilla">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -104,10 +139,56 @@ async function cargarHistorial(tipo) {
                 </div>
             `).join('');
         }
+
+        // ── Event listener único para todos los botones del historial ────────
+        // Se registra después de insertar el HTML para capturar todos los botones.
+        // Un solo listener en el contenedor padre es más eficiente que N listeners
+        // individuales y evita pasar datos sensibles dentro de atributos onclick.
+        contenedor.querySelectorAll('.btn-accion-historial').forEach(btn => {
+            btn.addEventListener('click', manejarAccionHistorial);
+        });
+        // ─────────────────────────────────────────────────────────────────────
+
     } catch (err) {
         mostrarToast('Error al cargar historial', 'error');
     }
 }
+
+// ── Manejador centralizado de acciones del historial ─────────────────────────
+// Lee los datos desde data-* en lugar de recibirlos como parámetros en onclick.
+// Esto garantiza que cualquier texto del usuario (nombres con apóstrofes,
+// caracteres especiales, etc.) se maneje de forma segura.
+function manejarAccionHistorial(e) {
+    const btn = e.currentTarget;
+    const accion = btn.dataset.accion;
+
+    switch (accion) {
+        case 'usar-plantilla': {
+            const nombre = btn.dataset.nombre;
+            const categoria = btn.dataset.categoria;
+            usarPlantillaDesdeHistorial(nombre, categoria);
+            break;
+        }
+        case 'eliminar-plantilla': {
+            const id = parseInt(btn.dataset.id, 10);
+            eliminarPlantilla(id);
+            break;
+        }
+        case 'actualizar-fecha': {
+            const fecha = btn.dataset.fecha;
+            actualizarFechaAsistencia(fecha);
+            break;
+        }
+        case 'eliminar-asistencia': {
+            const fecha = btn.dataset.fecha;
+            eliminarAsistenciaDia(fecha);
+            break;
+        }
+        default:
+            console.warn('[Historial] Acción desconocida:', accion);
+    }
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 function usarPlantillaDesdeHistorial(nombre, categoria) {
     document.getElementById('nombre-tarea').value = nombre;
@@ -147,7 +228,7 @@ async function eliminarAsistenciaDia(fecha) {
     mostrarSpinner('Eliminando...');
     try {
         const idsAlumnos = state.alumnosActuales.map(al => al.id);
-        await clienteSupabase.from('asistencia').delete().eq('fecha', fecha).in('estudiante_id', idsAlumnos);
+        await clienteSupabase.from('asistencia').delete().eq('fecha', fecha).eq('trimestre', state.trimestreActual).in('estudiante_id', idsAlumnos);
         mostrarToast('Asistencia eliminada', 'success');
         await cargarHistorial('asistencia');
     } catch (err) {
@@ -166,8 +247,8 @@ async function actualizarActividad(id) {
     }
     mostrarSpinner('Actualizando...');
     try {
-        const { error } = await clienteSupabase.from('actividades').update({ 
-            nombre_actividad: nombre, fecha_actividad: fecha 
+        const { error } = await clienteSupabase.from('actividades').update({
+            nombre_actividad: nombre, fecha_actividad: fecha
         }).eq('id', id);
         if (!error) mostrarToast('Actividad actualizada', 'success');
         else mostrarToast('Error al actualizar', 'error');
@@ -187,7 +268,7 @@ async function actualizarFechaAsistencia(fechaOriginal) {
     mostrarSpinner('Actualizando...');
     try {
         const idsAlumnos = state.alumnosActuales.map(al => al.id);
-        await clienteSupabase.from('asistencia').update({ fecha: nuevaFecha }).eq('fecha', fechaOriginal).in('estudiante_id', idsAlumnos);
+        await clienteSupabase.from('asistencia').update({ fecha: nuevaFecha }).eq('fecha', fechaOriginal).eq('trimestre', state.trimestreActual).in('estudiante_id', idsAlumnos);
         mostrarToast('Fecha actualizada', 'success');
         await cargarHistorial('asistencia');
     } catch (err) {
