@@ -136,7 +136,12 @@
         <section id="dashboard" class="hidden">
             <div class="page-header">
                 <h2><i class="fas fa-th-large"></i> Mis Grupos <span class="badge" id="contador-grupos">0</span></h2>
-                <div id="selector-ciclo-container" style="display:flex; align-items:center; gap:8px;"></div>
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <div id="selector-ciclo-container" style="display:flex; align-items:center; gap:8px;"></div>
+                    <button onclick="abrirModalNuevoGrupo()" class="btn-success btn-sm">
+                        <i class="fas fa-plus"></i> Nuevo Grupo
+                    </button>
+                </div>
             </div>
             <div id="lista-grupos" class="grid-grupos"></div>
         </section>
@@ -466,6 +471,38 @@
                 </div>
                 <button onclick="crearNuevaCategoria()" class="btn-success" style="width: 100%;">
                     <i class="fas fa-save"></i> Crear Categoría
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal Nuevo Grupo -->
+    <div id="modal-nuevo-grupo" class="modal hidden">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Nuevo Grupo</h3>
+                <button onclick="cerrarModalNuevoGrupo()" class="btn-cerrar-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Nombre del grupo:</label>
+                    <input type="text" id="nuevo-grupo-nombre" placeholder="Ej: 1º A"
+                        style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-family: var(--font-family); font-size: 1rem; background: var(--bg-color); color: var(--text-main);">
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Grado / descripción (opcional):</label>
+                    <input type="text" id="nuevo-grupo-grado" placeholder="Ej: Primaria"
+                        style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-family: var(--font-family); font-size: 1rem; background: var(--bg-color); color: var(--text-main);">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Ciclo escolar:</label>
+                    <input type="text" id="nuevo-grupo-ciclo" placeholder="Ej: 2026-2027"
+                        style="width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-family: var(--font-family); font-size: 1rem; background: var(--bg-color); color: var(--text-main);">
+                    <p class="help-text" style="margin-top: 5px;">Se llena solo con el ciclo que estás viendo ahora mismo en "Mis Grupos".</p>
+                </div>
+                <button onclick="crearNuevoGrupo()" class="btn-success" style="width: 100%;">
+                    <i class="fas fa-save"></i> Crear Grupo
                 </button>
             </div>
         </div>

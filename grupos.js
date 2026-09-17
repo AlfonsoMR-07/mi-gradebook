@@ -276,3 +276,78 @@ async function promoverGrupo() {
         ocultarSpinner();
     }
 }
+
+// =========================================
+// CREAR GRUPO NUEVO (manual)
+// =========================================
+// Para dar de alta grupos que empiezan vacíos (ej. "1º A" de nuevo ingreso),
+// a diferencia de "Promover Grupo" que copia alumnos de un grupo existente.
+
+function abrirModalNuevoGrupo() {
+    document.getElementById('nuevo-grupo-nombre').value = '';
+    document.getElementById('nuevo-grupo-grado').value = '';
+    // Se sugiere el ciclo que se está viendo actualmente en "Mis Grupos"
+    document.getElementById('nuevo-grupo-ciclo').value = obtenerCicloSeleccionado() || '2025-2026';
+    document.getElementById('modal-nuevo-grupo').classList.remove('hidden');
+}
+
+function cerrarModalNuevoGrupo() {
+    document.getElementById('modal-nuevo-grupo').classList.add('hidden');
+}
+
+async function crearNuevoGrupo() {
+    const nombre = document.getElementById('nuevo-grupo-nombre').value.trim();
+    const grado = document.getElementById('nuevo-grupo-grado').value.trim();
+    const ciclo = document.getElementById('nuevo-grupo-ciclo').value.trim();
+
+    if (!nombre) {
+        mostrarToast('Escribe un nombre para el grupo', 'warning');
+        return;
+    }
+    if (!ciclo || !/^\d{4}-\d{4}$/.test(ciclo)) {
+        mostrarToast('El ciclo escolar debe tener el formato AAAA-AAAA, ej. 2026-2027', 'warning');
+        return;
+    }
+    if (!navigator.onLine) {
+        mostrarToast('Necesitas conexión a internet para crear un grupo', 'error');
+        return;
+    }
+
+    mostrarSpinner('Creando grupo...');
+    try {
+        // Evitar duplicados por doble clic
+        const { data: existente } = await clienteSupabase
+            .from('grupos').select('id').eq('nombre', nombre).eq('ciclo_escolar', ciclo).maybeSingle();
+        if (existente) {
+            mostrarToast(`Ya existe "${nombre}" en el ciclo ${ciclo}`, 'warning');
+            return;
+        }
+
+        const { data: { session } } = await clienteSupabase.auth.getSession();
+
+        const { data: grupoNuevo, error } = await clienteSupabase
+            .from('grupos')
+            .insert({
+                nombre: nombre,
+                grado: grado || null,
+                maestro_id: session?.user?.id || null,
+                ciclo_escolar: ciclo
+            })
+            .select().single();
+
+        if (error) throw error;
+
+        await guardarEnStore('grupos', grupoNuevo);
+
+        cerrarModalNuevoGrupo();
+        mostrarToast(`Grupo "${nombre}" creado en el ciclo ${ciclo}`, 'success');
+
+        guardarCicloSeleccionado(ciclo);
+        await cargarGrupos();
+    } catch (err) {
+        console.error(err);
+        mostrarToast('Error al crear el grupo: ' + (err.message || ''), 'error');
+    } finally {
+        ocultarSpinner();
+    }
+}
