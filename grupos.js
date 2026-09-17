@@ -44,7 +44,9 @@ async function cargarGrupos() {
 
         renderizarSelectorCiclo(ciclosDisponibles, cicloSeleccionado);
 
-        const grupos = todosLosGrupos.filter(g => (g.ciclo_escolar || '2025-2026') === cicloSeleccionado);
+        const grupos = todosLosGrupos
+            .filter(g => (g.ciclo_escolar || '2025-2026') === cicloSeleccionado)
+            .sort(ordenarGruposPorGrado);
 
         const lista = document.getElementById('lista-grupos');
         if (!lista) return;
@@ -350,4 +352,21 @@ async function crearNuevoGrupo() {
     } finally {
         ocultarSpinner();
     }
+}
+
+// =========================================
+// ORDENAR GRUPOS (1º antes que 2º, A antes que B)
+// =========================================
+// Sin esto, "Mis Grupos" se mostraba en el orden en que quedaron
+// guardados en la base de datos (por id), que ya no coincide con el
+// grado después de promover grupos entre ciclos.
+function ordenarGruposPorGrado(a, b) {
+    const numA = parseInt((a.nombre || '').match(/\d+/)?.[0] || '99', 10);
+    const numB = parseInt((b.nombre || '').match(/\d+/)?.[0] || '99', 10);
+    if (numA !== numB) return numA - numB;
+
+    // Mismo grado: ordenar por la letra del grupo (A, B, C...)
+    const letraA = (a.nombre || '').replace(/[^A-Za-zÀ-ÿ]/g, '').trim();
+    const letraB = (b.nombre || '').replace(/[^A-Za-zÀ-ÿ]/g, '').trim();
+    return letraA.localeCompare(letraB, 'es');
 }
