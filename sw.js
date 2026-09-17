@@ -12,7 +12,7 @@
 //
 // Al cambiar CACHE_VERSION, el SW instalará el nuevo cache y limpiará
 // el anterior automáticamente en el evento 'activate'.
-const CACHE_VERSION = '2026-09-16-orden-grupos';
+const CACHE_VERSION = '2026-09-16-fix-precache-stale';
 const CACHE_NAME = `eduhub-${CACHE_VERSION}`;
 // ─────────────────────────────────────────────────────────────────────────────
 // CORREGIDO: rutas relativas (sin "/" al inicio) para que funcionen tanto en
@@ -52,9 +52,27 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME)
-            .then((cache) => {
+            .then(async (cache) => {
                 console.log(`[SW] Cacheando assets (${CACHE_NAME})...`);
-                return cache.addAll(STATIC_ASSETS);
+                // CORREGIDO: cache.addAll(STATIC_ASSETS) usa fetch() normal,
+                // que puede devolver una copia vieja guardada en el caché HTTP
+                // del navegador (no el nuestro) en vez de ir a buscar la
+                // versión real más reciente en GitHub. Por eso, aunque
+                // subíamos CACHE_VERSION, a veces seguía sirviendo código
+                // desactualizado. Con { cache: 'reload' } forzamos que cada
+                // archivo se descargue fresco de la red, ignorando el caché
+                // HTTP del navegador.
+                const resultados = await Promise.allSettled(
+                    STATIC_ASSETS.map(async (url) => {
+                        const response = await fetch(url, { cache: 'reload' });
+                        if (!response.ok) throw new Error(`${url}: ${response.status}`);
+                        return cache.put(url, response);
+                    })
+                );
+                const fallidos = resultados.filter(r => r.status === 'rejected');
+                if (fallidos.length > 0) {
+                    console.warn('[SW] Algunos assets no se pudieron precachear:', fallidos.map(f => f.reason?.message));
+                }
             })
             .then(() => {
                 console.log('[SW] Assets cacheados correctamente');
