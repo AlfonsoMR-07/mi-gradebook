@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario Completo de Biología Celular (Equipos 1 al 9)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full bg-slate-50 text-slate-800 flex flex-col font-sans antialiased selection:bg-teal-500 selection:text-white">
+
+    <header class="bg-teal-700 text-white shadow-md py-6 px-4 sm:px-8 sticky top-0 z-50 backdrop-blur-md bg-teal-700/95">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+                <span class="bg-teal-800 text-teal-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider">Repaso Académico Integral</span>
+                <h1 class="text-2xl sm:text-3xl font-bold mt-1">Biología Celular: Equipos 1 al 9</h1>
+                <p class="text-teal-100 text-sm">Evaluación interactiva completa con 63 preguntas de opción múltiple</p>
+            </div>
+            <!-- Timer & Quick Stats -->
+            <div class="flex items-center gap-4 bg-teal-800/80 px-4 py-2 rounded-xl backdrop-blur-sm border border-teal-600/50 shadow-inner">
+                <div class="text-center">
+                    <span class="block text-xs text-teal-200 uppercase tracking-wide">Tiempo</span>
+                    <span id="timer" class="text-xl font-mono font-bold">00:00</span>
+                </div>
+                <div class="h-8 w-px bg-teal-600"></div>
+                <div class="text-center">
+                    <span class="block text-xs text-teal-200 uppercase tracking-wide">Puntaje</span>
+                    <span id="score-display" class="text-xl font-bold">0 / 63</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-4xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6">
+        
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 flex flex-col gap-4">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div class="font-semibold text-slate-700 text-sm flex items-center gap-2">
+                    <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707v3.172a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-8.586a1 1 0 00-.293-.707L.293 7.293A1 1 0 010 6.586V4z"/></svg>
+                    Filtrar por Equipo:
+                </div>
+                <button onclick="resetQuiz()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm rounded-xl transition-all border border-slate-200 flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                    Reiniciar Cuestionario
+                </button>
+            </div>
+            
+            <!-- Filter Buttons Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2" id="filter-container">
+                <button onclick="setFilter('all')" id="filter-all" class="filter-btn col-span-2 sm:col-span-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all bg-teal-600 text-white shadow-sm text-center">
+                    Todos (63)
+                </button>
+                <button onclick="setFilter('eq1')" id="filter-eq1" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 1</button>
+                <button onclick="setFilter('eq2')" id="filter-eq2" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 2</button>
+                <button onclick="setFilter('eq3')" id="filter-eq3" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 3</button>
+                <button onclick="setFilter('eq4')" id="filter-eq4" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 4</button>
+                <button onclick="setFilter('eq5')" id="filter-eq5" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 5</button>
+                <button onclick="setFilter('eq6')" id="filter-eq6" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 6</button>
+                <button onclick="setFilter('eq7')" id="filter-eq7" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 7</button>
+                <button onclick="setFilter('eq8')" id="filter-eq8" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 8</button>
+                <button onclick="setFilter('eq9')" id="filter-eq9" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 9</button>
+            </div>
+        </div>
+
+        <div id="questions-container" class="flex flex-col gap-6">
+            <!-- Questions rendered via JS -->
+        </div>
+
+        <div id="summary-card" class="hidden bg-gradient-to-br from-teal-700 to-teal-900 text-white rounded-2xl shadow-lg p-6 sm:p-8 text-center flex flex-col items-center gap-4 mt-4">
+            <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center text-3xl">🏆</div>
+            <h2 class="text-2xl font-bold">¡Cuestionario Completo Finalizado!</h2>
+            <p id="summary-text" class="text-teal-100 max-w-md">Has recorrido las preguntas de los 9 equipos. Revisa tus resultados y fortalece tus conocimientos.</p>
+            <div class="text-3xl font-extrabold bg-white/20 px-6 py-2 rounded-2xl backdrop-blur-sm" id="final-score">0 / 63</div>
+            <button onclick="resetQuiz()" class="mt-2 px-6 py-3 bg-white text-teal-800 font-semibold rounded-xl hover:bg-teal-50 transition-all shadow-md">
+                Reiniciar Todo el Cuestionario
+            </button>
+        </div>
+
+    </main>
+
+    <script>
+        const questionsData = [
+            // EQUIPO 1
+            {
+                id: 1,
+                team: 'eq1',
+                teamName: 'EQUIPO 1: Introducción y Célula Eucariota | Procariota',
+                question: '¿Cuál de las siguientes características permite diferenciar principalmente a una célula procariota de una eucariota?',
+                options: [
+                    { letter: 'A', text: 'La presencia de membrana plasmática' },
+                    { letter: 'B', text: 'La presencia de material genético' },
+                    { letter: 'C', text: 'La ausencia de un núcleo delimitado por membrana' },
+                    { letter: 'D', text: 'La presencia de ribosomas' }
+                ],
+                correct: 'C',
+                explanation: 'Las células procariotas carecen de un núcleo verdadero delimitado por membrana (su material genético está en el nucleoide).'
+            },
+            {
+                id: 2,
+                team: 'eq1',
+                teamName: 'EQUIPO 1: Introducción y Célula Eucariota | Procariota',
+                question: 'Una célula presenta ADN localizado en una región llamada nucleoide y carece de organelos membranosos. ¿A qué tipo de célula corresponde?',
+                options: [
+                    { letter: 'A', text: 'Eucariota animal' },
+                    { letter: 'B', text: 'Eucariota vegetal' },
+                    { letter: 'C', text: 'Procariota' },
+                    { letter: 'D', text: 'Eucariota fúngica' }
+                ],
+                correct: 'C',
+                explanation: 'La presencia de nucleoide y ausencia de organelos membranosos define a las células procariotas.'
+            },
+            {
+                id: 3,
+                team: 'eq1',
+                teamName: 'EQUIPO 1: Introducción y Célula Eucariota | Procariota',
+                question: '¿Cuál de las siguientes estructuras permite que tanto las células procariotas como las eucariotas puedan sintetizar proteínas?',
+                options: [
+                    { letter: 'A', text: 'Núcleo' },
+                    { letter: 'B', text: 'Ribosomas' },
+                    { letter: 'C', text: 'Aparato de Golgi' },
+                    { letter: 'D', text: 'Retículo endoplasmático' }
+                ],
+                correct: 'B',
+                explanation: 'Los ribosomas están presentes en ambos tipos celulares para la traducción y síntesis de proteínas.'
+            },
+            {
+                id: 4,
+                team: 'eq1',
+                teamName: 'EQUIPO 1: Introducción y Célula Eucariota | Procariota',
+                question: '¿Por qué se considera que una célula eucariota tiene una mayor compartimentalización interna que una célula procariota?',
+                options: [
+                    { letter: 'A', text: 'Porque contiene ADN y ARN al mismo tiempo' },
+                    { letter: 'B', text: 'Porque posee organelos delimitados por membranas que realizan funciones específicas' },
+                    { letter: 'C', text: 'Porque carece de membrana plasmática' },
+                    { letter: 'D', text: 'Porque sus ribosomas producen energía' }
+                ],
+                correct: 'B',
+                explanation: 'Los organelos membranosos permiten dividir el citoplasma en compartimentos especializados con funciones metabólicas específicas.'
+            },
+            {
+                id: 5,
+                team: 'eq1',
+                teamName: 'EQUIPO 1: Introducción y Célula Eucariota | Procariota',
+                question: '¿Cuál de las siguientes comparaciones entre el material genético de procariotas y eucariotas es correcta?',
+                options: [
+                    { letter: 'A', text: 'Las procariotas carecen completamente de ADN' },
+                    { letter: 'B', text: 'Las eucariotas poseen únicamente una molécula circular de ADN' },
+                    { letter: 'C', text: 'Las procariotas generalmente tienen una molécula circular de ADN, mientras que las eucariotas poseen múltiples moléculas lineales' },
+                    { letter: 'D', text: 'Ambos tipos celulares almacenan su ADN dentro de un núcleo' }
+                ],
+                correct: 'C',
+                explanation: 'El ADN procariota suele ser circular y libre, mientras que el eucariota es lineal, múltiple y se encuentra en el núcleo asociado a histonas.'
+            },
+            {
+                id: 6,
+                team: 'eq1',
+                teamName: 'EQUIPO 1: Introducción y Célula Eucariota | Procariota',
+                question: '¿Cuál de las siguientes asociaciones es correcta?',
+                options: [
+                    { letter: 'A', text: 'Bacteria — célula eucariota' },
+                    { letter: 'B', text: 'Protozoo — célula procariota' },
+                    { letter: 'C', text: 'Animal — célula eucariota' },
+                    { letter: 'D', text: 'Arquea — célula eucariota' }
+                ],
+                correct: 'C',
+                explanation: 'Los animales pertenecen al dominio Eukarya y están formados por células eucariotas.'
+            },
+            {
+                id: 7,
+                team: 'eq1',
+                teamName: 'EQUIPO 1: Introducción y Célula Eucariota | Procariota',
+                question: '¿En qué organelo eucariota ocurre la fosforilación oxidativa que participa en la producción de ATP?',
+                options: [
+                    { letter: 'A', text: 'Lisosoma' },
+                    { letter: 'B', text: 'Mitocondria' },
+                    { letter: 'C', text: 'Aparato de Golgi' },
+                    { letter: 'D', text: 'Núcleo' }
+                ],
+                correct: 'B',
+                explanation: 'La mitocondria alberga la cadena de transporte de electrones y la fosforilación oxidativa para producir ATP.'
+            },
+
+            // EQUIPO 2
+            {
+                id: 8,
+                team: 'eq2',
+                teamName: 'EQUIPO 2: Organismos Pluricelulares y Diferenciación Celular',
+                question: '¿Cuáles son los procesos esenciales por los que se forma un organismo pluricelular?',
+                options: [
+                    { letter: 'A', text: 'Mitosis y meiosis.' },
+                    { letter: 'B', text: 'Proliferación, especialización, interacción y desplazamiento.' },
+                    { letter: 'C', text: 'Digestión, respiración y reproducción celular.' },
+                    { letter: 'D', text: 'Absorción, circulación y excreción.' }
+                ],
+                correct: 'B',
+                explanation: 'El desarrollo pluricelular requiere proliferación, especialización celular, interacción y migración o desplazamiento coordinado.'
+            },
+            {
+                id: 9,
+                team: 'eq2',
+                teamName: 'EQUIPO 2: Organismos Pluricelulares y Diferenciación Celular',
+                question: '¿Qué es la diferenciación celular?',
+                options: [
+                    { letter: 'A', text: 'Proceso mediante el cual una célula se divide para producir células idénticas.' },
+                    { letter: 'B', text: 'Proceso mediante el cual una célula pierde toda su información genética.' },
+                    { letter: 'C', text: 'Proceso mediante el cual una célula adquiere características estructurales y funcionales especializadas, asociadas con cambios en su patrón de expresión génica.' },
+                    { letter: 'D', text: 'Proceso mediante el cual una célula aumenta únicamente su tamaño sin modificar sus funciones.' }
+                ],
+                correct: 'C',
+                explanation: 'La diferenciación implica la adquisición de un fenotipo especializado mediante la regulación de la expresión génica.'
+            },
+            {
+                id: 10,
+                team: 'eq2',
+                teamName: 'EQUIPO 2: Organismos Pluricelulares y Diferenciación Celular',
+                question: '¿Cuál de las siguientes opciones presenta una característica importante de la diferenciación celular?',
+                options: [
+                    { letter: 'A', text: 'Modifica permanentemente todo el ADN de la célula para crear nuevos genes.' },
+                    { letter: 'B', text: 'Hace que todas las células del organismo desarrollen las mismas funciones.' },
+                    { letter: 'C', text: 'Elimina los genes que la célula no necesita para funcionar.' },
+                    { letter: 'D', text: 'No modifica esencialmente el genoma; cambia qué información genética se utiliza.' }
+                ],
+                correct: 'D',
+                explanation: 'La secuencia del ADN permanece intacta; la diferenciación cambia el patrón de qué genes se transcriben.'
+            },
+            {
+                id: 11,
+                team: 'eq2',
+                teamName: 'EQUIPO 2: Organismos Pluricelulares y Diferenciación Celular',
+                question: '¿Qué es la memoria celular?',
+                options: [
+                    { letter: 'A', text: 'Capacidad de una célula para almacenar nutrientes durante largos periodos.' },
+                    { letter: 'B', text: 'Capacidad de una célula para recordar físicamente el lugar donde se originó.' },
+                    { letter: 'C', text: 'Mantenimiento de patrones de expresión y comportamiento a lo largo del tiempo.' },
+                    { letter: 'D', text: 'Proceso mediante el cual una célula almacena copias adicionales de su ADN.' }
+                ],
+                correct: 'C',
+                explanation: 'La memoria celular permite preservar el estado de diferenciación adquirido en las células hijas.'
+            },
+            {
+                id: 12,
+                team: 'eq2',
+                teamName: 'EQUIPO 2: Organismos Pluricelulares y Diferenciación Celular',
+                question: '¿Qué es un tejido?',
+                options: [
+                    { letter: 'A', text: 'Organización de células y componentes extracelulares que cooperan para realizar funciones específicas.' },
+                    { letter: 'B', text: 'Grupo de células que siempre poseen exactamente la misma estructura y función.' },
+                    { letter: 'C', text: 'Conjunto de órganos que trabajan de manera independiente dentro del organismo.' },
+                    { letter: 'D', text: 'Acumulación de células que no tienen ninguna relación funcional entre sí.' }
+                ],
+                correct: 'A',
+                explanation: 'Un tejido es un conjunto organizado de células y matriz extracelular que cooperan en funciones comunes.'
+            },
+            {
+                id: 13,
+                team: 'eq2',
+                teamName: 'EQUIPO 2: Organismos Pluricelulares y Diferenciación Celular',
+                question: '¿A qué se refiere el término “Nicho” dentro de la diferenciación celular?',
+                options: [
+                    { letter: 'A', text: 'Región del núcleo donde se almacena la información genética de una célula.' },
+                    { letter: 'B', text: 'Microambiente que aporta contactos y señales capaces de favorecer el mantenimiento, proliferación o diferenciación celular.' },
+                    { letter: 'C', text: 'Espacio dentro de la célula encargado exclusivamente de producir energía.' },
+                    { letter: 'D', text: 'Tipo de tejido formado únicamente por células diferenciadas que ya no pueden dividirse.' }
+                ],
+                correct: 'B',
+                explanation: 'El nicho es el microambiente tisular que regula el destino de las células madre mediante señales físicas y químicas.'
+            },
+            {
+                id: 14,
+                team: 'eq2',
+                teamName: 'EQUIPO 2: Organismos Pluricelulares y Diferenciación Celular',
+                question: '¿De qué depende la homeostasis tisular en un organismo adulto?',
+                options: [
+                    { letter: 'A', text: 'De que todas las células se dividan constantemente sin ningún mecanismo de control.' },
+                    { letter: 'B', text: 'De la eliminación completa de las células viejas para evitar cualquier renovación celular.' },
+                    { letter: 'C', text: 'Del equilibrio entre proliferación, diferenciación, supervivencia y la muerte celular programada.' },
+                    { letter: 'D', text: 'De la producción continua de células nuevas sin considerar la muerte celular.' }
+                ],
+                correct: 'C',
+                explanation: 'La homeostasis requiere un balance dinámico perfecto entre división, diferenciación y apoptosis.'
+            },
+
+            // EQUIPO 3
+            {
+                id: 15,
+                team: 'eq3',
+                teamName: 'EQUIPO 3: Receptores de Membrana',
+                question: '¿Qué es un receptor de membrana?',
+                options: [
+                    { letter: 'A', text: 'Una molécula que almacena ADN' },
+                    { letter: 'B', text: 'Una proteína que recibe y transmite señales' },
+                    { letter: 'C', text: 'Un orgánulo que produce energía' },
+                    { letter: 'D', text: 'Una enzima digestiva' }
+                ],
+                correct: 'B',
+                explanation: 'Son proteínas transmembranales encargadas de recibir señales extracelulares y desencadenar respuestas intracelulares.'
+            },
+            {
+                id: 16,
+                team: 'eq3',
+                teamName: 'EQUIPO 3: Receptores de Membrana',
+                question: '¿Dónde se encuentran principalmente los receptores de membrana?',
+                options: [
+                    { letter: 'A', text: 'En la membrana plasmática' },
+                    { letter: 'B', text: 'En el nucléolo' },
+                    { letter: 'C', text: 'En los ribosomas' },
+                    { letter: 'D', text: 'En el ADN' }
+                ],
+                correct: 'A',
+                explanation: 'Se ubican en la membrana plasmática, permitiendo a la célula interactuar con su entorno.'
+            },
+            {
+                id: 17,
+                team: 'eq3',
+                teamName: 'EQUIPO 3: Receptores de Membrana',
+                question: '¿Qué molécula puede unirse a un receptor para producir una respuesta celular?',
+                options: [
+                    { letter: 'A', text: 'Ligando' },
+                    { letter: 'B', text: 'Ribosoma' },
+                    { letter: 'C', text: 'Cromosoma' },
+                    { letter: 'D', text: 'Fosfolípido' }
+                ],
+                correct: 'A',
+                explanation: 'El ligando (primer mensajero) es la molécula específica que se une al receptor.'
+            },
+            {
+                id: 18,
+                team: 'eq3',
+                teamName: 'EQUIPO 3: Receptores de Membrana',
+                question: '¿Cuál de los siguientes es un tipo de receptor de membrana?',
+                options: [
+                    { letter: 'A', text: 'Receptor acoplado a proteína G' },
+                    { letter: 'B', text: 'Receptor de ADN' },
+                    { letter: 'C', text: 'Receptor ribosomal' },
+                    { letter: 'D', text: 'Receptor cromosómico' }
+                ],
+                correct: 'A',
+                explanation: 'Los GPCR (receptores acoplados a proteína G) son una de las familias más grandes de receptores de membrana.'
+            },
+            {
+                id: 19,
+                team: 'eq3',
+                teamName: 'EQUIPO 3: Receptores de Membrana',
+                question: '¿Qué ocurre cuando un ligando se une a su receptor?',
+                options: [
+                    { letter: 'A', text: 'La célula necesariamente muere' },
+                    { letter: 'B', text: 'Se inicia una señal que puede producir una respuesta celular' },
+                    { letter: 'C', text: 'Se destruye la membrana' },
+                    { letter: 'D', text: 'Se elimina el ADN' }
+                ],
+                correct: 'B',
+                explanation: 'La unión provoca un cambio conformacional que desencadena vías de señalización intracelular.'
+            },
+            {
+                id: 20,
+                team: 'eq3',
+                teamName: 'EQUIPO 3: Receptores de Membrana',
+                question: '¿Cuál de estos puede actuar como ligando de un receptor de membrana?',
+                options: [
+                    { letter: 'A', text: 'Hormona' },
+                    { letter: 'B', text: 'Cromosoma' },
+                    { letter: 'C', text: 'Ribosoma' },
+                    { letter: 'D', text: 'Centriolo' }
+                ],
+                correct: 'A',
+                explanation: 'Las hormonas, neurotransmisores y factores de crecimiento actúan como ligandos.'
+            },
+            {
+                id: 21,
+                team: 'eq3',
+                teamName: 'EQUIPO 3: Receptores de Membrana',
+                question: 'Los receptores con actividad enzimática pueden:',
+                options: [
+                    { letter: 'A', text: 'Catalizar reacciones después de activarse' },
+                    { letter: 'B', text: 'Almacenar información genética' },
+                    { letter: 'C', text: 'Formar cromosomas' },
+                    { letter: 'D', text: 'Transportar oxígeno' }
+                ],
+                correct: 'A',
+                explanation: 'Estos receptores poseen dominio enzimático intrínseco (como tirosina kinasas) que se activa tras la unión del ligando.'
+            },
+
+            // EQUIPO 4
+            {
+                id: 22,
+                team: 'eq4',
+                teamName: 'EQUIPO 4: Proteínas de Transporte',
+                question: '¿A qué categoría pertenece generalmente una proteína que transporta sustancias a través de la bicapa?',
+                options: [
+                    { letter: 'A', text: 'Proteína periférica' },
+                    { letter: 'B', text: 'Proteína anclada a lípidos' },
+                    { letter: 'C', text: 'Proteína integral transmembranal' },
+                    { letter: 'D', text: 'Proteína soluble del citosol' }
+                ],
+                correct: 'C',
+                explanation: 'Las proteínas integrales transmembranales cruzan total o parcialmente la bicapa lipídica.'
+            },
+            {
+                id: 23,
+                team: 'eq4',
+                teamName: 'EQUIPO 4: Proteínas de Transporte',
+                question: '¿Cuál es la función de una proteína de transporte?',
+                options: [
+                    { letter: 'A', text: 'Funcionar como enzimas' },
+                    { letter: 'B', text: 'Catalizar reacciones en la superficie de la célula' },
+                    { letter: 'C', text: 'Transmitir señales dentro de la célula' },
+                    { letter: 'D', text: 'Permitir el intercambio de sustancias entre el medio interno y externo de la célula' }
+                ],
+                correct: 'D',
+                explanation: 'Facilitan el paso de moléculas polares e iones que no pueden atravesar libremente la bicapa hidrofóbica.'
+            },
+            {
+                id: 24,
+                team: 'eq4',
+                teamName: 'EQUIPO 4: Proteínas de Transporte',
+                question: '¿Cómo suele estar conformado un segmento transmembranal que atraviesa la bicapa lipídica?',
+                options: [
+                    { letter: 'A', text: '20 aminoácidos predominantemente no polares organizados en una hélice alfa' },
+                    { letter: 'B', text: '40 aminoácidos predominantemente no polares organizados en una hélice alfa' },
+                    { letter: 'C', text: '20 aminoácidos predominantemente no polares organizados en una hélice 310' },
+                    { letter: 'D', text: '20 aminoácidos predominantemente polares organizados en una hélice alfa' }
+                ],
+                correct: 'A',
+                explanation: 'Aproximadamente 20 aminoácidos hidrofóbicos en conformación de hélice alfa cruzan el núcleo lipídico.'
+            },
+            {
+                id: 25,
+                team: 'eq4',
+                teamName: 'EQUIPO 4: Proteínas de Transporte',
+                question: '¿Qué interacción contribuye a estabilizar el contacto entre los aminoácidos no polares de una proteína transmembranal y las colas hidrofóbicas de los lípidos?',
+                options: [
+                    { letter: 'A', text: 'Puentes de hidrógeno' },
+                    { letter: 'B', text: 'Interacciones electroestáticas' },
+                    { letter: 'C', text: 'Fuerzas de Van der Waals' },
+                    { letter: 'D', text: 'Ley de Coulomb' }
+                ],
+                correct: 'C',
+                explanation: 'Las fuerzas hidrofóbicas y de Van der Waals estabilizan la inserción de dominios no polares en la membrana.'
+            },
+            {
+                id: 26,
+                team: 'eq4',
+                teamName: 'EQUIPO 4: Proteínas de Transporte',
+                question: '¿Cómo funciona una proteína cuando es un canal iónico?',
+                options: [
+                    { letter: 'A', text: 'Tritura en pedazos más pequeños los iones para que puedan cruzar' },
+                    { letter: 'B', text: 'Forma un poro acuoso que permite un flujo rápido de iones' },
+                    { letter: 'C', text: 'Envuelve al ion por completo, transportándolo dentro de una vesícula de grasa' },
+                    { letter: 'D', text: 'Actúa como un imán magnético que atrae a los iones' }
+                ],
+                correct: 'B',
+                explanation: 'Los canales forman poros hidrofílicos selectivos que permiten el paso rápido de iones a favor de gradiente.'
+            },
+            {
+                id: 27,
+                team: 'eq4',
+                teamName: 'EQUIPO 4: Proteínas de Transporte',
+                question: '¿Cómo funciona una proteína cuando es un transportador (carrier)?',
+                options: [
+                    { letter: 'A', text: 'Se une al soluto y cambia de conformación' },
+                    { letter: 'B', text: 'Forma un poro abierto continuo' },
+                    { letter: 'C', text: 'Absorben las moléculas del exterior' },
+                    { letter: 'D', text: 'Envuelve al ion por completo, transportándolo dentro de una vesícula' }
+                ],
+                correct: 'A',
+                explanation: 'Los transportadores alternan su conformación para exponer el sitio de unión a un lado y otro de la membrana.'
+            },
+            {
+                id: 28,
+                team: 'eq4',
+                teamName: 'EQUIPO 4: Proteínas de Transporte',
+                question: '¿Por qué una proteína que transporta sustancias de un lado a otro de la membrana generalmente debe atravesar la bicapa?',
+                options: [
+                    { letter: 'A', text: 'Porque necesita almacenar material genético' },
+                    { letter: 'B', text: 'Porque debe proporcionar una vía selectiva que comunique ambos lados de la membrana' },
+                    { letter: 'C', text: 'Porque debe permanecer únicamente en la superficie extracelular' },
+                    { letter: 'D', text: 'Porque necesita convertirse en un fosfolípido' }
+                ],
+                correct: 'B',
+                explanation: 'Al cruzar ambos lados, conecta el medio extracelular con el intracelular permitiendo el tránsito selectivo.'
+            },
+
+            // EQUIPO 5
+            {
+                id: 29,
+                team: 'eq5',
+                teamName: 'EQUIPO 5: Transporte Pasivo',
+                question: '¿Cuál describe correctamente el efecto de un gradiente de concentración sobre el movimiento neto de una sustancia?',
+                options: [
+                    { letter: 'A', text: 'Se desplaza de una zona de menor concentración hacia una de mayor concentración.' },
+                    { letter: 'B', text: 'Se desplaza de una zona de mayor concentración hacia una de menor concentración.' },
+                    { letter: 'C', text: 'Se mantiene en la zona donde existe mayor concentración hasta alcanzar el equilibrio.' },
+                    { letter: 'D', text: 'Se desplaza en ambas direcciones, pero principalmente hacia donde hay mayor concentración.' }
+                ],
+                correct: 'B',
+                explanation: 'El movimiento neto a favor de gradiente ocurre siempre desde alta hacia baja concentración.'
+            },
+            {
+                id: 30,
+                team: 'eq5',
+                teamName: 'EQUIPO 5: Transporte Pasivo',
+                question: '¿Cuál de los siguientes factores favorece una mayor velocidad de difusión?',
+                options: [
+                    { letter: 'A', text: 'Un aumento en el tamaño de las moléculas.' },
+                    { letter: 'B', text: 'Una disminución de la temperatura del medio.' },
+                    { letter: 'C', text: 'Una menor diferencia de concentración entre las regiones.' },
+                    { letter: 'D', text: 'Un aumento de la temperatura, que incrementa el movimiento molecular.' }
+                ],
+                correct: 'D',
+                explanation: 'Mayor temperatura incrementa la energía cinética y la velocidad de difusión.'
+            },
+            {
+                id: 31,
+                team: 'eq5',
+                teamName: 'EQUIPO 5: Transporte Pasivo',
+                question: '¿Qué característica permite identificar a un proceso como transporte pasivo?',
+                options: [
+                    { letter: 'A', text: 'Requiere ATP para mover sustancias a través de la membrana.' },
+                    { letter: 'B', text: 'Desplaza sustancias en contra de su gradiente de concentración.' },
+                    { letter: 'C', text: 'Permite el movimiento de sustancias a favor de su gradiente sin utilizar energía metabólica directa.' },
+                    { letter: 'D', text: 'Utiliza proteínas de membrana para transportar sustancias hacia una mayor concentración.' }
+                ],
+                correct: 'C',
+                explanation: 'El transporte pasivo no consume ATP directo y ocurre a favor del gradiente electroquímico.'
+            },
+            {
+                id: 32,
+                team: 'eq5',
+                teamName: 'EQUIPO 5: Transporte Pasivo',
+                question: '¿Qué característica distingue a la difusión facilitada de la difusión simple?',
+                options: [
+                    { letter: 'A', text: 'Requiere ATP para transportar sustancias a través de la membrana.' },
+                    { letter: 'B', text: 'Permite el movimiento de sustancias en contra de su gradiente de concentración.' },
+                    { letter: 'C', text: 'Ocurre exclusivamente mediante el paso directo de moléculas a través de la bicapa lipídica.' },
+                    { letter: 'D', text: 'Utiliza proteínas de membrana para facilitar el paso de sustancias a favor de su gradiente.' }
+                ],
+                correct: 'D',
+                explanation: 'La difusión facilitada requiere proteínas transportadoras o canales, a diferencia de la simple que cruza la bicapa.'
+            },
+            {
+                id: 33,
+                team: 'eq5',
+                teamName: 'EQUIPO 5: Transporte Pasivo',
+                question: '¿Cuál es la diferencia entre un canal y un transportador?',
+                options: [
+                    { letter: 'A', text: 'Los canales se unen al soluto y cambian de conformación, mientras que los transportadores forman poros acuosos.' },
+                    { letter: 'B', text: 'Los canales forman un poro para el paso de sustancias, mientras que los transportadores se unen al soluto y cambian de conformación.' },
+                    { letter: 'C', text: 'Ambos forman poros acuosos y permiten el paso de cualquier sustancia sin selectividad.' },
+                    { letter: 'D', text: 'Los transportadores requieren ATP en todos los casos.' }
+                ],
+                correct: 'B',
+                explanation: 'Los canales abren poros acuosos, mientras que los transportadores experimentan cambios conformacionales al unirse al soluto.'
+            },
+            {
+                id: 34,
+                team: 'eq5',
+                teamName: 'EQUIPO 5: Transporte Pasivo',
+                question: 'Cuando un neurotransmisor se une a una proteína de membrana y provoca la apertura de un canal, ¿qué tipo de regulación presenta?',
+                options: [
+                    { letter: 'A', text: 'Dependiente de ligando, porque se abre al unirse una molécula específica.' },
+                    { letter: 'B', text: 'Dependiente de voltaje, porque responde a cambios en el potencial de membrana.' },
+                    { letter: 'C', text: 'Dependiente de estímulo mecánico.' },
+                    { letter: 'D', text: 'Dependiente de ATP.' }
+                ],
+                correct: 'A',
+                explanation: 'Los canales activados por ligando (ionotrópicos) se abren ante la unión de un mensajero químico.'
+            },
+            {
+                id: 35,
+                team: 'eq5',
+                teamName: 'EQUIPO 5: Transporte Pasivo',
+                question: '¿Cuál definición describe mejor la ósmosis?',
+                options: [
+                    { letter: 'A', text: 'Movimiento de solutos desde una zona de mayor concentración hacia una de menor concentración.' },
+                    { letter: 'B', text: 'Movimiento neto de agua desde donde hay menor concentración de solutos hacia donde hay mayor concentración de solutos no penetrantes.' },
+                    { letter: 'C', text: 'Movimiento de agua mediante ATP desde una zona de menor concentración hacia una de mayor concentración.' },
+                    { letter: 'D', text: 'Movimiento de iones a través de canales.' }
+                ],
+                correct: 'B',
+                explanation: 'La ósmosis es el flujo neto de agua a través de una membrana semipermeable hacia la región con mayor osmolaridad.'
+            },
+
+            // EQUIPO 6
+            {
+                id: 36,
+                team: 'eq6',
+                teamName: 'EQUIPO 6: Transporte Activo',
+                question: '¿En qué consiste el transporte activo primario?',
+                options: [
+                    { letter: 'A', text: 'Utiliza directamente la energía procedente de la hidrólisis de ATP para mover solutos contra su gradiente.' },
+                    { letter: 'B', text: 'Utiliza la energía almacenada en el gradiente de sodio para transportar glucosa.' },
+                    { letter: 'C', text: 'Mueve sustancias únicamente por difusión facilitada sin consumo energético.' },
+                    { letter: 'D', text: 'Desplaza solutos siempre a favor de su gradiente electroquímico.' }
+                ],
+                correct: 'A',
+                explanation: 'El transporte activo primario acopla la hidrólisis directa de ATP al transporte de solutos contra gradiente.'
+            },
+            {
+                id: 37,
+                team: 'eq6',
+                teamName: 'EQUIPO 6: Transporte Activo',
+                question: 'Si una célula agota su ATP, ¿qué secuencia de acontecimientos es la más probable?',
+                options: [
+                    { letter: 'A', text: 'Se detiene primero la difusión simple y después aumenta el gradiente de Na⁺.' },
+                    { letter: 'B', text: 'Se detiene la Na⁺/K⁺-ATPasa y, conforme se disipa el gradiente de Na⁺, disminuye el transporte activo secundario.' },
+                    { letter: 'C', text: 'Se activa SGLT1 para producir nuevo ATP.' },
+                    { letter: 'D', text: 'Se detienen inmediatamente la difusión simple y la ósmosis.' }
+                ],
+                correct: 'B',
+                explanation: 'Al fallar la bomba Na⁺/K⁺-ATPasa por falta de ATP, el gradiente de sodio se pierde y colapsa el transporte secundario.'
+            },
+            {
+                id: 38,
+                team: 'eq6',
+                teamName: 'EQUIPO 6: Transporte Activo',
+                question: '¿Cuál requiere hidrólisis directa de ATP?',
+                options: [
+                    { letter: 'A', text: 'Difusión facilitada por GLUT' },
+                    { letter: 'B', text: 'Transporte activo primario' },
+                    { letter: 'C', text: 'Transporte activo secundario' },
+                    { letter: 'D', text: 'Ósmosis' }
+                ],
+                correct: 'B',
+                explanation: 'El transporte activo primario utiliza directamente ATP.'
+            },
+            {
+                id: 39,
+                team: 'eq6',
+                teamName: 'EQUIPO 6: Transporte Activo',
+                question: 'La Na⁺/K⁺-ATPasa es importante para mantener los gradientes iónicos celulares. ¿Qué ocurre durante cada ciclo de funcionamiento?',
+                options: [
+                    { letter: 'A', text: 'Introduce 3 Na⁺ a la célula y expulsa 2 K⁺.' },
+                    { letter: 'B', text: 'Expulsa 3 Na⁺ e introduce 2 K⁺ utilizando la energía de un ATP.' },
+                    { letter: 'C', text: 'Introduce Na⁺ y K⁺ a la célula utilizando gradientes.' },
+                    { letter: 'D', text: 'Expulsa 2 Na⁺ e introduce 3 K⁺.' }
+                ],
+                correct: 'B',
+                explanation: 'Por cada ATP hidrolizado, la bomba saca 3 iones Na⁺ e introduce 2 iones K⁺.'
+            },
+            {
+                id: 40,
+                team: 'eq6',
+                teamName: 'EQUIPO 6: Transporte Activo',
+                question: '¿Cuáles son las dos modalidades del transporte activo secundario?',
+                options: [
+                    { letter: 'A', text: 'Simporte y Antiporte' },
+                    { letter: 'B', text: 'Na⁺/K⁺ ATPasa' },
+                    { letter: 'C', text: 'SGLT1 y SGLT2' },
+                    { letter: 'D', text: 'Ninguna de las anteriores' }
+                ],
+                correct: 'A',
+                explanation: 'El transporte activo secundario se divide en simporte (cotransporte en la misma dirección) y antiporte (intercambio).'
+            },
+            {
+                id: 41,
+                team: 'eq6',
+                teamName: 'EQUIPO 6: Transporte Activo',
+                question: '¿Por qué la Na⁺/K⁺-ATPasa se considera electrogénica?',
+                options: [
+                    { letter: 'A', text: 'Porque introduce una carga positiva neta en cada ciclo.' },
+                    { letter: 'B', text: 'Porque expulsa 3 Na⁺ e introduce 2 K⁺, produciendo la salida neta de una carga positiva.' },
+                    { letter: 'C', text: 'Porque transporta el mismo número de cargas en ambas direcciones.' },
+                    { letter: 'D', text: 'Porque permite el paso de Na⁺ sin utilizar ATP.' }
+                ],
+                    correct: 'B',
+                    explanation: 'Al expulsar 3 cargas positivas y meter solo 2, genera una diferencia de potencial eléctrico (es electrogénica).'
+            },
+            {
+                id: 42,
+                team: 'eq6',
+                teamName: 'EQUIPO 6: Transporte Activo',
+                question: '¿Qué es el transporte activo secundario?',
+                options: [
+                    { letter: 'A', text: 'Transporte que no requiere energía.' },
+                    { letter: 'B', text: 'Transporte de sustancias únicamente por difusión simple.' },
+                    { letter: 'C', text: 'Transporte que utiliza la energía almacenada en un gradiente electroquímico para mover sustancias contra su gradiente.' },
+                    { letter: 'D', text: 'Transporte que utiliza directamente ATP.' }
+                ],
+                correct: 'C',
+                explanation: 'Utiliza la energía potencial de un gradiente iónico previamente establecido por transporte primario.'
+            },
+
+            // EQUIPO 7
+            {
+                id: 43,
+                team: 'eq7',
+                teamName: 'EQUIPO 7: Integración de Sistemas de Transporte (Glucosa)',
+                question: '¿Qué se entiende por "integración de sistemas de transporte" en la membrana celular?',
+                options: [
+                    { letter: 'A', text: 'La aparición de una nueva familia de proteínas de membrana con funciones mixtas.' },
+                    { letter: 'B', text: 'La combinación de varios mecanismos de transporte que funcionan a una velocidad estequiométrica 1:1.' },
+                    { letter: 'C', text: 'La acción coordinada de distintos mecanismos y proteínas de transporte para lograr un resultado fisiológico y mantener la homeostasis.' },
+                    { letter: 'D', text: 'El uso exclusivo de ATP.' }
+                ],
+                correct: 'C',
+                explanation: 'Es la coordinación funcional entre bombas y transportadores para lograr procesos complejos como la absorción intestinal.'
+            },
+            {
+                id: 44,
+                team: 'eq7',
+                teamName: 'EQUIPO 7: Integración de Sistemas de Transporte (Glucosa)',
+                question: '¿Qué función y mecanismo realiza el cotransportador SGLT1 en la membrana apical?',
+                options: [
+                    { letter: 'A', text: 'Transporte activo secundario que introduce 2 Na⁺ y 1 glucosa hacia el interior del enterocito aprovechando el gradiente de sodio.' },
+                    { letter: 'B', text: 'Transporte activo primario que hidroliza ATP directamente.' },
+                    { letter: 'C', text: 'Difusión facilitada a favor del gradiente de concentración de glucosa.' },
+                    { letter: 'D', text: 'Uniportador basolateral.' }
+                ],
+                correct: 'A',
+                explanation: 'SGLT1 es un simporte que introduce sodio y glucosa aprovechando el gradiente electroquímico del Na⁺.'
+            },
+            {
+                id: 45,
+                team: 'eq7',
+                teamName: 'EQUIPO 7: Integración de Sistemas de Transporte (Glucosa)',
+                question: 'En la membrana basolateral, ¿cuál es la función de la bomba Na⁺/K⁺-ATPasa?',
+                options: [
+                    { letter: 'A', text: 'Transportar glucosa hacia el vaso sanguíneo mediante difusión facilitada.' },
+                    { letter: 'B', text: 'Realizar transporte activo primario, expulsando 3Na⁺ e introduciendo 2 K⁺ por cada ATP hidrolizado.' },
+                    { letter: 'C', text: 'Introducir 2 Na⁺ y expulsar 1 glucosa.' },
+                    { letter: 'D', text: 'Activar al transportador GLUT2.' }
+                ],
+                correct: 'B',
+                explanation: 'Mantiene las concentraciones intracelulares bajas de Na⁺ en la membrana basolateral.'
+            },
+            {
+                id: 46,
+                team: 'eq7',
+                teamName: 'EQUIPO 7: Integración de Sistemas de Transporte (Glucosa)',
+                question: '¿Cuál es la función del transportador GLUT2 en la membrana basolateral durante la absorción de glucosa?',
+                options: [
+                    { letter: 'A', text: 'Mover glucosa hacia el interior del enterocito en contra de su gradiente utilizando ATP.' },
+                    { letter: 'B', text: 'Expulsar sodio hacia el intersticio.' },
+                    { letter: 'C', text: 'Permitir la salida de glucosa del enterocito hacia el intersticio a favor de su gradiente mediante difusión facilitada.' },
+                    { letter: 'D', text: 'Mantener los niveles de potasio.' }
+                ],
+                correct: 'C',
+                explanation: 'GLUT2 permite que la glucosa acumulada en el enterocito salga hacia los capilares sanguíneos por difusión facilitada.'
+            },
+            {
+                id: 47,
+                team: 'eq7',
+                teamName: 'EQUIPO 7: Integración de Sistemas de Transporte (Glucosa)',
+                question: 'Aunque la Na⁺/K⁺-ATPasa no transporta glucosa directamente, ¿por qué es indispensable para su absorción intestinal?',
+                options: [
+                    { letter: 'A', text: 'Porque fosforila a la glucosa.' },
+                    { letter: 'B', text: 'Porque activa por alosterismo directo al uniportador GLUT2.' },
+                    { letter: 'C', text: 'Porque mantiene baja la concentración intracelular de Na⁺ conservando el gradiente electroquímico que utiliza el SGLT1.' },
+                    { letter: 'D', text: 'Porque aporta el ATP que requiere SGLT1.' }
+                ],
+                correct: 'C',
+                explanation: 'Al bombear sodio fuera de la célula, la bomba mantiene el gradiente que impulsa al SGLT1.'
+            },
+            {
+                id: 48,
+                team: 'eq7',
+                teamName: 'EQUIPO 7: Integración de Sistemas de Transporte (Glucosa)',
+                question: 'Si se administra un fármaco que inhibe selectivamente la Na⁺/K⁺-ATPasa, ¿cuál es la secuencia correcta de eventos?',
+                options: [
+                    { letter: 'A', text: 'Aumenta el Na⁺ intracelular, cae el gradiente de Na⁺, SGLT1 pierde fuerza impulsora, disminuye la absorción de glucosa.' },
+                    { letter: 'B', text: 'Disminuye el Na⁺ intracelular, aumenta la actividad de GLUT2.' },
+                    { letter: 'C', text: 'Aumenta el ATP intracelular, se hiperactiva SGLT1.' },
+                    { letter: 'D', text: 'Se bloquea la salida de glucosa por GLUT2.' }
+                ],
+                correct: 'A',
+                explanation: 'Sin bomba activa, el sodio se acumula, se disipa el gradiente y SGLT1 deja de funcionar.'
+            },
+            {
+                id: 49,
+                team: 'eq7',
+                teamName: 'EQUIPO 7: Integración de Sistemas de Transporte (Glucosa)',
+                question: '¿Por qué se dice que el flujo de glucosa desde la luz intestinal hacia la sangre es un proceso "indirectamente dependiente de ATP"?',
+                options: [
+                    { letter: 'A', text: 'Porque GLUT2 consume ATP.' },
+                    { letter: 'B', text: 'Porque la glucosa se une a moléculas de ATP.' },
+                    { letter: 'C', text: 'Porque la entrada de glucosa por SGLT1 utiliza la energía de un gradiente de sodio generado previamente con gasto de ATP por la Na⁺/K⁺-ATPasa.' },
+                    { letter: 'D', text: 'Porque la membrana apical requiere hidrolizar ATP.' }
+                ],
+                correct: 'C',
+                explanation: 'El motor primario requiere ATP, haciendo que todo el proceso de absorción sea indirectamente dependiente de él.'
+            },
+
+            // EQUIPO 8
+            {
+                id: 50,
+                team: 'eq8',
+                teamName: 'EQUIPO 8: Membrana Plasmática',
+                question: '¿Cuáles son las propiedades generales de la membrana?',
+                options: [
+                    { letter: 'A', text: 'Simétrica, Conductividad eléctrica constante y Fluidez.' },
+                    { letter: 'B', text: 'Asimétrica, Dinámica y Fluida.' },
+                    { letter: 'C', text: 'Simétrica, Conductividad elástica y Estática.' },
+                    { letter: 'D', text: 'Asimétrica, Dinámica y Estática.' }
+                ],
+                correct: 'B',
+                explanation: 'La membrana plasmática es asimétrica en su composición lipídica/proteica, dinámica y fluida (modelo de mosaico fluido).'
+            },
+            {
+                id: 51,
+                team: 'eq8',
+                teamName: 'EQUIPO 8: Membrana Plasmática',
+                question: '¿Por qué el movimiento de flip-flop en los lípidos ocurre de manera poco frecuente en comparación con la difusión lateral?',
+                options: [
+                    { letter: 'A', text: 'Porque requiere romper enlaces covalentes.' },
+                    { letter: 'B', text: 'Porque la cabeza hidrofílica del lípido tendría que atravesar el interior hidrofóbico de la bicapa.' },
+                    { letter: 'C', text: 'Porque las colas hidrofóbicas están unidas por puentes de hidrógeno.' },
+                    { letter: 'D', text: 'Porque solo el colesterol realiza difusión lateral.' }
+                ],
+                correct: 'B',
+                explanation: 'El paso de la cabeza polar por el centro apolar de la membrana requiere una alta energía de activación.'
+            },
+            {
+                id: 52,
+                team: 'eq8',
+                teamName: 'EQUIPO 8: Membrana Plasmática',
+                question: 'En relación con el papel del colesterol como modulador de la fluidez, ¿cuál es su comportamiento ante variaciones de temperatura?',
+                options: [
+                    { letter: 'A', text: 'Aumenta la fluidez excesivamente cuando la temperatura es alta y rigidiza cuando es baja.' },
+                    { letter: 'B', text: 'A altas temperaturas facilita el empaquetamiento.' },
+                    { letter: 'C', text: 'A temperaturas altas restringe el movimiento de fosfolípidos evitando fluidez excesiva, y a bajas temperaturas dificulta el empaquetamiento estrecho evitando rigidez.' },
+                    { letter: 'D', text: 'Elimina los efectos de las insaturaciones.' }
+                ],
+                correct: 'C',
+                explanation: 'El colesterol actúa como un amortiguador térmico de la fluidez de la membrana.'
+            },
+            {
+                id: 53,
+                team: 'eq8',
+                teamName: 'EQUIPO 8: Membrana Plasmática',
+                question: 'Durante la exocitosis y endocitosis, la membrana cambia de forma. ¿Qué propiedad permite esto?',
+                options: [
+                    { letter: 'A', text: 'Asimetría.' },
+                    { letter: 'B', text: 'Permeabilidad.' },
+                    { letter: 'C', text: 'Rigidez.' },
+                    { letter: 'D', text: 'Dinamismo, porque los componentes pueden reorganizarse y modificar su forma.' }
+                ],
+                correct: 'D',
+                explanation: 'El dinamismo y la fluidez permiten la fusión y fisión de membranas durante el tráfico vesicular.'
+            },
+            {
+                id: 54,
+                team: 'eq8',
+                teamName: 'EQUIPO 8: Membrana Plasmática',
+                question: 'Se comparan dos membranas con lípidos del mismo grado de saturación, pero una tiene cadenas de ácidos grasos más largas. ¿Qué efecto se espera?',
+                options: [
+                    { letter: 'A', text: 'La longitud no influye.' },
+                    { letter: 'B', text: 'Menor fluidez, porque las cadenas largas presentan mayor superficie de interacción con las vecinas.' },
+                    { letter: 'C', text: 'Mayor fluidez por menor interacción.' },
+                    { letter: 'D', text: 'Mayor fluidez por dobles enlaces cis.' }
+                ],
+                correct: 'B',
+                explanation: 'Cadenas más largas incrementan las fuerzas de Van der Waals intermoleculares, reduciendo la fluidez.'
+            },
+            {
+                id: 55,
+                team: 'eq8',
+                teamName: 'EQUIPO 8: Membrana Plasmática',
+                question: '¿Qué opción relaciona correctamente una clase de lípido, su esqueleto molecular y un ejemplo?',
+                options: [
+                    { letter: 'A', text: 'Glicerofosfolípidos; esfingosina; esfingomielina.' },
+                    { letter: 'B', text: 'Esfingolípidos; glicerol; fosfatidilserina.' },
+                    { letter: 'C', text: 'Esfingolípidos; esfingosina; esfingomielina.' },
+                    { letter: 'D', text: 'Glicerofosfolípidos; colesterol; fosfatidilcolina.' }
+                ],
+                correct: 'C',
+                explanation: 'Los esfingolípidos se basan en esfingosina y un ejemplo clásico es la esfingomielina.'
+            },
+            {
+                id: 56,
+                team: 'eq8',
+                teamName: 'EQUIPO 8: Membrana Plasmática',
+                question: '¿Cuáles son las tres funciones específicas de las proteínas de la membrana?',
+                options: [
+                    { letter: 'A', text: 'Transporte, estructura y rotación.' },
+                    { letter: 'B', text: 'Transporte, señalización y reconocimiento.' },
+                    { letter: 'C', text: 'Transporte, señalización y adhesión.' },
+                    { letter: 'D', text: 'Estructura, ensamblaje y adhesión.' }
+                ],
+                correct: 'C',
+                explanation: 'Las proteínas de membrana cumplen roles fundamentales de transporte, transducción de señales y adhesión celular.'
+            },
+
+            // EQUIPO 9
+            {
+                id: 57,
+                team: 'eq9',
+                teamName: 'EQUIPO 9: Transporte de Membrana y Patologías Médicas',
+                question: '¿Qué proteína permite el transporte de agua a través de la membrana celular en el riñón?',
+                options: [
+                    { letter: 'A', text: 'GLUT1' },
+                    { letter: 'B', text: 'CFTR' },
+                    { letter: 'C', text: 'AQP2 (Acuaporina 2)' },
+                    { letter: 'D', text: 'SGLT1' }
+                ],
+                correct: 'C',
+                explanation: 'La acuaporina 2 (AQP2) es crucial para la reabsorción de agua en los túbulos colectores renales.'
+            },
+            {
+                id: 58,
+                team: 'eq9',
+                teamName: 'EQUIPO 9: Transporte de Membrana y Patologías Médicas',
+                question: '¿Qué proteína permite el transporte de glucosa mediante difusión facilitada en el sistema nervioso?',
+                options: [
+                    { letter: 'A', text: 'AQP2' },
+                    { letter: 'B', text: 'CFTR' },
+                    { letter: 'C', text: 'SGLT1' },
+                    { letter: 'D', text: 'GLUT1' }
+                ],
+                correct: 'D',
+                explanation: 'GLUT1 transporta glucosa a través de la barrera hematoencefálica y hacia las neuronas y astrocitos.'
+            },
+            {
+                id: 59,
+                team: 'eq9',
+                teamName: 'EQUIPO 9: Transporte de Membrana y Patologías Médicas',
+                question: '¿Qué tipo de transporte realiza SGLT1 al introducir Na⁺ junto con glucosa o galactosa al enterocito?',
+                options: [
+                    { letter: 'A', text: 'Difusión facilitada' },
+                    { letter: 'B', text: 'Movimiento pasivo de agua' },
+                    { letter: 'C', text: 'Transporte activo secundario' },
+                    { letter: 'D', text: 'Transporte activo primario' }
+                ],
+                correct: 'C',
+                explanation: 'SGLT1 acopla el transporte de glucosa al gradiente electroquímico de sodio (transporte activo secundario).'
+            },
+            {
+                id: 60,
+                team: 'eq9',
+                teamName: 'EQUIPO 9: Transporte de Membrana y Patologías Médicas',
+                question: '¿Qué patología se genera por mutaciones en la acuaporina 2 (AQP2), impidiendo la reabsorción adecuada de agua en el conducto colector?',
+                options: [
+                    { letter: 'A', text: 'Fibrosis quística' },
+                    { letter: 'B', text: 'Diabetes insípida nefrogénica' },
+                    { letter: 'C', text: 'Malabsorción de glucosa-galactosa' },
+                    { letter: 'D', text: 'Síndrome de deficiencia de GLUT1' }
+                ],
+                correct: 'B',
+                explanation: 'La diabetes insípida nefrogénica impide concentrar la orina debido a fallas en AQP2 o su receptor de vasopresina.'
+            },
+            {
+                id: 61,
+                team: 'eq9',
+                teamName: 'EQUIPO 9: Transporte de Membrana y Patologías Médicas',
+                question: '¿Por qué la alteración de SGLT1 puede producir diarrea osmótica?',
+                options: [
+                    { letter: 'A', text: 'Porque aumenta la salida de agua del intestino hacia la sangre.' },
+                    { letter: 'B', text: 'Porque la glucosa y la galactosa no absorbidas aumentan la carga osmótica de la luz intestinal.' },
+                    { letter: 'C', text: 'Porque bloquea directamente el canal CFTR.' },
+                    { letter: 'D', text: 'Porque aumenta la actividad de GLUT1.' }
+                ],
+                correct: 'B',
+                explanation: 'Azúcares no absorbidos retienen agua por efecto osmótico en la luz intestinal.'
+            },
+            {
+                id: 62,
+                team: 'eq9',
+                teamName: 'EQUIPO 9: Transporte de Membrana y Patologías Médicas',
+                question: '¿Cuál es una consecuencia de la deficiencia de GLUT1?',
+                options: [
+                    { letter: 'A', text: 'Acumulación de agua en el riñón' },
+                    { letter: 'B', text: 'Exceso de absorción intestinal de glucosa' },
+                    { letter: 'C', text: 'Disminución del transporte de glucosa hacia el sistema nervioso central' },
+                    { letter: 'D', text: 'Aumento del transporte de cloro' }
+                ],
+                correct: 'C',
+                explanation: 'La deficiencia de GLUT1 causa hipoglucorraquia y trastornos neurológicos severos por falta de glucosa cerebral.'
+            },
+            {
+                id: 63,
+                team: 'eq9',
+                teamName: 'EQUIPO 9: Transporte de Membrana y Patologías Médicas',
+                question: '¿Qué consecuencia puede producir una alteración de CFTR en las vías respiratorias?',
+                options: [
+                    { letter: 'A', text: 'Aumento de la absorción intestinal de glucosa' },
+                    { letter: 'B', text: 'Alteración del transporte de Cl⁻ y HCO₃⁻, menor hidratación de la superficie y secreciones viscosas' },
+                    { letter: 'C', text: 'Eliminación de grandes cantidades de orina' },
+                    { letter: 'D', text: 'Disminución del suministro de glucosa al cerebro' }
+                ],
+                correct: 'B',
+                explanation: 'Mutaciones en CFTR causan fibrosis quística, caracterizada por secreciones mucosas espesas en pulmones y páncreas.'
+            }
+        ];
+
+        // State variables
+        let currentFilter = 'all';
+        let userAnswers = {}; 
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let quizActive = true;
+
+        window.onload = function() {
+            startTimer();
+            renderQuestions();
+        };
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!quizActive) return;
+                timerSeconds++;
+                const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+                const secs = (timerSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.className = "filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center";
+            });
+            const activeBtn = document.getElementById(`filter-${filter}`);
+            if (filter === 'all') {
+                activeBtn.className = "filter-btn col-span-2 sm:col-span-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all bg-teal-600 text-white shadow-sm text-center";
+            } else {
+                activeBtn.className = "filter-btn px-3 py-2 rounded-xl text-xs font-semibold transition-all bg-teal-600 text-white shadow-sm text-center";
+            }
+            renderQuestions();
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            const filtered = currentFilter === 'all' 
+                ? questionsData 
+                : questionsData.filter(q => q.team === currentFilter);
+
+            filtered.forEach((q, index) => {
+                const isAnswered = userAnswers[q.id] !== undefined;
+                const selectedOption = userAnswers[q.id];
+                const isCorrect = selectedOption === q.correct;
+
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-2xl shadow-sm border transition-all p-5 sm:p-6 flex flex-col gap-4 ${
+                    isAnswered 
+                        ? (isCorrect ? 'border-emerald-300 bg-emerald-50/20' : 'border-rose-300 bg-rose-50/20') 
+                        : 'border-slate-200 hover:border-slate-300'
+                }`;
+
+                let optionsHtml = '';
+                q.options.forEach(opt => {
+                    let btnStyle = "border-slate-200 hover:bg-slate-50 text-slate-700";
+                    let iconHtml = "";
+
+                    if (isAnswered) {
+                        if (opt.letter === q.correct) {
+                            btnStyle = "border-emerald-500 bg-emerald-50 text-emerald-900 font-semibold shadow-sm";
+                            iconHtml = '<span class="ml-auto text-emerald-600 font-bold text-xs sm:text-sm">✓ Correcta</span>';
+                        } else if (opt.letter === selectedOption) {
+                            btnStyle = "border-rose-500 bg-rose-50 text-rose-900 font-semibold shadow-sm";
+                            iconHtml = '<span class="ml-auto text-rose-600 font-bold text-xs sm:text-sm">✗ Tu respuesta</span>';
+                        } else {
+                            btnStyle = "border-slate-200 opacity-60 text-slate-500";
+                        }
+                    }
+
+                    optionsHtml += `
+                        <button onclick="selectOption(${q.id}, '${opt.letter}')" ${isAnswered ? 'disabled' : ''} 
+                            class="w-full text-left p-3.5 sm:p-4 rounded-xl border transition-all flex items-center gap-3 text-sm sm:text-base ${btnStyle}">
+                            <span class="w-7 h-7 rounded-lg bg-slate-100 border border-slate-300 flex items-center justify-center font-bold text-xs shrink-0">${opt.letter}</span>
+                            <span class="flex-grow">${opt.text}</span>
+                            ${iconHtml}
+                        </button>
+                    `;
+                });
+
+                let feedbackHtml = '';
+                if (isAnswered) {
+                    feedbackHtml = `
+                        <div class="mt-2 p-4 rounded-xl border ${isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'} text-sm flex flex-col gap-1">
+                            <div class="font-semibold flex items-center gap-2">
+                                ${isCorrect ? '¡Respuesta Correcta!' : 'Respuesta Incorrecta'}
+                            </div>
+                            <p class="text-slate-700 mt-1"><strong class="text-slate-900">Explicación:</strong> ${q.explanation}</p>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full border bg-indigo-50 text-indigo-700 border-indigo-200">${q.teamName}</span>
+                        <span class="text-xs font-medium text-slate-400">Pregunta ${index + 1} de ${filtered.length} (Global ID: ${q.id})</span>
+                    </div>
+                    <h3 class="text-base sm:text-lg font-semibold text-slate-800 leading-snug">${q.question}</h3>
+                    <div class="flex flex-col gap-2.5 mt-1">
+                        ${optionsHtml}
+                    </div>
+                    ${feedbackHtml}
+                `;
+
+                container.appendChild(card);
+            });
+
+            updateScoreUI();
+        }
+
+        function selectOption(questionId, letter) {
+            if (userAnswers[questionId] !== undefined) return;
+            userAnswers[questionId] = letter;
+            renderQuestions();
+            checkCompletion();
+        }
+
+        function updateScoreUI() {
+            const totalAnswered = Object.keys(userAnswers).length;
+            let correctCount = 0;
+            
+            for (const id in userAnswers) {
+                const q = questionsData.find(item => item.id == id);
+                if (q && userAnswers[id] === q.correct) {
+                    correctCount++;
+                }
+            }
+
+            document.getElementById('score-display').innerText = `${correctCount} / ${questionsData.length}`;
+            
+            if (totalAnswered === questionsData.length && quizActive) {
+                quizActive = false;
+                clearInterval(timerInterval);
+                const summaryCard = document.getElementById('summary-card');
+                const finalScore = document.getElementById('final-score');
+                const summaryText = document.getElementById('summary-text');
+                
+                finalScore.innerText = `${correctCount} / ${questionsData.length} aciertos`;
+                if (correctCount === questionsData.length) {
+                    summaryText.innerText = "¡Impresionante! Tienes un dominio absoluto de todos los temas de biología celular, transporte y membranas.";
+                } else if (correctCount >= 50) {
+                    summaryText.innerText = "¡Excelente desempeño! Tienes bases muy sólidas en los 9 equipos.";
+                } else {
+                    summaryText.innerText = "Buen esfuerzo. Te recomendamos revisar los equipos donde tuviste más desaciertos para afianzar tu repaso.";
+                }
+                summaryCard.classList.remove('hidden');
+                summaryCard.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function checkCompletion() {
+            // Handled inside updateScoreUI
+        }
+
+        function resetQuiz() {
+            userAnswers = {};
+            timerSeconds = 0;
+            quizActive = true;
+            document.getElementById('summary-card').classList.add('hidden');
+            startTimer();
+            renderQuestions();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
