@@ -1,92 +1,124 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cuestionario Completo de Biología Celular (Equipos 1 al 9)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
+    <title>Cuestionario Completo de Biología Celular y Microtúbulos</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; line-height: 1.5; padding-bottom: 40px; }
+        header { background-color: #0f766e; color: white; padding: 20px 16px; position: sticky; top: 0; z-index: 50; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header-content { max-width: 900px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
+        .tag { background-color: #115e59; color: #99f6e4; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; }
+        h1 { font-size: 1.5rem; font-weight: 700; margin-top: 4px; }
+        p.subtitle { color: #ccfbf1; font-size: 0.875rem; }
+        .stats { display: flex; align-items: center; gap: 16px; background-color: rgba(17, 94, 89, 0.8); padding: 8px 16px; border-radius: 12px; border: 1px solid rgba(20, 184, 166, 0.5); }
+        .stat-box { text-align: center; }
+        .stat-label { display: block; font-size: 11px; color: #99f6e4; text-transform: uppercase; }
+        .stat-val { font-size: 1.25rem; font-weight: 700; font-family: monospace; }
+        .divider { width: 1px; height: 32px; background-color: #0d9488; }
+        
+        main { max-width: 900px; margin: 24px auto; padding: 0 16px; display: flex; flex-direction: column; gap: 24px; }
+        .filter-card { background: white; border-radius: 16px; padding: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .filter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+        .filter-title { font-weight: 600; font-size: 0.875rem; color: #334155; }
+        .reset-btn { padding: 8px 16px; background-color: #f1f5f9; color: #334155; font-weight: 500; font-size: 0.875rem; border-radius: 12px; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s; }
+        .reset-btn:hover { background-color: #e2e8f0; }
+        
+        .filter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
+        .filter-btn { padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 500; border: 1px solid #cbd5e1; background-color: #f8fafc; color: #475569; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .filter-btn:hover { background-color: #f1f5f9; }
+        .filter-btn.active { background-color: #0d9488; color: white; border-color: #0d9488; font-weight: 600; }
+        
+        .questions-list { display: flex; flex-direction: column; gap: 20px; }
+        .question-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05); transition: all 0.2s; display: flex; flex-direction: column; gap: 16px; }
+        .question-card.correct { border-color: #6ee7b7; background-color: #f0fdf4; }
+        .question-card.incorrect { border-color: #fca5a5; background-color: #fff1f2; }
+        
+        .q-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .q-team { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+        .q-id { font-size: 12px; color: #94a3b8; font-weight: 500; }
+        .q-text { font-size: 1.05rem; font-weight: 600; color: #1e293b; }
+        
+        .options-list { display: flex; flex-direction: column; gap: 10px; }
+        .option-btn { width: 100%; text-align: left; padding: 12px 16px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; color: #334155; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s; }
+        .option-btn:hover:not(:disabled) { background-color: #f8fafc; border-color: #cbd5e1; }
+        .option-letter { width: 28px; height: 28px; border-radius: 8px; background-color: #f1f5f9; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; shrink: 0; }
+        
+        .option-btn.opt-correct { border-color: #10b981; background-color: #ecfdf5; color: #065f46; font-weight: 600; }
+        .option-btn.opt-incorrect { border-color: #f43f5e; background-color: #fff1f2; color: #9f1239; font-weight: 600; }
+        .option-btn.opt-disabled { opacity: 0.6; }
+        
+        .badge-status { margin-left: auto; font-size: 0.75rem; font-weight: 700; }
+        .badge-correct { color: #059669; }
+        .badge-incorrect { color: #e11d48; }
+        
+        .feedback-box { padding: 14px 16px; border-radius: 12px; font-size: 0.875rem; border: 1px solid; margin-top: 4px; }
+        .feedback-box.correct { background-color: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+        .feedback-box.incorrect { background-color: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+        .feedback-title { font-weight: 700; margin-bottom: 4px; }
+        
+        .summary-card { background: linear-gradient(135deg, #0f766e, #115e59); color: white; border-radius: 20px; padding: 32px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 16px; }
+        .summary-card.hidden { display: none; }
+        .trophy { font-size: 3rem; background: rgba(255,255,255,0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .final-score { font-size: 2rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 8px 24px; border-radius: 16px; backdrop-filter: blur(4px); }
+    </style>
 </head>
-<body class="h-full bg-slate-50 text-slate-800 flex flex-col font-sans antialiased selection:bg-teal-500 selection:text-white">
+<body>
 
-    <header class="bg-teal-700 text-white shadow-md py-6 px-4 sm:px-8 sticky top-0 z-50 backdrop-blur-md bg-teal-700/95">
-        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+    <header>
+        <div class="header-content">
             <div>
-                <span class="bg-teal-800 text-teal-200 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider">Repaso Académico Integral</span>
-                <h1 class="text-2xl sm:text-3xl font-bold mt-1">Biología Celular: Equipos 1 al 9</h1>
-                <p class="text-teal-100 text-sm">Evaluación interactiva completa con 63 preguntas de opción múltiple</p>
+                <span class="tag">Repaso Académico Integral</span>
+                <h1>Biología Celular: Cuestionario Completo</h1>
+                <p class="subtitle">Evaluación interactiva con 73 preguntas de opción múltiple (Equipos 1-9 y Microtúbulos)</p>
             </div>
-            <!-- Timer & Quick Stats -->
-            <div class="flex items-center gap-4 bg-teal-800/80 px-4 py-2 rounded-xl backdrop-blur-sm border border-teal-600/50 shadow-inner">
-                <div class="text-center">
-                    <span class="block text-xs text-teal-200 uppercase tracking-wide">Tiempo</span>
-                    <span id="timer" class="text-xl font-mono font-bold">00:00</span>
+            <div class="stats">
+                <div class="stat-box">
+                    <span class="stat-label">Tiempo</span>
+                    <span id="timer" class="stat-val">00:00</span>
                 </div>
-                <div class="h-8 w-px bg-teal-600"></div>
-                <div class="text-center">
-                    <span class="block text-xs text-teal-200 uppercase tracking-wide">Puntaje</span>
-                    <span id="score-display" class="text-xl font-bold">0 / 63</span>
+                <div class="divider"></div>
+                <div class="stat-box">
+                    <span class="stat-label">Puntaje</span>
+                    <span id="score-display" class="stat-val">0 / 73</span>
                 </div>
             </div>
         </div>
     </header>
 
-    <main class="flex-grow max-w-4xl w-full mx-auto p-4 sm:p-6 flex flex-col gap-6">
-        
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6 flex flex-col gap-4">
-            <div class="flex flex-col sm:flex-row justify-between items-center gap-3">
-                <div class="font-semibold text-slate-700 text-sm flex items-center gap-2">
-                    <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707v3.172a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-8.586a1 1 0 00-.293-.707L.293 7.293A1 1 0 010 6.586V4z"/></svg>
-                    Filtrar por Equipo:
-                </div>
-                <button onclick="resetQuiz()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm rounded-xl transition-all border border-slate-200 flex items-center justify-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-                    Reiniciar Cuestionario
-                </button>
+    <main>
+        <div class="filter-card">
+            <div class="filter-header">
+                <span class="filter-title">🔍 Filtrar por Tema / Equipo:</span>
+                <button onclick="resetQuiz()" class="reset-btn">🔄 Reiniciar Cuestionario</button>
             </div>
-            
-            <!-- Filter Buttons Grid -->
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2" id="filter-container">
-                <button onclick="setFilter('all')" id="filter-all" class="filter-btn col-span-2 sm:col-span-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all bg-teal-600 text-white shadow-sm text-center">
-                    Todos (63)
-                </button>
-                <button onclick="setFilter('eq1')" id="filter-eq1" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 1</button>
-                <button onclick="setFilter('eq2')" id="filter-eq2" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 2</button>
-                <button onclick="setFilter('eq3')" id="filter-eq3" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 3</button>
-                <button onclick="setFilter('eq4')" id="filter-eq4" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 4</button>
-                <button onclick="setFilter('eq5')" id="filter-eq5" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 5</button>
-                <button onclick="setFilter('eq6')" id="filter-eq6" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 6</button>
-                <button onclick="setFilter('eq7')" id="filter-eq7" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 7</button>
-                <button onclick="setFilter('eq8')" id="filter-eq8" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 8</button>
-                <button onclick="setFilter('eq9')" id="filter-eq9" class="filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center">Eq. 9</button>
+            <div class="filter-grid" id="filter-container">
+                <button onclick="setFilter('all')" id="filter-all" class="filter-btn active">Todos (73)</button>
+                <button onclick="setFilter('eq1')" id="filter-eq1" class="filter-btn">Eq. 1</button>
+                <button onclick="setFilter('eq2')" id="filter-eq2" class="filter-btn">Eq. 2</button>
+                <button onclick="setFilter('eq3')" id="filter-eq3" class="filter-btn">Eq. 3</button>
+                <button onclick="setFilter('eq4')" id="filter-eq4" class="filter-btn">Eq. 4</button>
+                <button onclick="setFilter('eq5')" id="filter-eq5" class="filter-btn">Eq. 5</button>
+                <button onclick="setFilter('eq6')" id="filter-eq6" class="filter-btn">Eq. 6</button>
+                <button onclick="setFilter('eq7')" id="filter-eq7" class="filter-btn">Eq. 7</button>
+                <button onclick="setFilter('eq8')" id="filter-eq8" class="filter-btn">Eq. 8</button>
+                <button onclick="setFilter('eq9')" id="filter-eq9" class="filter-btn">Eq. 9</button>
+                <button onclick="setFilter('eq10')" id="filter-eq10" class="filter-btn" style="grid-column: span 2;">Microtúbulos (10)</button>
             </div>
         </div>
 
-        <div id="questions-container" class="flex flex-col gap-6">
-            <!-- Questions rendered via JS -->
-        </div>
+        <div id="questions-container" class="questions-list"></div>
 
-        <div id="summary-card" class="hidden bg-gradient-to-br from-teal-700 to-teal-900 text-white rounded-2xl shadow-lg p-6 sm:p-8 text-center flex flex-col items-center gap-4 mt-4">
-            <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center text-3xl">🏆</div>
-            <h2 class="text-2xl font-bold">¡Cuestionario Completo Finalizado!</h2>
-            <p id="summary-text" class="text-teal-100 max-w-md">Has recorrido las preguntas de los 9 equipos. Revisa tus resultados y fortalece tus conocimientos.</p>
-            <div class="text-3xl font-extrabold bg-white/20 px-6 py-2 rounded-2xl backdrop-blur-sm" id="final-score">0 / 63</div>
-            <button onclick="resetQuiz()" class="mt-2 px-6 py-3 bg-white text-teal-800 font-semibold rounded-xl hover:bg-teal-50 transition-all shadow-md">
-                Reiniciar Todo el Cuestionario
+        <div id="summary-card" class="summary-card hidden">
+            <div class="trophy">🏆</div>
+            <h2>¡Cuestionario Completo Finalizado!</h2>
+            <p id="summary-text" style="color: #ccfbf1; max-width: 500px;">Has completado el repaso de todas las preguntas de Biología Celular y Microtúbulos.</p>
+            <div class="final-score" id="final-score">0 / 73 aciertos</div>
+            <button onclick="resetQuiz()" class="reset-btn" style="background: white; color: #0f766e; font-weight: 700; padding: 12px 24px; font-size: 1rem;">
+                Reiniciar Cuestionario
             </button>
         </div>
-
     </main>
 
     <script>
@@ -989,10 +1021,151 @@
                 ],
                 correct: 'B',
                 explanation: 'Mutaciones en CFTR causan fibrosis quística, caracterizada por secreciones mucosas espesas en pulmones y páncreas.'
+            },
+
+            // TEMA 10 / BANCO MICROTÚBULOS
+            {
+                id: 64,
+                team: 'eq10',
+                teamName: 'MICROTÚBULOS: Citoesqueleto y Transporte Intracelular',
+                question: '¿De qué proteínas están formados principalmente los microtúbulos?',
+                options: [
+                    { letter: 'A', text: 'Actina y miosina' },
+                    { letter: 'B', text: 'α-tubulina y β-tubulina' },
+                    { letter: 'C', text: 'Queratina y vimentina' },
+                    { letter: 'D', text: 'Colágeno y elastina' }
+                ],
+                correct: 'B',
+                explanation: 'Los microtúbulos se componen de heterodímeros de α-tubulina y β-tubulina.'
+            },
+            {
+                id: 65,
+                team: 'eq10',
+                teamName: 'MICROTÚBULOS: Citoesqueleto y Transporte Intracelular',
+                question: '¿Qué característica describe mejor la forma de un microtúbulo?',
+                options: [
+                    { letter: 'A', text: 'Es una lámina plana de proteínas' },
+                    { letter: 'B', text: 'Es un cilindro hueco formado por protofilamentos' },
+                    { letter: 'C', text: 'Es una vesícula rodeada por membrana' },
+                    { letter: 'D', text: 'Es una fibra de colágeno' }
+                ],
+                correct: 'B',
+                explanation: 'Estructuralmente es un cilindro hueco constituido típicamente por 13 protofilamentos paralelos.'
+            },
+            {
+                id: 66,
+                team: 'eq10',
+                teamName: 'MICROTÚBULOS: Citoesqueleto y Transporte Intracelular',
+                question: '¿Cuál es una característica importante de los microtúbulos?',
+                options: [
+                    { letter: 'A', text: 'Son estructuras rígidas e inmutables' },
+                    { letter: 'B', text: 'Son estructuras dinámicas que pueden crecer y acortarse' },
+                    { letter: 'C', text: 'Están formados por lípidos' },
+                    { letter: 'D', text: 'Solo aparecen durante la mitosis' }
+                ],
+                correct: 'B',
+                explanation: 'Presentan inestabilidad dinámica, lo que les permite polimerizarse y despolimerizarse rápidamente.'
+            },
+            {
+                id: 67,
+                team: 'eq10',
+                teamName: 'MICROTÚBULOS: Citoesqueleto y Transporte Intracelular',
+                question: '¿Qué significa que un microtúbulo tenga polaridad?',
+                options: [
+                    { letter: 'A', text: 'Que posee cargas eléctricas positivas y negativas' },
+                    { letter: 'B', text: 'Que tiene dos extremos estructuralmente diferentes' },
+                    { letter: 'C', text: 'Que está formado por dos membranas' },
+                    { letter: 'D', text: 'Que solo puede transportar una sustancia' }
+                ],
+                correct: 'B',
+                explanation: 'Tienen un extremo positivo (+) de rápido crecimiento (expone β-tubulina) y un extremo negativo (-) de lento crecimiento (expone α-tubulina).'
+            },
+            {
+                id: 68,
+                team: 'eq10',
+                teamName: 'MICROTÚBULOS: Citoesqueleto y Transporte Intracelular',
+                question: '¿Qué ocurre normalmente con el extremo negativo (-) de un microtúbulo en muchas células animales?',
+                options: [
+                    { letter: 'A', text: 'Se dirige hacia la periferia celular' },
+                    { letter: 'B', text: 'Permanece asociado al MTOC' },
+                    { letter: 'C', text: 'Se une al núcleo' },
+                    { letter: 'D', text: 'Se transforma en una proteína motora' }
+                ],
+                correct: 'B',
+                explanation: 'El extremo (-) queda anclado y protegido en el Centro Organizador de Microtúbulos (MTOC / centrosoma).'
+            },
+            {
+                id: 69,
+                team: 'eq10',
+                teamName: 'MICROTÚBULOS: Citoesqueleto y Transporte Intracelular',
+                question: '¿Qué función cumple un MTOC en la célula?',
+                options: [
+                    { letter: 'A', text: 'Inicia la formación y organiza los microtúbulos' },
+                    { letter: 'B', text: 'Produce energía para la célula' },
+                    { letter: 'C', text: 'Sintetiza proteínas' },
+                    { letter: 'D', text: 'Degrada sustancias' }
+                ],
+                correct: 'A',
+                explanation: 'El MTOC (Centro Organizador de Microtúbulos) actúa como el sitio primario de nucleación y organización de los microtúbulos.'
+            },
+            {
+                id: 70,
+                team: 'eq10',
+                teamName: 'MICROTÚBULOS: Citoesqueleto y Transporte Intracelular',
+                question: '¿Qué proteína motora se desplaza generalmente hacia el extremo positivo del microtúbulo?',
+                options: [
+                    { letter: 'A', text: 'Dineína' },
+                    { letter: 'B', text: 'Kinesina' },
+                    { letter: 'C', text: 'Actina' },
+                    { letter: 'D', text: 'Miosina' }
+                ],
+                correct: 'B',
+                explanation: 'La mayoría de las kinesinas se desplazan hacia el extremo positivo (+), es decir, hacia la periferia celular.'
+            },
+            {
+                id: 71,
+                team: 'eq10',
+                teamName: 'MICROTÚBULOS: Citoesqueleto y Transporte Intracelular',
+                question: '¿Qué proteína motora se desplaza hacia el extremo negativo del microtúbulo?',
+                options: [
+                    { letter: 'A', text: 'Kinesina' },
+                    { letter: 'B', text: 'Dineína' },
+                    { letter: 'C', text: 'Tubulina' },
+                    { letter: 'D', text: 'Tropomiosina' }
+                ],
+                correct: 'B',
+                explanation: 'La dineína citoplasmática se desplaza hacia el extremo negativo (-), hacia el centro celular o MTOC.'
+            },
+            {
+                id: 72,
+                team: 'eq10',
+                teamName: 'MICROTÚBULOS: Citoesqueleto y Transporte Intracelular',
+                question: '¿Cuál es una función del transporte mediado por microtúbulos?',
+                options: [
+                    { letter: 'A', text: 'Mover vesículas y organelos dentro de la célula' },
+                    { letter: 'B', text: 'Sintetizar ADN' },
+                    { letter: 'C', text: 'Formar enlaces peptídicos' },
+                    { letter: 'D', text: 'Producir glucosa' }
+                ],
+                correct: 'A',
+                explanation: 'Servir de rieles o vías para el movimiento de vesículas, orgánulos y macromoléculas asistidas por motoras.'
+            },
+            {
+                id: 73,
+                team: 'eq10',
+                teamName: 'MICROTÚBULOS: Citoesqueleto y Transporte Intracelular',
+                question: 'En una neurona, el transporte desde el soma hacia la terminal axónica se denomina:',
+                options: [
+                    { letter: 'A', text: 'Transporte retrógrado' },
+                    { letter: 'B', text: 'Transporte anterógrado' },
+                    { letter: 'C', text: 'Difusión simple' },
+                    { letter: 'D', text: 'Endocitosis' }
+                ],
+                correct: 'B',
+                explanation: 'El transporte anterógrado mueve vesículas y componentes desde el cuerpo celular (soma) hacia los axones y terminales.'
             }
         ];
 
-        // State variables
         let currentFilter = 'all';
         let userAnswers = {}; 
         let timerSeconds = 0;
@@ -1018,14 +1191,10 @@
         function setFilter(filter) {
             currentFilter = filter;
             document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.className = "filter-btn px-3 py-2 rounded-xl text-xs font-medium transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 text-center";
+                btn.classList.remove('active');
             });
             const activeBtn = document.getElementById(`filter-${filter}`);
-            if (filter === 'all') {
-                activeBtn.className = "filter-btn col-span-2 sm:col-span-1 px-3 py-2 rounded-xl text-xs font-semibold transition-all bg-teal-600 text-white shadow-sm text-center";
-            } else {
-                activeBtn.className = "filter-btn px-3 py-2 rounded-xl text-xs font-semibold transition-all bg-teal-600 text-white shadow-sm text-center";
-            }
+            if (activeBtn) activeBtn.classList.add('active');
             renderQuestions();
         }
 
@@ -1043,35 +1212,30 @@
                 const isCorrect = selectedOption === q.correct;
 
                 const card = document.createElement('div');
-                card.className = `bg-white rounded-2xl shadow-sm border transition-all p-5 sm:p-6 flex flex-col gap-4 ${
-                    isAnswered 
-                        ? (isCorrect ? 'border-emerald-300 bg-emerald-50/20' : 'border-rose-300 bg-rose-50/20') 
-                        : 'border-slate-200 hover:border-slate-300'
-                }`;
+                card.className = `question-card ${isAnswered ? (isCorrect ? 'correct' : 'incorrect') : ''}`;
 
                 let optionsHtml = '';
                 q.options.forEach(opt => {
-                    let btnStyle = "border-slate-200 hover:bg-slate-50 text-slate-700";
-                    let iconHtml = "";
+                    let btnClass = "option-btn";
+                    let badgeHtml = "";
 
                     if (isAnswered) {
                         if (opt.letter === q.correct) {
-                            btnStyle = "border-emerald-500 bg-emerald-50 text-emerald-900 font-semibold shadow-sm";
-                            iconHtml = '<span class="ml-auto text-emerald-600 font-bold text-xs sm:text-sm">✓ Correcta</span>';
+                            btnClass += " opt-correct";
+                            badgeHtml = '<span class="badge-status badge-correct">✓ Correcta</span>';
                         } else if (opt.letter === selectedOption) {
-                            btnStyle = "border-rose-500 bg-rose-50 text-rose-900 font-semibold shadow-sm";
-                            iconHtml = '<span class="ml-auto text-rose-600 font-bold text-xs sm:text-sm">✗ Tu respuesta</span>';
+                            btnClass += " opt-incorrect";
+                            badgeHtml = '<span class="badge-status badge-incorrect">✗ Tu respuesta</span>';
                         } else {
-                            btnStyle = "border-slate-200 opacity-60 text-slate-500";
+                            btnClass += " opt-disabled";
                         }
                     }
 
                     optionsHtml += `
-                        <button onclick="selectOption(${q.id}, '${opt.letter}')" ${isAnswered ? 'disabled' : ''} 
-                            class="w-full text-left p-3.5 sm:p-4 rounded-xl border transition-all flex items-center gap-3 text-sm sm:text-base ${btnStyle}">
-                            <span class="w-7 h-7 rounded-lg bg-slate-100 border border-slate-300 flex items-center justify-center font-bold text-xs shrink-0">${opt.letter}</span>
-                            <span class="flex-grow">${opt.text}</span>
-                            ${iconHtml}
+                        <button onclick="selectOption(${q.id}, '${opt.letter}')" ${isAnswered ? 'disabled' : ''} class="${btnClass}">
+                            <span class="option-letter">${opt.letter}</span>
+                            <span>${opt.text}</span>
+                            ${badgeHtml}
                         </button>
                     `;
                 });
@@ -1079,24 +1243,20 @@
                 let feedbackHtml = '';
                 if (isAnswered) {
                     feedbackHtml = `
-                        <div class="mt-2 p-4 rounded-xl border ${isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-900' : 'bg-rose-50 border-rose-200 text-rose-900'} text-sm flex flex-col gap-1">
-                            <div class="font-semibold flex items-center gap-2">
-                                ${isCorrect ? '¡Respuesta Correcta!' : 'Respuesta Incorrecta'}
-                            </div>
-                            <p class="text-slate-700 mt-1"><strong class="text-slate-900">Explicación:</strong> ${q.explanation}</p>
+                        <div class="feedback-box ${isCorrect ? 'correct' : 'incorrect'}">
+                            <div class="feedback-title">${isCorrect ? '¡Excelente! Respuesta Correcta' : 'Respuesta Incorrecta'}</div>
+                            <div><strong>Explicación:</strong> ${q.explanation}</div>
                         </div>
                     `;
                 }
 
                 card.innerHTML = `
-                    <div class="flex items-center justify-between gap-2 flex-wrap">
-                        <span class="text-xs font-semibold px-2.5 py-1 rounded-full border bg-indigo-50 text-indigo-700 border-indigo-200">${q.teamName}</span>
-                        <span class="text-xs font-medium text-slate-400">Pregunta ${index + 1} de ${filtered.length} (Global ID: ${q.id})</span>
+                    <div class="q-meta">
+                        <span class="q-team">${q.teamName}</span>
+                        <span class="q-id">Pregunta ${index + 1} de ${filtered.length} (ID: ${q.id})</span>
                     </div>
-                    <h3 class="text-base sm:text-lg font-semibold text-slate-800 leading-snug">${q.question}</h3>
-                    <div class="flex flex-col gap-2.5 mt-1">
-                        ${optionsHtml}
-                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options-list">${optionsHtml}</div>
                     ${feedbackHtml}
                 `;
 
@@ -1110,7 +1270,6 @@
             if (userAnswers[questionId] !== undefined) return;
             userAnswers[questionId] = letter;
             renderQuestions();
-            checkCompletion();
         }
 
         function updateScoreUI() {
@@ -1135,19 +1294,15 @@
                 
                 finalScore.innerText = `${correctCount} / ${questionsData.length} aciertos`;
                 if (correctCount === questionsData.length) {
-                    summaryText.innerText = "¡Impresionante! Tienes un dominio absoluto de todos los temas de biología celular, transporte y membranas.";
-                } else if (correctCount >= 50) {
-                    summaryText.innerText = "¡Excelente desempeño! Tienes bases muy sólidas en los 9 equipos.";
+                    summaryText.innerText = "¡Impresionante! Tienes un dominio absoluto de todos los temas de biología celular, microtúbulos, transporte y membranas.";
+                } else if (correctCount >= 60) {
+                    summaryText.innerText = "¡Excelente desempeño! Tienes bases muy sólidas en todos los módulos de estudio.";
                 } else {
-                    summaryText.innerText = "Buen esfuerzo. Te recomendamos revisar los equipos donde tuviste más desaciertos para afianzar tu repaso.";
+                    summaryText.innerText = "Buen esfuerzo. Te recomendamos revisar las áreas donde tuviste más desaciertos para afianzar tu repaso.";
                 }
                 summaryCard.classList.remove('hidden');
                 summaryCard.scrollIntoView({ behavior: 'smooth' });
             }
-        }
-
-        function checkCompletion() {
-            // Handled inside updateScoreUI
         }
 
         function resetQuiz() {
