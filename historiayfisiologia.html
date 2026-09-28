@@ -126,16 +126,17 @@
 <div class="container">
     <header>
         <h1>Simulacro Interactivo: Historia y Filosofía de la Medicina</h1>
-        <p>Selecciona la respuesta de tu preferencia en cada pregunta para comprobar tus conocimientos al instante.</p>
+        <p>Incluye secciones de civilizaciones antiguas, mitología, medicina clásica y medicina árabe. ¡Pon a prueba tus conocimientos!</p>
     </header>
 
-    <div id="score-box">Aciertos: <span id="current-score">0</span> / 80</div>
+    <div id="score-box">Aciertos: <span id="current-score">0</span> / 130</div>
 
     <div id="quiz-container"></div>
 </div>
 
 <script>
     const questions = [
+        // --- BLOQUE 1: SIMULACRO INICIAL (80 preguntas) ---
         {
             q: "1. En el caso del Neolítico, ¿qué procedimiento se realizaba sobre el cráneo?",
             options: ["A) Lobotomía", "B) Trepanación", "C) Craneoplastia", "D) Autopsia"],
@@ -146,7 +147,7 @@
             q: "2. ¿Cuál era la explicación que daba la comunidad neolítica a los síntomas del paciente?",
             options: ["A) Desequilibrio de los humores", "B) Obstrucción de los canales", "C) Una fuerza o entidad maligna atrapada en la cabeza", "D) Alteración del Yin y Yang"],
             correct: 2,
-            explanation: "Se creía que los dolores o enfermedades eran causados por espíritus o entidades malignas atrapadas, las cuales se intentaban liberar mediante la perforación."
+            explanation: "Se creía que los dolores o enfermedades eran causados por espíritus o entidades malignas atrapadas."
         },
         {
             q: "3. ¿Qué instrumentos se utilizaban para realizar la trepanación?",
@@ -158,7 +159,7 @@
             q: "4. ¿Cuál de las siguientes evidencias indica que una persona sobrevivió a una trepanación?",
             options: ["A) Ausencia completa del hueso", "B) Remodelación y cicatrización ósea", "C) Presencia de tejido muscular", "D) Formación de cartílago"],
             correct: 1,
-            explanation: "Los bordes óseos redondeados y con signos de cicatrización demuestran que el tejido óseo sanó, evidencia clara de supervivencia."
+            explanation: "Los bordes óseos redondeados y con signos de cicatrización demuestran que el tejido óseo sanó."
         },
         {
             q: "5. El caso del Neolítico demuestra principalmente un antecedente de:",
@@ -176,31 +177,31 @@
             q: "7. ¿Qué documento regulaba las sanciones relacionadas con la práctica médica en Babilonia?",
             options: ["A) Nei King", "B) Papiro de Ebers", "C) Código de Hammurabi", "D) Corpus Hipocraticum"],
             correct: 2,
-            explanation: "El Código de Hammurabi contenía las leyes que establecían los castigos o recompensas para el médico según su intervención."
+            explanation: "El Código de Hammurabi contenía las leyes que establecían los castigos o recompensas para el médico."
         },
         {
             q: "8. ¿Qué característica del caso babilónico muestra la influencia de la estructura social?",
             options: ["A) Todos recibían exactamente la misma sanción", "B) Las sanciones podían variar según el estatus del paciente", "C) Solo los esclavos podían recibir tratamiento", "D) Los médicos no tenían ninguna responsabilidad"],
             correct: 1,
-            explanation: "Las consecuencias legales y castigos variaban dependiendo de si el paciente era un hombre libre, un aristócrata o un esclavo."
+            explanation: "Las consecuencias legales y castigos variaban dependiendo de si el paciente era libre, aristócrata o esclavo."
         },
         {
             q: "9. En el caso egipcio, ¿qué concepto hacía referencia a canales internos relacionados con la circulación de sustancias?",
             options: ["A) Yin", "B) Met", "C) Pneuma", "D) Humores"],
             correct: 1,
-            explanation: "Los 'met' eran los conductos o canales por donde circulaban fluidos vitales, aire y materias en el cuerpo según los antiguos egipcios."
+            explanation: "Los 'met' eran los conductos o canales por donde circulaban fluidos vitales y aire en el cuerpo."
         },
         {
             q: "10. Según el caso estudiado, ¿qué órgano ocupaba una posición central en la concepción egipcia del pensamiento?",
             options: ["A) Cerebro", "B) Hígado", "C) Corazón", "D) Pulmón"],
             correct: 2,
-            explanation: "Para los egipcios, el corazón (llamado 'Ib') era el centro de la inteligencia, el pensamiento y las emociones."
+            explanation: "Para los egipcios, el corazón era el centro de la inteligencia, el pensamiento y las emociones."
         },
         {
             q: "11. Ante la ausencia de tecnología moderna, el médico egipcio utilizaba principalmente:",
             options: ["A) Resonancia magnética", "B) Inspección, palpación, auscultación y olfato", "C) Tomografía", "D) Biopsia"],
             correct: 1,
-            explanation: "Se basaban en métodos clínicos básicos de exploración física directa como mirar, palpar, escuchar y oler."
+            explanation: "Se basaban en métodos clínicos básicos de exploración física directa."
         },
         {
             q: "12. ¿Qué procedimientos podían emplearse para intentar liberar los canales?",
@@ -212,19 +213,19 @@
             q: "13. En el caso de los hebreos, la enfermedad podía interpretarse como:",
             options: ["A) Una alteración genética", "B) Un castigo divino o consecuencia moral", "C) Un exceso de sangre", "D) Un desequilibrio del Yang exclusivamente"],
             correct: 1,
-            explanation: "En la medicina teocrática hebrea, la salud y la enfermedad dependían directamente de la voluntad divina y la obediencia a las leyes morales."
+            explanation: "En la medicina teocrática hebrea, la salud y la enfermedad dependían de la voluntad divina y la ley moral."
         },
         {
             q: "14. ¿Cuál era una medida utilizada por la comunidad hebrea?",
             options: ["A) Aislamiento", "B) Trepanación", "C) Autopsia", "D) Transfusión"],
             correct: 0,
-            explanation: "Implementaron normas rigurosas de control sanitario, incluyendo la cuarentena o aislamiento de enfermos contagiosos."
+            explanation: "Implementaron normas rigurosas de control sanitario, incluyendo la cuarentena o aislamiento."
         },
         {
             q: "15. ¿Por qué las medidas higiénicas hebreas tienen importancia histórica?",
             options: ["A) Porque no tenían ninguna función práctica", "B) Porque podían funcionar empíricamente como prevención de enfermedades", "C) Porque reemplazaban toda forma de medicina", "D) Porque demostraban la teoría humoral"],
             correct: 1,
-            explanation: "Aunque dictadas por preceptos religiosos, sus estrictas normas de higiene actuaban de manera eficaz previniendo epidemias."
+            explanation: "Sus estrictas normas de higiene actuaban de manera eficaz previniendo epidemias y contagios."
         },
         {
             q: "16. ¿Cuál NO corresponde a las medidas de control descritas en el caso hebreo?",
@@ -236,109 +237,109 @@
             q: "17. ¿Quién está relacionado con la cirugía de la Antigua India?",
             options: ["A) Hipócrates", "B) Sushruta", "C) Aristóteles", "D) Praxágoras"],
             correct: 1,
-            explanation: "Sushruta es considerado uno de los padres de la cirugía en la antigua India, famoso por su texto quirúrgico."
+            explanation: "Sushruta es considerado uno de los padres de la cirugía en la antigua India."
         },
         {
             q: "18. ¿Qué procedimiento destaca en el caso de Sushruta?",
             options: ["A) Reconstrucción nasal", "B) Trepanación", "C) Acupuntura", "D) Sangría"],
             correct: 0,
-            explanation: "Sushruta destacó enormemente por el desarrollo de técnicas de rinoplastia (reconstrucción de nariz mediante colgajos)."
+            explanation: "Sushruta destacó enormemente por el desarrollo de técnicas de rinoplastia."
         },
         {
             q: "19. El tejido utilizado para reconstruir la nariz provenía:",
             options: ["A) De otro paciente", "B) De un animal", "C) Del propio paciente", "D) De una planta medicinal"],
             correct: 2,
-            explanation: "Utilizaban técnicas de autoinjerto, específicamente colgajos de piel tomados de la frente del propio paciente."
+            explanation: "Utilizaban técnicas de autoinjerto, específicamente colgajos de piel tomados de la frente."
         },
         {
             q: "20. Antes de operar seres humanos, Sushruta proponía desarrollar habilidades mediante:",
             options: ["A) Solo teoría", "B) Frutas y animales", "C) Disección humana obligatoria", "D) Observación astronómica"],
             correct: 1,
-            explanation: "Utilizaba modelos experimentales en vegetales, frutas, flores y carcasas de animales para practicar incisiones y suturas."
+            explanation: "Utilizaba modelos experimentales en vegetales, frutas y carcasas de animales."
         },
         {
             q: "21. El caso de China se relaciona principalmente con:",
             options: ["A) Cuatro humores", "B) Yin y Yang", "C) Met", "D) Hammurabi"],
             correct: 1,
-            explanation: "La filosofía médica tradicional china se fundamenta en la dualidad del Yin y el Yang y el equilibrio del Qi."
+            explanation: "La filosofía médica tradicional china se fundamenta en la dualidad del Yin y el Yang."
         },
         {
             q: "22. ¿Qué texto aparece asociado al caso chino?",
             options: ["A) Nei King", "B) Código de Hammurabi", "C) Corpus Hipocraticum", "D) Papiro de Ebers"],
             correct: 0,
-            explanation: "El 'Huangdi Nei Jing' (Clásico de Medicina Interna del Emperador Amarillo) es el texto fundamental de la medicina tradicional china."
+            explanation: "El 'Huangdi Nei Jing' es el texto fundamental de la medicina tradicional china."
         },
         {
             q: "23. ¿Qué principio era fundamental en la medicina china descrita?",
             options: ["A) Equilibrio Yin-Yang", "B) Equilibrio de cuatro humores", "C) Equilibrio de arterias y venas exclusivamente", "D) Equilibrio de huesos"],
             correct: 0,
-            explanation: "La enfermedad surge cuando se rompe la armonía y el equilibrio entre las fuerzas opuestas y complementarias Yin y Yang."
+            explanation: "La enfermedad surge cuando se rompe la armonía entre las fuerzas Yin y Yang."
         },
         {
             q: "24. ¿Por qué el médico chino podía utilizar una figura de madera o marfil para la exploración?",
             options: ["A) Por normas de modestia de las mujeres de élite", "B) Porque no conocían el cuerpo humano", "C) Porque no existían médicos hombres", "D) Porque estaba prohibido utilizar las manos"],
             correct: 0,
-            explanation: "Para respetar el decoro y las estrictas normas de modestia, las pacientes de alta alcurnia señalaban sus dolencias en estatuillas."
+            explanation: "Para respetar el decoro, las pacientes de alta alcurnia señalaban sus dolencias en estatuillas."
         },
         {
             q: "25. ¿Qué método diagnóstico era especialmente importante?",
             options: ["A) Pulso radial", "B) Radiografía", "C) Biopsia", "D) Electrocardiograma"],
             correct: 0,
-            explanation: "La toma minuciosa de los diferentes tipos de pulso arterial en la muñeca era clave para el diagnóstico tradicional chino."
+            explanation: "La toma minuciosa de los diferentes tipos de pulso arterial en la muñeca era clave."
         },
         {
             q: "26. ¿Cuál de los siguientes tratamientos pertenece al caso chino?",
             options: ["A) Acupuntura", "B) Trepanación", "C) Colgajo frontal", "D) Sangría obligatoria"],
             correct: 0,
-            explanation: "La acupuntura es una de las terapias milenarias más representativas de la medicina china."
+            explanation: "La acupuntura es una de las terapias milenarias más representativas de China."
         },
         {
             q: "27. La moxibustión se realizaba utilizando:",
             options: ["A) Artemisia vulgaris", "B) Silex", "C) Bronce", "D) Aceite animal"],
             correct: 0,
-            explanation: "La moxibustión consiste en la aplicación de calor sobre los puntos de acupuntura usando conos o puros de la planta Artemisa."
+            explanation: "Consiste en la aplicación de calor usando conos o puros de la planta Artemisa."
         },
         {
             q: "28. ASCLEPIO Y MITOLOGÍA - Asclepio representa principalmente:",
             options: ["A) La guerra", "B) La medicina y curación", "C) El comercio", "D) La agricultura"],
             correct: 1,
-            explanation: "En la mitología griega, Asclepio es el dios de la medicina, la curación y la salud."
+            explanation: "Asclepio es el dios griego de la medicina, la curación y la salud."
         },
         {
             q: "29. ¿Cuál es el símbolo tradicional de Asclepio?",
             options: ["A) Espada", "B) Bastón con una serpiente", "C) Martillo", "D) Corona"],
             correct: 1,
-            explanation: "Su emblema universal es la vara o bastón alrededor del cual se enrolla una serpiente."
+            explanation: "Su emblema universal es la vara o bastón rodeado por una serpiente."
         },
         {
             q: "30. ¿Quién es tradicionalmente considerado padre de Asclepio?",
             options: ["A) Zeus", "B) Apolo", "C) Ares", "D) Hermes"],
             correct: 1,
-            explanation: "Asclepio es hijo del dios olímpico Apolo y de la mortal Coronis."
+            explanation: "Asclepio es hijo del dios olímpico Apolo."
         },
         {
             q: "31. ¿Qué personaje se relaciona con la enseñanza de Asclepio?",
             options: ["A) Quirón", "B) Aristóteles", "C) Mnesíteo", "D) Teofrasto"],
             correct: 0,
-            explanation: "El centauro Quirón, sabio mentor de héroes, fue quien instruyó a Asclepio en el arte de la curación y la botánica."
+            explanation: "El centauro Quirón instruyó a Asclepio en el arte de la curación y la botánica."
         },
         {
             q: "32. Machaón se relaciona principalmente con:",
             options: ["A) Cirugía", "B) Higiene", "C) Farmacología", "D) Agricultura"],
             correct: 0,
-            explanation: "En la Ilíada, Machaón (hijo de Asclepio) destaca como el médico militar enfocado en la práctica de la cirugía y curación de heridas."
+            explanation: "Machaón destaca como el médico militar enfocado en la cirugía y curación de heridas."
         },
         {
             q: "33. Podalirio se relaciona con:",
             options: ["A) Medicina y diagnóstico", "B) Guerra", "C) Astronomía", "D) Botánica"],
             correct: 0,
-            explanation: "Su hermano Podalirio se orientó más hacia la vertiente médica interna y el diagnóstico clínico."
+            explanation: "Podalirio se orientó más hacia la vertiente médica interna y el diagnóstico clínico."
         },
         {
             q: "34. Hygieia representa:",
             options: ["A) Cirugía", "B) Higiene y salud", "C) Guerra", "D) Anatomía"],
             correct: 1,
-            explanation: "Higea (Hygieia) es la diosa de la prevención, la limpieza y la conservación de la salud (higiene)."
+            explanation: "Higea es la diosa de la prevención y la conservación de la salud (higiene)."
         },
         {
             q: "35. Panacea representa:",
@@ -350,37 +351,37 @@
             q: "36. El significado simbólico de la serpiente en el contexto de Asclepio se relaciona con:",
             options: ["A) Curación y renovación", "B) Guerra", "C) Agricultura", "D) Comercio"],
             correct: 0,
-            explanation: "La serpiente simboliza la renovación física (al mudar su piel), el rejuvenecimiento y la sabiduría curativa."
+            explanation: "La serpiente simboliza la renovación física, el rejuvenecimiento y la sabiduría."
         },
         {
             q: "37. HIPÓCRATES - Hipócrates es considerado fundamental para el desarrollo de:",
             options: ["A) Una medicina basada en observación y causas naturales", "B) La astrología médica", "C) La magia", "D) La alquimia medieval"],
             correct: 0,
-            explanation: "Separó la medicina de la superstición, fundamentándola en la observación sistemática y causas naturales."
+            explanation: "Separó la medicina de la superstición, fundamentándola en la observación y causas naturales."
         },
         {
             q: "38. Una característica del enfoque hipocrático era:",
             options: ["A) Observar la evolución del paciente", "B) No examinar al paciente", "C) Atribuir todas las enfermedades a dioses", "D) Evitar registrar síntomas"],
             correct: 0,
-            explanation: "El seguimiento riguroso de la historia natural de la enfermedad y el pronóstico clínico eran pilares hipocráticos."
+            explanation: "El seguimiento riguroso de la historia natural de la enfermedad era un pilar hipocrático."
         },
         {
             q: "39. La tradición hipocrática está estrechamente relacionada con:",
             options: ["A) Ética médica", "B) Ingeniería romana", "C) Acupuntura", "D) Cirugía india"],
             correct: 0,
-            explanation: "El Juramento Hipocrático estableció las bases deontológicas y los principios éticos de la profesión médica."
+            explanation: "El Juramento Hipocrático estableció las bases deontológicas de la profesión médica."
         },
         {
             q: "40. ¿Qué concepto se asocia fuertemente con la medicina hipocrática?",
             options: ["A) Cuatro humores", "B) Yin y Yang", "C) Met", "D) Canales chinos"],
             correct: 0,
-            explanation: "La escuela hipocrática adoptó y desarrolló con profundidad la teoría fisiológica de los cuatro humores corporales."
+            explanation: "La escuela hipocrática adoptó y desarrolló con profundidad la teoría de los cuatro humores."
         },
         {
             q: "41. El cambio de la medicina griega hacia explicaciones naturales implica:",
             options: ["A) Buscar causas observables de la enfermedad", "B) Eliminar la observación", "C) Reemplazar médicos por sacerdotes", "D) Abandonar la experiencia clínica"],
             correct: 0,
-            explanation: "Significó comprender que los padecimientos obedecían a factores físicos, ambientales y dietéticos, y no a castigos divinos."
+            explanation: "Significó comprender que los padecimientos obedecían a factores físicos y no a divinidades."
         },
         {
             q: "42. GRECIA - ¿Cuál fue una transformación importante de la medicina griega?",
@@ -398,46 +399,46 @@
             q: "44. Teofrasto se relaciona principalmente con:",
             options: ["A) Plantas", "B) Cirugía", "C) Pulsos", "D) Legislación médica"],
             correct: 0,
-            explanation: "Teofrasto, discípulo de Aristóteles, es célebre por sus estudios botánicos y farmacéuticos sobre las propiedades medicinales de las plantas."
+            explanation: "Teofrasto es célebre por sus estudios botánicos y farmacéuticos sobre las plantas medicinales."
         },
         {
             q: "45. Praxágoras se relaciona con:",
             options: ["A) Pulso y vasos sanguíneos", "B) Higiene", "C) Botánica", "D) Medicina china"],
             correct: 0,
-            explanation: "Praxágoras de Cos estudió detalladamente el pulso y distinguió las diferencias funcionales entre arterias y venas."
+            explanation: "Praxágoras estudió el pulso y distinguió las diferencias funcionales entre arterias y venas."
         },
         {
             q: "46. Mnesíteo se relaciona principalmente con:",
             options: ["A) Dieta y alimentación", "B) Cirugía", "C) Trepanación", "D) Yin y Yang"],
             correct: 0,
-            explanation: "Mnesíteo de Atenas centró gran parte de su obra en la dietética y la importancia de los alimentos para la salud."
+            explanation: "Mnesíteo centró gran parte de su obra en la dietética y la importancia de los alimentos."
         },
         {
             q: "47. Diocles realizó aportaciones relacionadas con:",
             options: ["A) Medicina y anatomía", "B) Acupuntura", "C) Derecho", "D) Reconstrucción nasal"],
             correct: 0,
-            explanation: "Diocles de Caristo escribió uno de los primeros tratados de anatomía y manuales médicos de importancia en Grecia."
+            explanation: "Diocles escribió uno de los primeros tratados de anatomía y manuales médicos en Grecia."
         },
         {
             q: "48. ROMA - La medicina romana recibió una influencia importante de:",
             options: ["A) Grecia", "B) India exclusivamente", "C) China exclusivamente", "D) Egipto exclusivamente"],
             correct: 0,
-            explanation: "La medicina en Roma se nutrió profundamente del saber, textos y médicos provenientes de Grecia."
+            explanation: "La medicina en Roma se nutrió profundamente del saber y de los médicos de Grecia."
         },
         {
             q: "49. ¿Cuál fue una característica importante de Roma relacionada con la salud pública?",
             options: ["A) Acueductos y saneamiento", "B) Prohibición de baños", "C) Eliminación de sistemas de agua", "D) Abandono de la higiene"],
             correct: 0,
-            explanation: "Destacaron monumentalmente en ingeniería sanitaria, construyendo acueductos, redes de cloacas y baños públicos."
+            explanation: "Destacaron en ingeniería sanitaria, construyendo acueductos y redes de cloacas."
         },
         {
             q: "50. ¿Cuál es una diferencia general entre las aportaciones griegas y romanas?",
             options: ["A) Grecia desarrolló ideas médicas y Roma destacó también por su aplicación práctica e infraestructura", "B) Roma rechazó todo conocimiento griego", "C) Grecia no desarrolló medicina", "D) Roma solo practicaba medicina religiosa"],
             correct: 0,
-            explanation: "Los griegos conceptualizaron la teoría y filosofía médica, mientras que los romanos la sistematizaron, aplicaron masivamente y dotaron de infraestructura."
+            explanation: "Los griegos teorizaron y los romanos sistematizaron y aplicaron masivamente la infraestructura."
         },
         {
-            q: "51. CUATRO HUMORES - Según la teoría de los cuatro humores, la enfermedad se producía principalmente por:",
+            q: "51. CUATRO HUMORES - Según la teoría humoral, la enfermedad se producía principalmente por:",
             options: ["A) Equilibrio perfecto", "B) Desequilibrio de los humores", "C) Falta de oxígeno", "D) Alteración del ADN"],
             correct: 1,
             explanation: "La alteración en la proporción o calidad de los humores (discrasia) generaba la enfermedad."
@@ -446,25 +447,25 @@
             q: "52. ¿Cuáles son los cuatro humores?",
             options: ["A) Sangre, flema, bilis amarilla y bilis negra", "B) Sangre, linfa, plasma y bilis", "C) Flema, linfa, plasma y pus", "D) Bilis, saliva, sudor y sangre"],
             correct: 0,
-            explanation: "Los cuatro fluidos clásicos de la fisiología humoral son sangre, flema (pituitaria), bilis amarilla y bilis negra (melancolía)."
+            explanation: "Los cuatro fluidos clásicos son sangre, flema, bilis amarilla y bilis negra."
         },
         {
             q: "53. La sangre se caracterizaba por ser:",
             options: ["A) Fría y seca", "B) Caliente y húmeda", "C) Fría y húmeda", "D) Caliente y seca"],
             correct: 1,
-            explanation: "Fisiológicamente, el humor sanguíneo combina las cualidades de calor y humedad."
+            explanation: "El humor sanguíneo combina las cualidades de calor y humedad."
         },
         {
             q: "54. La flema se caracterizaba por ser:",
             options: ["A) Caliente y húmeda", "B) Caliente y seca", "C) Fría y húmeda", "D) Fría y seca"],
             correct: 2,
-            explanation: "La flema o pituita se asociaba con los elementos fríos y húmedos."
+            explanation: "La flema se asociaba con los elementos fríos y húmedos."
         },
         {
             q: "55. La bilis amarilla era:",
             options: ["A) Caliente y seca", "B) Fría y húmeda", "C) Fría y seca", "D) Caliente y húmeda"],
             correct: 0,
-            explanation: "La bilis amarilla correspondía a las cualidades de calor y sequedad."
+            explanation: "La bilis amarilla correspondía al calor y la sequedad."
         },
         {
             q: "56. La bilis negra era:",
@@ -500,25 +501,25 @@
             q: "61. ¿Qué temperamento se relaciona con la sangre?",
             options: ["A) Melancólico", "B) Sanguíneo", "C) Colérico", "D) Flemático"],
             correct: 1,
-            explanation: "El predominio de sangre definía al temperamento sanguíneo (sociable, activo)."
+            explanation: "El predominio de sangre definía al temperamento sanguíneo."
         },
         {
             q: "62. ¿Qué temperamento se relaciona con la flema?",
             options: ["A) Sanguíneo", "B) Colérico", "C) Flemático", "D) Melancólico"],
             correct: 2,
-            explanation: "El exceso de flema producía el temperamento flemático (calmado, apático)."
+            explanation: "El exceso de flema producía el temperamento flemático."
         },
         {
             q: "63. ¿Qué temperamento se relaciona con la bilis amarilla?",
             options: ["A) Colérico", "B) Sanguíneo", "C) Flemático", "D) Melancólico"],
             correct: 0,
-            explanation: "La bilis amarilla determinaba el carácter colérico (irritable, enérgico)."
+            explanation: "La bilis amarilla determinaba el carácter colérico."
         },
         {
             q: "64. ¿Qué temperamento se relaciona con la bilis negra?",
             options: ["A) Flemático", "B) Sanguíneo", "C) Colérico", "D) Melancólico"],
             correct: 3,
-            explanation: "La bilis negra generaba el temperamento melancólico (triste, reflexivo)."
+            explanation: "La bilis negra generaba el temperamento melancólico."
         },
         {
             q: "65. Un paciente descrito dentro de la teoría humoral como predominantemente colérico tendría relación con:",
@@ -536,16 +537,16 @@
             q: "67. ¿Cuál de las siguientes asociaciones es INCORRECTA?",
             options: ["A) Sangre - sanguíneo", "B) Flema - flemático", "C) Bilis amarilla - colérico", "D) Bilis negra - sanguíneo"],
             correct: 3,
-            explanation: "La bilis negra se asocia al melancólico, no al sanguíneo (por lo que esta opción es la incorrecta)."
+            explanation: "La bilis negra se asocia al melancólico, no al sanguíneo."
         },
         {
             q: "68. ¿Cuál sería el objetivo general de la medicina dentro de la teoría humoral?",
             options: ["A) Eliminar todos los humores", "B) Recuperar el equilibrio entre los humores", "C) Aumentar siempre la sangre", "D) Eliminar la flema independientemente del paciente"],
             correct: 1,
-            explanation: "El fin terapéutico era restablecer la Eucrasia (equilibrio armónico de los humores)."
+            explanation: "El fin terapéutico era restablecer la eucrasia (equilibrio armónico de los humores)."
         },
         {
-            q: "69. INTEGRACIÓN - Un paciente presenta una enfermedad y el médico intenta explicarla mediante un desequilibrio entre sangre, flema, bilis amarilla y bilis negra. ¿Qué teoría está utilizando?",
+            q: "69. INTEGRACIÓN - Un paciente presenta un desequilibrio entre sangre, flema, bilis amarilla y bilis negra. ¿Qué teoría utiliza?",
             options: ["A) Yin-Yang", "B) Cuatro humores", "C) Met", "D) Pneuma"],
             correct: 1,
             explanation: "Hace referencia explícita a la clásica teoría humoral occidental."
@@ -560,7 +561,7 @@
             q: "71. Si aparece Hammurabi + médico + sanción, la respuesta más relacionada es:",
             options: ["A) Responsabilidad médica regulada por ley", "B) Medicina humoral", "C) Acupuntura", "D) Higiene religiosa"],
             correct: 0,
-            explanation: "El código babilónico normaba legalmente las responsabilidades y castigos de los facultativos."
+            explanation: "El código babilónico normaba legalmente las responsabilidades de los médicos."
         },
         {
             q: "72. Si aparece Nei King + Yin + Yang + pulso corresponde a:",
@@ -572,7 +573,7 @@
             q: "73. Si aparece met + canales + corazón + enemas, corresponde a:",
             options: ["A) India", "B) China", "C) Egipto", "D) Grecia"],
             correct: 2,
-            explanation: "Los 'met' y la centralidad del corazón son propios de la medicina del antiguo Egipto."
+            explanation: "Los 'met' y la centralidad del corazón son propios de la medicina egipcia."
         },
         {
             q: "74. Si aparece aislamiento + lavado + excretas + objetos contaminados, corresponde al caso de:",
@@ -590,7 +591,7 @@
             q: "76. Si aparece Asclepio + serpiente + bastón, se está haciendo referencia a:",
             options: ["A) Un símbolo relacionado con la medicina", "B) Un símbolo de la guerra", "C) Un instrumento quirúrgico romano", "D) Un tratamiento egipcio"],
             correct: 0,
-            explanation: "Es el iconográfico báculo de Asclepio, símbolo internacional de la medicina."
+            explanation: "Es el báculo de Asclepio, símbolo internacional de la medicina."
         },
         {
             q: "77. ¿Cuál pareja está correctamente relacionada?",
@@ -602,7 +603,7 @@
             q: "78. ¿Cuál pareja está correctamente relacionada?",
             options: ["A) Asclepio - medicina", "B) Hammurabi - cuatro humores", "C) Sushruta - Yin y Yang", "D) Teofrasto - acupuntura"],
             correct: 0,
-            explanation: "Asclepio está perfectamente vinculado como la deidad mitológica de la medicina."
+            explanation: "Asclepio está vinculado correctamente como deidad mitológica de la medicina."
         },
         {
             q: "79. ¿Cuál de las siguientes relaciones es correcta?",
@@ -611,10 +612,312 @@
             explanation: "Hipócrates representa la cumbre de la observación clínica en la antigua Grecia."
         },
         {
-            q: "80. Si en el examen te preguntan por la evolución histórica de la medicina estudiada en estos casos, ¿cuál de las siguientes asociaciones reúne correctamente diferentes aportaciones?",
+            q: "80. Si en el examen te preguntan por la evolución histórica general de la medicina estudiada:",
             options: ["A) Neolítico-trepanación; Babilonia-legislación médica; India-cirugía reconstructiva; China-Yin/Yang", "B) Neolítico-acupuntura; Babilonia-Sushruta; India-Hammurabi; China-trepanación", "C) Neolítico-cuatro humores; Babilonia-Yin/Yang; India-met; China-Hammurabi", "D) Neolítico-moxibustión; Babilonia-Hipócrates; India-Roma; China-Asclepio"],
             correct: 0,
-            explanation: "Esta opción asocia de forma impecable cada civilización o periodo con su respectivo hito histórico médico."
+            explanation: "Esta opción asocia de forma impecable cada civilización con su respectivo hito histórico."
+        },
+
+        // --- BLOQUE 2: MEDICINA ÁRABE (50 preguntas nuevas) ---
+        {
+            q: "81. ¿Dónde se desarrolló la Escuela de Gundishapur?",
+            options: ["A) Córdoba", "B) Bagdad", "C) Cerca del Golfo Pérsico", "D) Damasco"],
+            correct: 2,
+            explanation: "Gundishapur se ubicaba en la región de Juzestán, cerca del Golfo Pérsico (actual Irán)."
+        },
+        {
+            q: "82. ¿Qué grupo de médicos llegó a Gundishapur en el año 489?",
+            options: ["A) Médicos romanos", "B) Médicos griegos nestorianos", "C) Médicos egipcios", "D) Médicos árabes"],
+            correct: 1,
+            explanation: "Los cristianos nestorianos huyeron de Bizancio y se establecieron allí llevando textos clásicos."
+        },
+        {
+            q: "83. ¿Qué ocurrió en el año 529 que favoreció la llegada de médicos a Gundishapur?",
+            options: ["A) Se fundó el primer bimaristán", "B) Se cerró la escuela de Atenas", "C) Se fundó Córdoba", "D) Se escribió el Canon de Avicena"],
+            correct: 1,
+            explanation: "El emperador Justiniano cerró la Academia de Atenas, obligando a los filósofos y médicos a migrar."
+        },
+        {
+            q: "84. ¿Con qué nombre llegó a conocerse la Escuela de Gundishapur?",
+            options: ["A) Casa de la Sabiduría", "B) Academia Hippocratica", "C) Escuela Galénica", "D) Madrasa de Bagdad"],
+            correct: 1,
+            explanation: "Fue célebremente conocida también como la Academia Hipocrática."
+        },
+        {
+            q: "85. ¿Qué califa ordenó traducir al árabe obras de autores clásicos en el año 765?",
+            options: ["A) al-Mansur", "B) al-Mamuun", "C) Abderramán III", "D) Justiniano"],
+            correct: 0,
+            explanation: "El califa abasí al-Mansur impulsó las grandes traducciones científicas."
+        },
+        {
+            q: "86. ¿Cuál de los siguientes autores aparece entre los que fueron traducidos al árabe?",
+            options: ["A) Hipócrates", "B) Sushruta", "C) Asclepio", "D) Quirón"],
+            correct: 0,
+            explanation: "Las obras de Hipócrates y Galeno fueron traducidas masivamente al árabe."
+        },
+        {
+            q: "87. La principal importancia histórica de Gundishapur fue:",
+            options: ["A) Inventar la anestesia", "B) Conservar y transmitir conocimientos médicos griegos", "C) Crear la teoría de los humores", "D) Desarrollar la cirugía romana"],
+            correct: 1,
+            explanation: "Funcionó como el puente clave para conservar, traducir y transmitir el saber grecorromano al islam."
+        },
+        {
+            q: "88. ¿Qué era un hakim?",
+            options: ["A) Un cirujano especializado", "B) Un médico-filósofo", "C) Un sacerdote", "D) Un farmacéutico"],
+            correct: 1,
+            explanation: "El hakim era el médico erudito que conjugaba la práctica médica con la filosofía profunda."
+        },
+        {
+            q: "89. Además de medicina, el aprendizaje del hakim incluía:",
+            options: ["A) Filosofía, astronomía, matemáticas, música y religión", "B) Únicamente cirugía", "C) Solo anatomía", "D) Solo farmacología"],
+            correct: 0,
+            explanation: "La formación del hakim era enciclopédica, abarcando las ciencias de la época."
+        },
+        {
+            q: "90. ¿Qué eran los bimaristanes?",
+            options: ["A) Escuelas de filosofía", "B) Hospitales", "C) Templos", "D) Laboratorios químicos"],
+            correct: 1,
+            explanation: "Los bimaristanes eran instituciones hospitalarias avanzadas del mundo islámico."
+        },
+        {
+            q: "91. ¿Cuál característica podía encontrarse en los bimaristanes?",
+            options: ["A) Áreas para hombres y mujeres", "B) Ausencia de médicos", "C) Prohibición de estudiantes", "D) Ausencia de especialidades"],
+            correct: 0,
+            explanation: "Contaban con una estructuración avanzada, salas separadas por sexos y patologías."
+        },
+        {
+            q: "92. ¿Qué relación tienen los bimaristanes con los hospitales modernos?",
+            options: ["A) No existe ninguna relación", "B) Fueron un antecedente importante por su organización", "C) Fueron exclusivamente templos", "D) Solo servían para enfermos mentales"],
+            correct: 1,
+            explanation: "Representan el antecedente directo del hospital clínico docente actual."
+        },
+        {
+            q: "93. La medicina islámica estudiada se basaba principalmente en:",
+            options: ["A) Medicina hipocrática clásica", "B) Medicina china", "C) Medicina neolítica", "D) Medicina romana exclusivamente"],
+            correct: 0,
+            explanation: "Se cimentó sobre el rigor de la medicina hipocrática y galénica."
+        },
+        {
+            q: "94. Según esta medicina, la enfermedad se explicaba como:",
+            options: ["A) Desequilibrio de la armonía natural", "B) Fractura del esqueleto", "C) Falta de higiene exclusivamente", "D) Presencia de espíritus exclusivamente"],
+            correct: 0,
+            explanation: "Heredaron la visión humoral de la alteración del equilibrio corporal."
+        },
+        {
+            q: "95. ¿Qué teoría influyó en la explicación de la enfermedad?",
+            options: ["A) Teoría celular", "B) Teoría humoral", "C) Teoría microbiana", "D) Teoría genética"],
+            correct: 1,
+            explanation: "La teoría humoral de los cuatro elementos y fluidos guió la terapéutica árabe."
+        },
+        {
+            q: "96. ¿Qué establecía el Corán respecto a la higiene según el documento?",
+            options: ["A) Prohibía los baños", "B) Prescribía reglas de higiene personal", "C) Prohibía usar ropa limpia", "D) Recomendaba evitar el aseo"],
+            correct: 1,
+            explanation: "El Corán y la ley islámica fomentaban estrictamente la limpieza física y ritual."
+        },
+        {
+            q: "97. ¿Cómo se llamaban los baños públicos?",
+            options: ["A) Bimaristan", "B) Hamman", "C) Madrasa", "D) Hawi"],
+            correct: 1,
+            explanation: "Los hammans eran los concurridos baños públicos de vapor e higiene."
+        },
+        {
+            q: "98. ¿Quién fue considerado el gran clínico de la medicina árabe?",
+            options: ["A) Avicena", "B) Rhazes", "C) Averroes", "D) Maimónides"],
+            correct: 1,
+            explanation: "Muhammad ibn Zakariya al-Razi (Rhazes) destacó como el más grande clínico observador."
+        },
+        {
+            q: "99. ¿Cuál era el nombre de Rhazes?",
+            options: ["A) Abu Quasim al-Zaharawi", "B) Abu Bakú Muhammed ibn Zakkariya", "C) Ibn Sina", "D) Maimónides"],
+            correct: 1,
+            explanation: "Su nombre completo era Abu Bakr Muhammad ibn Zakariya al-Razi."
+        },
+        {
+            q: "100. ¿Qué material utilizó Rhazes como sutura reabsorbible?",
+            options: ["A) Hilo de oro", "B) Tripas de animales", "C) Seda artificial", "D) Lino"],
+            correct: 1,
+            explanation: "Utilizó cuerdas hechas con intestinos de animales (catgut) para coser heridas internas."
+        },
+        {
+            q: "101. ¿Qué enfermedad fue objeto de una importante monografía de Rhazes?",
+            options: ["A) Tuberculosis y malaria", "B) Viruela y sarampión", "C) Cólera y peste", "D) Diabetes y cáncer"],
+            correct: 1,
+            explanation: "Escribió el primer tratado clásico diferencial entre la viruela y el sarampión."
+        },
+        {
+            q: "102. ¿Qué era el Hawi?",
+            options: ["A) Un instrumento quirúrgico", "B) Una enciclopedia médica", "C) Un hospital", "D) Una escuela"],
+            correct: 1,
+            explanation: "El 'Kitab al-Hawi' es una inmensa enciclopedia médica comprehensiva."
+        },
+        {
+            q: "103. ¿Cuántos tomos tenía el Hawi según el documento?",
+            options: ["A) 10", "B) 20", "C) 30", "D) 50"],
+            correct: 1,
+            explanation: "Constaba de 20 volúmenes monumentales con experiencias clínicas."
+        },
+        {
+            q: "104. ¿Cómo decidió Rhazes el lugar donde debía construirse el hospital de Bagdad?",
+            options: ["A) Mediante astrología", "B) Colgando trozos de carne en diferentes lugares", "C) Consultando al califa", "D) Analizando el agua con microscopio"],
+            correct: 1,
+            explanation: "Colgó trozos de carne fresca por la ciudad para ver cuál tardaba más en corromperse."
+        },
+        {
+            q: "105. ¿Qué observaba Rhazes en los trozos de carne?",
+            options: ["A) Cuál se mantenía en mejores condiciones", "B) Cuál cambiaba de color primero", "C) Cuál atraía más insectos", "D) Cuál pesaba más"],
+            correct: 0,
+            explanation: "El sitio donde la carne demoraba más en descomponerse indicaba el aire más puro y sano."
+        },
+        {
+            q: "106. Avicena fue conocido como:",
+            options: ["A) El padre de la cirugía", "B) El príncipe de los médicos", "C) El padre de la anatomía", "D) El médico de Córdoba"],
+            correct: 1,
+            explanation: "Ibn Sina (Avicena) fue mundialmente honrado como 'el príncipe de los médicos'."
+        },
+        {
+            q: "107. ¿Entre qué años vivió Avicena?",
+            options: ["A) 622-700", "B) 860-932", "C) 980-1037", "D) 1100-1200"],
+            correct: 2,
+            explanation: "Vivió aproximadamente entre el 980 y el 1037 d. C."
+        },
+        {
+            q: "108. ¿Cuál fue la obra más importante de Avicena?",
+            options: ["A) Tesrif", "B) Canon de la medicina", "C) Hawi", "D) Fusul Musa"],
+            correct: 1,
+            explanation: "El 'Canon de la Medicina' (Al-Qanun fi al-tibb) constituyó la biblia médica de Occidente y Oriente por siglos."
+        },
+        {
+            q: "109. ¿Cuántos volúmenes tenía el Canon de la medicina?",
+            options: ["A) 10", "B) 20", "C) 36", "D) 5"],
+            correct: 3,
+            explanation: "El Canon constaba de 5 libros o volúmenes principales estructurados de forma magistral."
+        },
+        {
+            q: "110. ¿Quién describió a Sarcoptes scabiei como agente responsable de la sarna?",
+            options: ["A) Averroes", "B) Avenzoar", "C) Rhazes", "D) Abulcasis"],
+            correct: 1,
+            explanation: "Avenzoar identificó con claridad al parásito causante de la sarna."
+        },
+        {
+            q: "111. Avenzoar destacó por oponerse a:",
+            options: ["A) Hipócrates", "B) Galenismo", "C) Aristóteles", "D) Sushruta"],
+            correct: 1,
+            explanation: "Fue un crítico agudo de la dependencia ciega al galenismo absoluto, priorizando la experiencia."
+        },
+        {
+            q: "112. Averroes fue:",
+            options: ["A) Maestro de Avenzoar", "B) Alumno de Avenzoar", "C) Padre de Avenzoar", "D) Rival de Avicena"],
+            correct: 1,
+            explanation: "Averroes (Ibn Rushd) mantuvo cercanía y relación de estudio con Avenzoar."
+        },
+        {
+            q: "113. Averroes destacó principalmente por:",
+            options: ["A) Cirugía", "B) Filosofía", "C) Farmacología", "D) Anatomía"],
+            correct: 1,
+            explanation: "Averroes fue fundamentalmente un gigante de la filosofía y el aristotelismo cordobés."
+        },
+        {
+            q: "114. ¿Quién fue conocido principalmente como filósofo, pero también realizó obras médicas?",
+            options: ["A) Maimónides", "B) Rhazes", "C) Abulcasis", "D) Gundishapur"],
+            correct: 0,
+            explanation: "Maimónides destacó como filósofo judío y médico notable."
+        },
+        {
+            q: "115. ¿Cuál era la obra médica más célebre de Maimónides?",
+            options: ["A) Hawi", "B) Fusul Musa", "C) Tesrif", "D) Canon"],
+            correct: 1,
+            explanation: "Escribió los 'Aphorisms' o 'Fusul Musa' (Aforismos de Moisés)."
+        },
+        {
+            q: "116. ¿Cuántos refranes contenía Fusul Musa?",
+            options: ["A) 500", "B) 1,000", "C) 1,500", "D) 2,000"],
+            correct: 2,
+            explanation: "Contenía 1,500 aforismos y principios médicos prácticos."
+        },
+        {
+            q: "117. Después de Maimónides, según el documento, ocurrió:",
+            options: ["A) El inicio de la medicina griega", "B) El declive de la medicina musulmana", "C) La creación de Gundishapur", "D) El nacimiento de Hipócrates"],
+            correct: 1,
+            explanation: "Marcó el periodo final de esplendor y el posterior declive de la ciencia médica islámica clásica."
+        },
+        {
+            q: "118. ¿Quién fue Abulcasis?",
+            options: ["A) Un importante cirujano árabe", "B) Un filósofo griego", "C) Un médico chino", "D) Un médico egipcio"],
+            correct: 0,
+            explanation: "Abulcasis (Al-Zahrawi) es considerado el cirujano más eminente del mundo islámico medieval."
+        },
+        {
+            q: "119. ¿Cuál fue la principal obra de Abulcasis?",
+            options: ["A) Canon", "B) Hawi", "C) Tesrif", "D) Fusul Musa"],
+            correct: 2,
+            explanation: "Su gran tratado médico-quirúrgico se titula 'Al-Tasrif'."
+        },
+        {
+            q: "120. ¿Qué describió Abulcasis ampliamente en su obra?",
+            options: ["A) Instrumentos quirúrgicos", "B) Únicamente plantas", "C) Solo enfermedades mentales", "D) Solo teoría humoral"],
+            correct: 0,
+            explanation: "Diseñó y catalogó cientos de instrumentos quirúrgicos ilustrados con precisión."
+        },
+        {
+            q: "121. ¿Qué procedimiento utilizaba Abulcasis?",
+            options: ["A) Cauterización", "B) Acupuntura", "C) Trepanación neolítica", "D) Moxibustión"],
+            correct: 0,
+            explanation: "Era un maestro destacado en el uso de la cauterización para detener hemorragias y tratar tejidos."
+        },
+        {
+            q: "122. ¿Qué recomendaba Abulcasis para las curas?",
+            options: ["A) Vendajes y curas impregnadas en vino", "B) Solo agua", "C) Solo aceite", "D) Sangrías obligatorias"],
+            correct: 0,
+            explanation: "Utilizaba antisépticos empíricos como el vino en los vendajes para evitar infecciones."
+        },
+        {
+            q: "123. ¿Qué procedimiento dental se atribuye a Abulcasis?",
+            options: ["A) Extracción de todos los dientes", "B) Sujetar piezas dentales con hilo de oro", "C) Implantes metálicos", "D) Ortodoncia moderna"],
+            correct: 1,
+            explanation: "Desarrolló técnicas de estabilización y sujeción dental utilizando hilos de oro."
+        },
+        {
+            q: "124. ¿Qué dos técnicas quirúrgicas aparecen relacionadas con Abulcasis?",
+            options: ["A) Litotomía y litotripsia", "B) Trepanación y lobotomía", "C) Acupuntura y moxibustión", "D) Amputación y trasplante"],
+            correct: 0,
+            explanation: "Describió con detalle intervenciones para cálculos renales/vesicales como la litotomía."
+        },
+        {
+            q: "125. ¿Qué debía conocer primero un cirujano según Abulcasis?",
+            options: ["A) Astronomía", "B) Anatomía", "C) Música", "D) Religión"],
+            correct: 1,
+            explanation: "Enfatizaba que la anatomía rigurosa era la base indispensable antes de tomar el bisturí."
+        },
+        {
+            q: "126. Si en una pregunta aparece Rhazes + carne en distintos lugares + hospital:",
+            options: ["A) Su método para elegir el sitio más saludable para el hospital", "B) Su teoría de los humores", "C) Su estudio de la anatomía", "D) Su uso de la acupuntura"],
+            correct: 0,
+            explanation: "Describe su ingenioso método empírico para ubicar el hospital en una zona de aire puro."
+        },
+        {
+            q: "127. Si aparece Avicena + príncipe de los médicos, ¿qué debes recordar?",
+            options: ["A) Canon de la medicina", "B) Tesrif", "C) Fusul Musa", "D) Hawi"],
+            correct: 0,
+            explanation: "Avicena es el autor indiscutible del 'Canon de la Medicina'."
+        },
+        {
+            q: "128. Si aparece Abulcasis + instrumentos quirúrgicos, ¿qué obra debes asociar?",
+            options: ["A) Canon", "B) Tesrif", "C) Hawi", "D) Fusul Musa"],
+            correct: 1,
+            explanation: "El tratado 'Al-Tasrif' contiene el compendio clásico de instrumental quirúrgico árabe."
+        },
+        {
+            q: "129. Si aparece Avenzoar + sarna, ¿qué microorganismo/agente debes identificar?",
+            options: ["A) Sarcoptes scabiei", "B) Mycobacterium tuberculosis", "C) Plasmodium", "D) Staphylococcus"],
+            correct: 0,
+            explanation: "Avenzoar identificó al arador de la sarna (Sarcoptes scabiei)."
+        },
+        {
+            q: "130. ¿Cuál asociación es completamente correcta?",
+            options: ["A) Rhazes - Hawi - historias clínicas y experimentos terapéuticos", "B) Avicena - Tesrif - instrumentos quirúrgicos", "C) Avenzoar - Fusul Musa - 1,500 refranes", "D) Abulcasis - Canon - 50 volúmenes"],
+            correct: 0,
+            explanation: "Rhazes compiló en el Hawi historias clínicas valiosas y experimentos terapéuticos."
         }
     ];
 
@@ -657,7 +960,6 @@
         const card = document.getElementById(`q-card-${qIndex}`);
         const options = card.querySelectorAll('.option-item');
         
-        // Evitar cambios si ya respondió
         if (options[0].classList.contains('disabled')) return;
 
         options.forEach(opt => opt.classList.add('disabled'));
