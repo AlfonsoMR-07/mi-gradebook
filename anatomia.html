@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario Interactivo de Anatomía (70 Preguntas)</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; line-height: 1.5; padding-bottom: 40px; }
+        header { background-color: #0284c7; color: white; padding: 20px 16px; position: sticky; top: 0; z-index: 50; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header-content { max-width: 900px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
+        .tag { background-color: #0369a1; color: #e0f2fe; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; }
+        h1 { font-size: 1.5rem; font-weight: 700; margin-top: 4px; }
+        p.subtitle { color: #bae6fd; font-size: 0.875rem; }
+        .stats { display: flex; align-items: center; gap: 16px; background-color: rgba(3, 105, 161, 0.8); padding: 8px 16px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.5); }
+        .stat-box { text-align: center; }
+        .stat-label { display: block; font-size: 11px; color: #bae6fd; text-transform: uppercase; }
+        .stat-val { font-size: 1.25rem; font-weight: 700; font-family: monospace; }
+        .divider { width: 1px; height: 32px; background-color: #0284c7; }
+        
+        main { max-width: 900px; margin: 24px auto; padding: 0 16px; display: flex; flex-direction: column; gap: 24px; }
+        .filter-card { background: white; border-radius: 16px; padding: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .filter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+        .filter-title { font-weight: 600; font-size: 0.875rem; color: #334155; }
+        .reset-btn { padding: 8px 16px; background-color: #f1f5f9; color: #334155; font-weight: 500; font-size: 0.875rem; border-radius: 12px; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s; }
+        .reset-btn:hover { background-color: #e2e8f0; }
+        
+        .filter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+        .filter-btn { padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 500; border: 1px solid #cbd5e1; background-color: #f8fafc; color: #475569; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .filter-btn:hover { background-color: #f1f5f9; }
+        .filter-btn.active { background-color: #0284c7; color: white; border-color: #0284c7; font-weight: 600; }
+        
+        .questions-list { display: flex; flex-direction: column; gap: 20px; }
+        .question-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05); transition: all 0.2s; display: flex; flex-direction: column; gap: 16px; }
+        .question-card.correct { border-color: #6ee7b7; background-color: #f0fdf4; }
+        .question-card.incorrect { border-color: #fca5a5; background-color: #fff1f2; }
+        
+        .q-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .q-team { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .q-id { font-size: 12px; color: #94a3b8; font-weight: 500; }
+        .q-text { font-size: 1.05rem; font-weight: 600; color: #1e293b; }
+        
+        .options-list { display: flex; flex-direction: column; gap: 10px; }
+        .option-btn { width: 100%; text-align: left; padding: 12px 16px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; color: #334155; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s; }
+        .option-btn:hover:not(:disabled) { background-color: #f8fafc; border-color: #cbd5e1; }
+        .option-letter { width: 28px; height: 28px; border-radius: 8px; background-color: #f1f5f9; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; shrink: 0; }
+        
+        .option-btn.opt-correct { border-color: #10b981; background-color: #ecfdf5; color: #065f46; font-weight: 600; }
+        .option-btn.opt-incorrect { border-color: #f43f5e; background-color: #fff1f2; color: #9f1239; font-weight: 600; }
+        .option-btn.opt-disabled { opacity: 0.6; }
+        
+        .badge-status { margin-left: auto; font-size: 0.75rem; font-weight: 700; }
+        .badge-correct { color: #059669; }
+        .badge-incorrect { color: #e11d48; }
+        
+        .feedback-box { padding: 14px 16px; border-radius: 12px; font-size: 0.875rem; border: 1px solid; margin-top: 4px; }
+        .feedback-box.correct { background-color: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+        .feedback-box.incorrect { background-color: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+        .feedback-title { font-weight: 700; margin-bottom: 4px; }
+        
+        .summary-card { background: linear-gradient(135deg, #0284c7, #0369a1); color: white; border-radius: 20px; padding: 32px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 16px; }
+        .summary-card.hidden { display: none; }
+        .trophy { font-size: 3rem; background: rgba(255,255,255,0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .final-score { font-size: 2rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 8px 24px; border-radius: 16px; backdrop-filter: blur(4px); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div>
+                <span class="tag">Repaso Académico de Anatomía</span>
+                <h1>Examen Interactivo de Anatomía Humana</h1>
+                <p class="subtitle">Evaluación interactiva con 70 preguntas de opción múltiple</p>
+            </div>
+            <div class="stats">
+                <div class="stat-box">
+                    <span class="stat-label">Tiempo</span>
+                    <span id="timer" class="stat-val">00:00</span>
+                </div>
+                <div class="divider"></div>
+                <div class="stat-box">
+                    <span class="stat-label">Puntaje</span>
+                    <span id="score-display" class="stat-val">0 / 70</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="filter-card">
+            <div class="filter-header">
+                <span class="filter-title">🔍 Filtrar por Tema:</span>
+                <button onclick="resetQuiz()" class="reset-btn">🔄 Reiniciar Cuestionario</button>
+            </div>
+            <div class="filter-grid" id="filter-container">
+                <button onclick="setFilter('all')" id="filter-all" class="filter-btn active">Todos (70)</button>
+                <button onclick="setFilter('t1')" id="filter-t1" class="filter-btn">Posición y Planos (10)</button>
+                <button onclick="setFilter('t2')" id="filter-t2" class="filter-btn">Movimientos (14)</button>
+                <button onclick="setFilter('t3')" id="filter-t3" class="filter-btn">Fascias y Membranas (11)</button>
+                <button onclick="setFilter('t4')" id="filter-t4" class="filter-btn">Variantes Anatómicas (5)</button>
+                <button onclick="setFilter('t5')" id="filter-t5" class="filter-btn">Sistema Tegumentario (10)</button>
+                <button onclick="setFilter('t6')" id="filter-t6" class="filter-btn">Sistema Esquelético (10)</button>
+                <button onclick="setFilter('t7')" id="filter-t7" class="filter-btn">Bonus Huesos (10)</button>
+            </div>
+        </div>
+
+        <div id="questions-container" class="questions-list"></div>
+
+        <div id="summary-card" class="summary-card hidden">
+            <div class="trophy">🏆</div>
+            <h2>¡Examen Finalizado!</h2>
+            <p id="summary-text" style="color: #e0f2fe; max-width: 500px;">Has completado todas las preguntas de Anatomía Humana.</p>
+            <div class="final-score" id="final-score">0 / 70 aciertos</div>
+            <button onclick="resetQuiz()" class="reset-btn" style="background: white; color: #0284c7; font-weight: 700; padding: 12px 24px; font-size: 1rem;">
+                Reiniciar Examen
+            </button>
+        </div>
+    </main>
+
+    <script>
+        const questionsData = [
+            // POSICIÓN Y PLANOS ANATÓMICOS
+            {
+                id: 1,
+                team: 't1',
+                teamName: 'POSICIÓN Y PLANOS ANATÓMICOS',
+                question: '1. ¿Cuál de las siguientes describe correctamente la posición anatómica?',
+                options: [
+                    { letter: 'A', text: 'De pie, palmas hacia atrás y pies juntos' },
+                    { letter: 'B', text: 'De pie, cabeza y ojos hacia adelante, palmas hacia adelante' },
+                    { letter: 'C', text: 'Sentado, brazos cruzados y palmas hacia arriba' },
+                    { letter: 'D', text: 'De pie, brazos flexionados y palmas hacia el cuerpo' }
+                ],
+                correct: 'B',
+                explanation: 'La posición anatómica estándar requiere estar de pie (en bipedestación), mirada al frente, extremidades superiores pendientes a los lados con las palmas orientadas hacia adelante y pies dirigidos hacia enfrente.'
+            },
+            {
+                id: 2,
+                team: 't1',
+                teamName: 'POSICIÓN Y PLANOS ANATÓMICOS',
+                question: '2. ¿Qué plano divide el cuerpo en una porción derecha y una izquierda?',
+                options: [
+                    { letter: 'A', text: 'Frontal' },
+                    { letter: 'B', text: 'Transversal' },
+                    { letter: 'C', text: 'Sagital' },
+                    { letter: 'D', text: 'Coronal' }
+                ],
+                correct: 'C',
+                explanation: 'El plano sagital es un plano vertical orientado de adelante hacia atrás que divide el cuerpo en secciones derecha e izquierda.'
+            },
+            {
+                id: 3,
+                team: 't1',
+                teamName: 'POSICIÓN Y PLANOS ANATÓMICOS',
+                question: '3. ¿Qué plano divide el cuerpo en porciones superior e inferior?',
+                options: [
+                    { letter: 'A', text: 'Sagital' },
+                    { letter: 'B', text: 'Frontal' },
+                    { letter: 'C', text: 'Coronal' },
+                    { letter: 'D', text: 'Transversal' }
+                ],
+                correct: 'D',
+                explanation: 'El plano transversal u horizontal es perpendicular al eje longitudinal del cuerpo, dividiéndolo en mitad superior (craneal) e inferior (caudal).'
+            },
+            {
+                id: 4,
+                team: 't1',
+                teamName: 'POSICIÓN Y PLANOS ANATÓMICOS',
+                question: '4. ¿Qué plano divide el cuerpo en porciones anterior y posterior?',
+                options: [
+                    { letter: 'A', text: 'Frontal o coronal' },
+                    { letter: 'B', text: 'Sagital' },
+                    { letter: 'C', text: 'Transversal' },
+                    { letter: 'D', text: 'Medio sagital' }
+                ],
+                correct: 'A',
+                explanation: 'El plano frontal o coronal discurre de lado a lado dividiendo el cuerpo en una parte anterior (ventral) y otra posterior (dorsal).'
+            },
+            {
+                id: 5,
+                team: 't1',
+                teamName: 'POSICIÓN Y PLANOS ANATÓMICOS',
+                question: '5. El plano sagital medio divide el cuerpo en:',
+                options: [
+                    { letter: 'A', text: 'Superior e inferior' },
+                    { letter: 'B', text: 'Anterior y posterior' },
+                    { letter: 'C', text: 'Derecha e izquierda iguales' },
+                    { letter: 'D', text: 'Derecha e izquierda desiguales' }
+                ],
+                correct: 'C',
+                explanation: 'El plano medio o sagital medio pasa exactamente por la línea media del cuerpo dividiéndolo en dos mitades simétricas (iguales).'
+            },
+            {
+                id: 6,
+                team: 't1',
+                teamName: 'POSICIÓN Y PLANOS ANATÓMICOS',
+                question: '6. Una estructura que se encuentra más cerca de la línea media se describe como:',
+                options: [
+                    { letter: 'A', text: 'Lateral' },
+                    { letter: 'B', text: 'Medial' },
+                    { letter: 'C', text: 'Distal' },
+                    { letter: 'D', text: 'Superficial' }
+                ],
+                correct: 'B',
+                explanation: 'Medial indica que una estructura se encuentra más próxima al plano medio sagital del cuerpo.'
+            },
+            {
+                id: 7,
+                team: 't1',
+                teamName: 'POSICIÓN Y PLANOS ANATÓMICOS',
+                question: '7. Una estructura ubicada más lejos de la línea media se denomina:',
+                options: [
+                    { letter: 'A', text: 'Medial' },
+                    { letter: 'B', text: 'Proximal' },
+                    { letter: 'C', text: 'Lateral' },
+                    { letter: 'D', text: 'Profunda' }
+                ],
+                correct: 'C',
+                explanation: 'Lateral significa que una estructura está más alejada del plano medio o línea media corporal.'
+            },
+            {
+                id: 8,
+                team: 't1',
+                teamName: 'POSICIÓN Y PLANOS ANATÓMICOS',
+                question: '8. ¿Cuál término indica una estructura más cercana al origen de un miembro?',
+                options: [
+                    { letter: 'A', text: 'Distal' },
+                    { letter: 'B', text: 'Proximal' },
+                    { letter: 'C', text: 'Lateral' },
+                    { letter: 'D', text: 'Inferior' }
+                ],
+                correct: 'B',
+                explanation: 'Proximal se utiliza para indicar mayor cercanía a la raíz o punto de inserción del miembro en el tronco.'
+            },
+            {
+                id: 9,
+                team: 't1',
+                teamName: 'POSICIÓN Y PLANOS ANATÓMICOS',
+                question: '9. ¿Cuál término indica una estructura más alejada del origen de un miembro?',
+                options: [
+                    { letter: 'A', text: 'Proximal' },
+                    { letter: 'B', text: 'Medial' },
+                    { letter: 'C', text: 'Distal' },
+                    { letter: 'D', text: 'Superior' }
+                ],
+                correct: 'C',
+                explanation: 'Distal indica que la estructura está más distante del punto de inserción de la extremidad.'
+            },
+            {
+                id: 10,
+                team: 't1',
+                teamName: 'POSICIÓN Y PLANOS ANATÓMICOS',
+                question: '10. Una estructura ubicada hacia la superficie corporal se describe como:',
+                options: [
+                    { letter: 'A', text: 'Profunda' },
+                    { letter: 'B', text: 'Interna' },
+                    { letter: 'C', text: 'Superficial' },
+                    { letter: 'D', text: 'Distal' }
+                ],
+                correct: 'C',
+                explanation: 'Superficial se refiere a lo ubicado hacia o cerca de la superficie externa de la piel.'
+            },
+
+            // MOVIMIENTOS ANATÓMICOS
+            {
+                id: 11,
+                team: 't2',
+                teamName: 'MOVIMIENTOS ANATÓMICOS',
+                question: '11. ¿Qué movimiento disminuye el ángulo entre dos estructuras?',
+                options: [
+                    { letter: 'A', text: 'Extensión' },
+                    { letter: 'B', text: 'Flexión' },
+                    { letter: 'C', text: 'Abducción' },
+                    { letter: 'D', text: 'Rotación' }
+                ],
+                correct: 'B',
+                explanation: 'La flexión es el movimiento articular que reduce el ángulo formado entre los huesos o partes del cuerpo.'
+            },
+            {
+                id: 12,
+                team: 't2',
+                teamName: 'MOVIMIENTOS ANATÓMICOS',
+                question: '12. ¿Qué movimiento aumenta el ángulo entre dos estructuras?',
+                options: [
+                    { letter: 'A', text: 'Flexión' },
+                    { letter: 'B', text: 'Aducción' },
+                    { letter: 'C', text: 'Extensión' },
+                    { letter: 'D', text: 'Pronación' }
+                ],
+                correct: 'C',
+                explanation: 'La extensión incrementa o endereza el ángulo entre los huesos o partes anatómicas.'
+            },
+            {
+                id: 13,
+                team: 't2',
+                teamName: 'MOVIMIENTOS ANATÓMICOS',
+                question: '13. Alejar una extremidad de la línea media se denomina:',
+                options: [
+                    { letter: 'A', text: 'Aducción' },
+                    { letter: 'B', text: 'Abducción' },
+                    { letter: 'C', text: 'Flexión' },
+                    { letter: 'D', text: 'Retrusión' }
+                ],
+                correct: 'B',
+                explanation: 'La abducción es el movimiento en el plano frontal que separa o aleja la extremidad del plano medio.'
+            },
+            {
+                id: 14,
+                team: 't2',
+                teamName: 'MOVIMIENTOS ANATÓMICOS',
+                question: '14. Acercar una extremidad hacia la línea media se denomina:',
+                options: [
+                    { letter: 'A', text: 'Abducción' },
+                    { letter: 'B', text: 'Aducción' },
+                    { letter: 'C', text: 'Extensión' },
+                    { letter: 'D', text: 'Elevación' }
+                ],
+                correct: 'B',
+                explanation: 'La aducción aproxima o acerca una estructura hacia la línea media corporal.'
+            },
+            {
+                id: 15,
+                team: 't2',
+                teamName: 'MOVIMIENTOS ANATÓMICOS',
+                question: '15. ¿Cuál movimiento ocurre alrededor de un eje longitudinal?',
+                options: [
+                    { letter: 'A', text: 'Rotación' },
+                    { letter: 'B', text: 'Flexión' },
+                    { letter: 'C', text: 'Abducción' },
+                    { letter: 'D', text: 'Aducción' }
+                ],
+                correct: 'A',
+                explanation: 'La rotación es el giro o vuelta de un segmento corporal alrededor de su propio eje longitudinal.'
+            },
+            {
+                id: 16,
+                team: 't2',
+                teamName: 'MOVIMIENTOS ANATÓMICOS',
+                question: '16. Levantar una estructura hacia arriba corresponde a:',
+                options: [
+                    { letter: 'A', text: 'Descenso' },
+                    { letter: 'B', text: 'Retrusión' },
+                    { letter: 'C', text: 'Elevación' },
+                    { letter: 'D', text: 'Protrusión' }
+                ],
+                correct: 'C',
+                explanation: 'La elevación es el desplazamiento superior o levantamiento de una parte del cuerpo.'
+            },
+            {
+                id: 17,
+                team: 't2',
+                teamName: 'MOVIMIENTOS ANATÓMICOS',
+                question: '17. Mover una estructura hacia abajo corresponde a:',
+                options: [
+                    { letter: 'A', text: 'Elevación' },
+                    { letter: 'B', text: 'Descenso' },
+                    { letter: 'C', text: 'Aducción' },
+                    { letter: 'D', text: 'Supinación' }
+                ],
+                correct: 'B',
+                explanation: 'El descenso o depresión mueve la estructura en dirección inferior o hacia abajo.'
+            },
+            {
+                id: 18,
+                team: 't2',
+                teamName: 'MOVIMIENTOS ANATÓMICOS',
+                question: '18. ¿Cuál de los siguientes movimientos corresponde principalmente al antebrazo?',
+                options: [
+                    { letter: 'A', text: 'Inversión' },
+                    { letter: 'B', text: 'Eversión' },
+                    { letter: 'C', text: 'Pronación' },
+                    { letter: 'D', text: 'Protrusión' }
+                ],
+                correct: 'C',
+                explanation: 'La pronación y la supinación son rotaciones específicas del antebrazo que orientan la palma hacia atrás/abajo o hacia adelante/arriba.'
+            },
+            {
+                id: 19,
+                team: 't2',
+                teamName: 'MOVIMIENTOS ANATÓMICOS',
+                question: '19. ¿Qué movimiento lleva la mandíbula hacia adelante?',
+                options: [
+                    { letter: 'A', text: 'Retrusión' },
+                    { letter: 'B', text: 'Protrusión' },
+                    { letter: 'C', text: 'Supinación' },
+                    { letter: 'D', text: 'Inversión' }
+                ],
+                correct: 'B',
+                explanation: 'La protrusión desplaza hacia adelante una estructura, como la mandíbula o la lengua.'
+            },
+            {
+                id: 20,
+                team: 't2',
+                teamName: 'MOVIMIENTOS ANATÓMICOS',
+                question: '20. ¿Qué movimiento lleva la mandíbula hacia atrás?',
+                options: [
+                    { letter: 'A', text: 'Protrusión' },
+                    { letter: 'B', text: 'Retrusión' },
+                    { letter: 'C', text: 'Eversión' },
+                    { letter: 'D', text: 'Elevación' }
+                ],
+                correct: 'B',
+                explanation: 'La retrusión es el movimiento en dirección posterior para devolver una estructura adelantada a su posición previa.'
+            },
+            {
+                id: 21,
+                team: 't2',
+                teamName: 'MOVIMIENTOS ANATÓMICOS',
+                question: '21. ¿Qué movimiento corresponde al giro de la planta del pie hacia medial?',
+                options: [
+                    { letter: 'A', text: 'Eversión' },
+                    { letter: 'B', text: 'Inversión' },
+                    { letter: 'C', text: 'Dorsiflexión' },
+                    { letter: 'D', text: 'Flexión plantar' }
+                ],
+                correct: 'B',
+                explanation: 'La inversión gira la planta del pie hacia el plano medio o en sentido medial.'
+            },
+            {
+                id: 22,
+                team: 't2',
+                teamName: 'MOVIMIENTOS ANATÓMICOS',
+                question: '22. ¿Qué movimiento corresponde al giro de la planta del pie hacia lateral?',
+                options: [
+                    { letter: 'A', text: 'Inversión' },
+                    { letter: 'B', text: 'Eversión' },
+                    { letter: 'C', text: 'Pronación' },
+                    { letter: 'D', text: 'Supinación' }
+                ],
+                correct: 'B',
+                explanation: 'La eversión desplaza la planta del pie alejándola de la línea media hacia afuera (lateral).'
+            },
+            {
+                id: 23,
+                team: 't2',
+                teamName: 'MOVIMIENTOS ANATÓMICOS',
+                question: '23. Llevar el pie hacia arriba, acercando el dorso del pie hacia la pierna, corresponde a:',
+                options: [
+                    { letter: 'A', text: 'Flexión plantar' },
+                    { letter: 'B', text: 'Dorsiflexión' },
+                    { letter: 'C', text: 'Eversión' },
+                    { letter: 'D', text: 'Inversión' }
+                ],
+                correct: 'B',
+                explanation: 'La dorsiflexión o flexión dorsal eleva el pie de modo que la cara dorsal se aproxima a la cara anterior de la pierna.'
+            },
+            {
+                id: 24,
+                team: 't2',
+                teamName: 'MOVIMIENTOS ANATÓMICOS',
+                question: '24. Ponerse de puntas implica principalmente:',
+                options: [
+                    { letter: 'A', text: 'Dorsiflexión' },
+                    { letter: 'B', text: 'Flexión plantar' },
+                    { letter: 'C', text: 'Pronación' },
+                    { letter: 'D', text: 'Retrusión' }
+                ],
+                correct: 'B',
+                explanation: 'La flexión plantar orienta el pie y los dedos hacia abajo, alejando el dorso del pie de la pierna, como al sostenerse de puntillas.'
+            },
+
+            // FASCIAS Y MEMBRANAS
+            {
+                id: 25,
+                team: 't3',
+                teamName: 'FASCIAS Y MEMBRANAS',
+                question: '25. ¿Qué es la fascia?',
+                options: [
+                    { letter: 'A', text: 'Tejido muscular especializado' },
+                    { letter: 'B', text: 'Tejido epitelial de protección' },
+                    { letter: 'C', text: 'Tejido conectivo de soporte' },
+                    { letter: 'D', text: 'Tejido óseo especializado' }
+                ],
+                correct: 'C',
+                explanation: 'La fascia está constituida por tejido conectivo o conjuntivo denso que envuelve y sostiene las diferentes estructuras anatómicas.'
+            },
+            {
+                id: 26,
+                team: 't3',
+                teamName: 'FASCIAS Y MEMBRANAS',
+                question: '26. ¿Cuál es una función de la fascia?',
+                options: [
+                    { letter: 'A', text: 'Producir líquido sinovial exclusivamente' },
+                    { letter: 'B', text: 'Envolver músculos, órganos y estructuras vasculonerviosas' },
+                    { letter: 'C', text: 'Producir células sanguíneas' },
+                    { letter: 'D', text: 'Formar exclusivamente tejido óseo' }
+                ],
+                correct: 'B',
+                explanation: 'Sirve de contenedor, aislamiento y envoltura para músculos, paquetes vasculo-nerviosos y órganos internos.'
+            },
+            {
+                id: 27,
+                team: 't3',
+                teamName: 'FASCIAS Y MEMBRANAS',
+                question: '27. ¿Qué estructuras puede formar la fascia entre grupos musculares?',
+                options: [
+                    { letter: 'A', text: 'Trabéculas' },
+                    { letter: 'B', text: 'Tabiques intermusculares' },
+                    { letter: 'C', text: 'Epífisis' },
+                    { letter: 'D', text: 'Mesotelio' }
+                ],
+                correct: 'B',
+                explanation: 'Las fascias profundas emiten extensiones denominadas tabiques intermusculares que separan distintos grupos o compartimentos musculares.'
+            },
+            {
+                id: 28,
+                team: 't3',
+                teamName: 'FASCIAS Y MEMBRANAS',
+                question: '28. Los retináculos se relacionan principalmente con:',
+                options: [
+                    { letter: 'A', text: 'Tendones' },
+                    { letter: 'B', text: 'Huesos planos' },
+                    { letter: 'C', text: 'Epidermis' },
+                    { letter: 'D', text: 'Glándulas sebáceas' }
+                ],
+                correct: 'A',
+                explanation: 'Los retináculos son franjas engrosadas de fascia profunda que retienen los tendones en su lugar para evitar su cuerda del arco al contraerse.'
+            },
+            {
+                id: 29,
+                team: 't3',
+                teamName: 'FASCIAS Y MEMBRANAS',
+                question: '29. ¿Dónde encontramos principalmente las membranas sinoviales?',
+                options: [
+                    { letter: 'A', text: 'En la epidermis' },
+                    { letter: 'B', text: 'En las cápsulas articulares' },
+                    { letter: 'C', text: 'En los huesos compactos' },
+                    { letter: 'D', text: 'En los músculos' }
+                ],
+                correct: 'B',
+                explanation: 'Las membranas sinoviales revestirán la superficie interna de las cápsulas articulares de las articulaciones diartrodiales.'
+            },
+            {
+                id: 30,
+                team: 't3',
+                teamName: 'FASCIAS Y MEMBRANAS',
+                question: '30. ¿Qué secretan las membranas sinoviales?',
+                options: [
+                    { letter: 'A', text: 'Líquido seroso' },
+                    { letter: 'B', text: 'Sebo' },
+                    { letter: 'C', text: 'Líquido sinovial' },
+                    { letter: 'D', text: 'Sudor' }
+                ],
+                correct: 'C',
+                explanation: 'Sintetizan y secreta el líquido sinovial que baña el interior de las cavidades articulares.'
+            },
+            {
+                id: 31,
+                team: 't3',
+                teamName: 'FASCIAS Y MEMBRANAS',
+                question: '31. ¿Cuál es una función del líquido sinovial?',
+                options: [
+                    { letter: 'A', text: 'Lubricación' },
+                    { letter: 'B', text: 'Formación de queratina' },
+                    { letter: 'C', text: 'Producción de osteocitos' },
+                    { letter: 'D', text: 'Transporte de oxígeno' }
+                ],
+                correct: 'A',
+                explanation: 'El líquido sinovial provee lubricación para disminuir la fricción articular y nutre a los cartílagos articulares avasculares.'
+            },
+            {
+                id: 32,
+                team: 't3',
+                teamName: 'FASCIAS Y MEMBRANAS',
+                question: '32. Las bolsas sinoviales ayudan principalmente a:',
+                options: [
+                    { letter: 'A', text: 'Aumentar la fricción' },
+                    { letter: 'B', text: 'Reducir la fricción' },
+                    { letter: 'C', text: 'Formar hueso' },
+                    { letter: 'D', text: 'Producir sudor' }
+                ],
+                correct: 'B',
+                explanation: 'Las bursas o bolsas sinoviales se interponen entre huesos, tendones o prominencias para minimizar el roce durante el movimiento.'
+            },
+            {
+                id: 33,
+                team: 't3',
+                teamName: 'FASCIAS Y MEMBRANAS',
+                question: '33. ¿Qué componente celular caracteriza al mesotelio de las membranas serosas?',
+                options: [
+                    { letter: 'A', text: 'Células musculares estriadas' },
+                    { letter: 'B', text: 'Células epiteliales escamosas' },
+                    { letter: 'C', text: 'Osteocitos' },
+                    { letter: 'D', text: 'Adipocitos' }
+                ],
+                correct: 'B',
+                explanation: 'El mesotelio es una capa fina de células epiteliales simples planas (escamosas) que forma la capa celular activa de la serosa.'
+            },
+            {
+                id: 34,
+                team: 't3',
+                teamName: 'FASCIAS Y MEMBRANAS',
+                question: '34. ¿Qué secretan las membranas serosas?',
+                options: [
+                    { letter: 'A', text: 'Líquido sinovial' },
+                    { letter: 'B', text: 'Sudor' },
+                    { letter: 'C', text: 'Líquido seroso' },
+                    { letter: 'D', text: 'Sebo' }
+                ],
+                correct: 'C',
+                explanation: 'Producen un fluido claro y acuoso (líquido seroso) que lubrica el roce entre la hoja visceral y parietal.'
+            },
+            {
+                id: 35,
+                team: 't3',
+                teamName: 'FASCIAS Y MEMBRANAS',
+                question: '35. Las membranas serosas recubren:',
+                options: [
+                    { letter: 'A', text: 'Solamente huesos largos' },
+                    { letter: 'B', text: 'Cavidades corporales y órganos' },
+                    { letter: 'C', text: 'Únicamente tendones' },
+                    { letter: 'D', text: 'Exclusivamente articulaciones' }
+                ],
+                correct: 'B',
+                explanation: 'Las membranas serosas (pleura, pericardio, peritoneo) revisten las paredes de las cavidades cerradas y cubren a los órganos viscerales contenidas en ellas.'
+            },
+
+            // VARIANTES ANATÓMICAS
+            {
+                id: 36,
+                team: 't4',
+                teamName: 'VARIANTES ANATÓMICAS',
+                question: '36. ¿Cuál de las siguientes puede ser una variante anatómica?',
+                options: [
+                    { letter: 'A', text: 'Una diferencia en el tamaño de una estructura' },
+                    { letter: 'B', text: 'Una fractura necesariamente' },
+                    { letter: 'C', text: 'Una infección' },
+                    { letter: 'D', text: 'Una hemorragia' }
+                ],
+                correct: 'A',
+                explanation: 'Las variantes anatómicas representan variaciones en la forma, tamaño o disposición de una estructura dentro del espectro funcional no patológico.'
+            },
+            {
+                id: 37,
+                team: 't4',
+                teamName: 'VARIANTES ANATÓMICAS',
+                question: '37. ¿Cuál de los siguientes aspectos puede presentar una variante anatómica?',
+                options: [
+                    { letter: 'A', text: 'Forma' },
+                    { letter: 'B', text: 'Localización' },
+                    { letter: 'C', text: 'Vasculatura' },
+                    { letter: 'D', text: 'Todas las anteriores' }
+                ],
+                correct: 'D',
+                explanation: 'Las variaciones pueden afectar la configuración formal, la ramificación de vasos, el número de elementos o su ubicación topográfica.'
+            },
+            {
+                id: 38,
+                team: 't4',
+                teamName: 'VARIANTES ANATÓMICAS',
+                question: '38. Las variantes anatómicas musculares pueden incluir:',
+                options: [
+                    { letter: 'A', text: 'Vientres adicionales o inserciones diferentes' },
+                    { letter: 'B', text: 'Ausencia de toda la piel' },
+                    { letter: 'C', text: 'Fracturas musculares' },
+                    { letter: 'D', text: 'Formación de tejido óseo obligatoriamente' }
+                ],
+                correct: 'A',
+                explanation: 'Suelen encontrarse músculos accesorios, vientres duplicados o sitios de fijación diferentes a los descritos en la anatomía clásica.'
+            },
+            {
+                id: 39,
+                team: 't4',
+                teamName: 'VARIANTES ANATÓMICAS',
+                question: '39. ¿Por qué es importante conocer las variantes anatómicas?',
+                options: [
+                    { letter: 'A', text: 'Porque todas son enfermedades' },
+                    { letter: 'B', text: 'Para distinguirlas de alteraciones patológicas y considerarlas en procedimientos' },
+                    { letter: 'C', text: 'Porque siempre requieren cirugía' },
+                    { letter: 'D', text: 'Porque eliminan la necesidad de diagnóstico' }
+                ],
+                correct: 'B',
+                explanation: 'Evita errores diagnósticos en estudios de imagen y permite una planificación quirúrgica o clínica segura.'
+            },
+            {
+                id: 40,
+                team: 't4',
+                teamName: 'VARIANTES ANATÓMICAS',
+                question: '40. ¿Cuál puede ser una causa relacionada con una variante anatómica?',
+                options: [
+                    { letter: 'A', text: 'Edad' },
+                    { letter: 'B', text: 'Congelación únicamente' },
+                    { letter: 'C', text: 'Ejercicio exclusivamente' },
+                    { letter: 'D', text: 'Alimentación únicamente' }
+                ],
+                correct: 'A',
+                explanation: 'El proceso de desarrollo, cambios ontogénicos y la edad modifican la expresión o prominencia de ciertas variantes anatómicas.'
+            },
+
+            // SISTEMA TEGUMENTARIO
+            {
+                id: 41,
+                team: 't5',
+                teamName: 'SISTEMA TEGUMENTARIO',
+                question: '41. ¿Cuál es el órgano más grande del cuerpo?',
+                options: [
+                    { letter: 'A', text: 'Hígado' },
+                    { letter: 'B', text: 'Corazón' },
+                    { letter: 'C', text: 'Piel' },
+                    { letter: 'D', text: 'Pulmón' }
+                ],
+                correct: 'C',
+                explanation: 'La piel es el órgano de mayor superficie corporal y peso en el ser humano.'
+            },
+            {
+                id: 42,
+                team: 't5',
+                teamName: 'SISTEMA TEGUMENTARIO',
+                question: '42. ¿Cuál de los siguientes forma parte del sistema tegumentario?',
+                options: [
+                    { letter: 'A', text: 'Piel' },
+                    { letter: 'B', text: 'Pelo' },
+                    { letter: 'C', text: 'Uñas' },
+                    { letter: 'D', text: 'Todas las anteriores' }
+                ],
+                correct: 'D',
+                explanation: 'El sistema tegumentario se compone de la piel cutánea y todos sus anexos o faneras (pelo, uñas, glándulas).'
+            },
+            {
+                id: 43,
+                team: 't5',
+                teamName: 'SISTEMA TEGUMENTARIO',
+                question: '43. ¿Cuál de las siguientes glándulas es un derivado de la piel?',
+                options: [
+                    { letter: 'A', text: 'Sudorípara' },
+                    { letter: 'B', text: 'Sebácea' },
+                    { letter: 'C', text: 'Mamaria' },
+                    { letter: 'D', text: 'Todas las anteriores' }
+                ],
+                correct: 'D',
+                explanation: 'Tanto las glándulas sudoríparas como las sebáceas y las mamarias son estructuras exocrinas derivadas embriológicamente de la epidermis.'
+            },
+            {
+                id: 44,
+                team: 't5',
+                teamName: 'SISTEMA TEGUMENTARIO',
+                question: '44. ¿Cuál es el orden correcto de las capas principales de la piel, de superficial a profundo?',
+                options: [
+                    { letter: 'A', text: 'Dermis → epidermis → subcutáneo' },
+                    { letter: 'B', text: 'Subcutáneo → epidermis → dermis' },
+                    { letter: 'C', text: 'Epidermis → dermis → tejido subcutáneo' },
+                    { letter: 'D', text: 'Epidermis → subcutáneo → dermis' }
+                ],
+                correct: 'C',
+                explanation: 'El orden de capas desde el exterior hacia el interior es: Epidermis (epitelio), Dermis (tejido conectivo) y Tejido Subcutáneo/Hipodermis.'
+            },
+            {
+                id: 45,
+                team: 't5',
+                teamName: 'SISTEMA TEGUMENTARIO',
+                question: '45. ¿Cuál es la capa más superficial de la piel?',
+                options: [
+                    { letter: 'A', text: 'Dermis' },
+                    { letter: 'B', text: 'Epidermis' },
+                    { letter: 'C', text: 'Tejido subcutáneo' },
+                    { letter: 'D', text: 'Fascia profunda' }
+                ],
+                correct: 'B',
+                explanation: 'La epidermis es la capa externa delgada y avascular del tegumento.'
+            },
+            {
+                id: 46,
+                team: 't5',
+                teamName: 'SISTEMA TEGUMENTARIO',
+                question: '46. El tejido subcutáneo también se denomina:',
+                options: [
+                    { letter: 'A', text: 'Fascia superficial' },
+                    { letter: 'B', text: 'Fascia profunda' },
+                    { letter: 'C', text: 'Mesotelio' },
+                    { letter: 'D', text: 'Periostio' }
+                ],
+                correct: 'A',
+                explanation: 'La hipodermis o tejido subcutáneo se conoce formalmente como fascia superficial.'
+            },
+            {
+                id: 47,
+                team: 't5',
+                teamName: 'SISTEMA TEGUMENTARIO',
+                question: '47. El tejido subcutáneo contiene principalmente:',
+                options: [
+                    { letter: 'A', text: 'Tejido adiposo' },
+                    { letter: 'B', text: 'Tejido óseo compacto' },
+                    { letter: 'C', text: 'Cartílago' },
+                    { letter: 'D', text: 'Mesotelio' }
+                ],
+                correct: 'A',
+                explanation: 'El componente principal del tejido subcutáneo es el tejido graso o adiposo.'
+            },
+            {
+                id: 48,
+                team: 't5',
+                teamName: 'SISTEMA TEGUMENTARIO',
+                question: '48. ¿Cuál de las siguientes glándulas produce sebo?',
+                options: [
+                    { letter: 'A', text: 'Sudorípara' },
+                    { letter: 'B', text: 'Sebácea' },
+                    { letter: 'C', text: 'Mamaria' },
+                    { letter: 'D', text: 'Sinovial' }
+                ],
+                correct: 'B',
+                explanation: 'Las glándulas sebáceas son las encargadas de producir y verter el sebo lipídico a los folículos pilosos.'
+            },
+            {
+                id: 49,
+                team: 't5',
+                teamName: 'SISTEMA TEGUMENTARIO',
+                question: '49. La principal sustancia producida por las glándulas sebáceas es:',
+                options: [
+                    { letter: 'A', text: 'Sudor' },
+                    { letter: 'B', text: 'Líquido sinovial' },
+                    { letter: 'C', text: 'Sebo' },
+                    { letter: 'D', text: 'Líquido seroso' }
+                ],
+                correct: 'C',
+                explanation: 'El sebo es una secreción rica en lípidos que protege, lubrica e impermeabiliza la capa cutánea.'
+            },
+            {
+                id: 50,
+                team: 't5',
+                teamName: 'SISTEMA TEGUMENTARIO',
+                question: '50. ¿Cuál es una función importante de las glándulas sudoríparas?',
+                options: [
+                    { letter: 'A', text: 'Producir tejido óseo' },
+                    { letter: 'B', text: 'Participar en la regulación de la temperatura' },
+                    { letter: 'C', text: 'Lubricar las articulaciones' },
+                    { letter: 'D', text: 'Formar tendones' }
+                ],
+                correct: 'B',
+                explanation: 'El sudor expulsado al evaporarse disipa calor, siendo vital para la termorregulación.'
+            },
+
+            // SISTEMA ESQUELÉTICO
+            {
+                id: 51,
+                team: 't6',
+                teamName: 'SISTEMA ESQUELÉTICO',
+                question: '51. Aproximadamente, ¿cuántos huesos tiene el esqueleto humano?',
+                options: [
+                    { letter: 'A', text: '106' },
+                    { letter: 'B', text: '206' },
+                    { letter: 'C', text: '306' },
+                    { letter: 'D', text: '406' }
+                ],
+                correct: 'B',
+                explanation: 'El esqueleto del adulto humano articulado se constituye formalmente de 206 huesos.'
+            },
+            {
+                id: 52,
+                team: 't6',
+                teamName: 'SISTEMA ESQUELÉTICO',
+                question: '52. El hueso es considerado principalmente:',
+                options: [
+                    { letter: 'A', text: 'Tejido muscular' },
+                    { letter: 'B', text: 'Tejido epitelial' },
+                    { letter: 'C', text: 'Tejido conectivo' },
+                    { letter: 'D', text: 'Tejido nervioso' }
+                ],
+                correct: 'C',
+                explanation: 'El tejido óseo es una clase altamente especializada de tejido conectivo con matriz calcificada.'
+            },
+            {
+                id: 53,
+                team: 't6',
+                teamName: 'SISTEMA ESQUELÉTICO',
+                question: '53. ¿Cuál es una característica del hueso compacto?',
+                options: [
+                    { letter: 'A', text: 'Es una estructura completamente hueca' },
+                    { letter: 'B', text: 'Es denso y forma principalmente la capa externa' },
+                    { letter: 'C', text: 'Está formado exclusivamente por cartílago' },
+                    { letter: 'D', text: 'Solo existe en las epífisis' }
+                ],
+                correct: 'B',
+                explanation: 'El hueso compacto (cortical) es firme, rígido y macizo, formando la envoltura protectora exterior.'
+            },
+            {
+                id: 54,
+                team: 't6',
+                teamName: 'SISTEMA ESQUELÉTICO',
+                question: '54. ¿Cuál es una característica del hueso esponjoso?',
+                options: [
+                    { letter: 'A', text: 'Está formado por trabéculas' },
+                    { letter: 'B', text: 'Es completamente macizo' },
+                    { letter: 'C', text: 'No contiene osteocitos' },
+                    { letter: 'D', text: 'Solo existe en la diáfisis' }
+                ],
+                correct: 'A',
+                explanation: 'El hueso esponjoso posee una red trabecular interna reticulada que aloja la médula ósea.'
+            },
+            {
+                id: 55,
+                team: 't6',
+                teamName: 'SISTEMA ESQUELÉTICO',
+                question: '55. La parte central o cuerpo de un hueso largo se llama:',
+                options: [
+                    { letter: 'A', text: 'Epífisis' },
+                    { letter: 'B', text: 'Diáfisis' },
+                    { letter: 'C', text: 'Metáfisis' },
+                    { letter: 'D', text: 'Periostio' }
+                ],
+                correct: 'B',
+                explanation: 'La diáfisis es el cuerpo tubular principal que constituye el eje longitudinal del hueso largo.'
+            },
+            {
+                id: 56,
+                team: 't6',
+                teamName: 'SISTEMA ESQUELÉTICO',
+                question: '56. Los extremos de un hueso largo se denominan:',
+                options: [
+                    { letter: 'A', text: 'Diáfisis' },
+                    { letter: 'B', text: 'Epífisis' },
+                    { letter: 'C', text: 'Endostio' },
+                    { letter: 'D', text: 'Trabéculas' }
+                ],
+                correct: 'B',
+                explanation: 'Las epífisis son los extremos voluminosos de los huesos largos donde se articulan con otros huesos.'
+            },
+            {
+                id: 57,
+                team: 't6',
+                teamName: 'SISTEMA ESQUELÉTICO',
+                question: '57. ¿Qué estructura se encuentra entre la diáfisis y las epífisis durante el desarrollo?',
+                options: [
+                    { letter: 'A', text: 'Metáfisis' },
+                    { letter: 'B', text: 'Periostio' },
+                    { letter: 'C', text: 'Endostio' },
+                    { letter: 'D', text: 'Canalículo' }
+                ],
+                correct: 'A',
+                explanation: 'La metáfisis es el segmento de transición en desarrollo que alberga el disco epifisario (cartílago de crecimiento).'
+            },
+            {
+                id: 58,
+                team: 't6',
+                teamName: 'SISTEMA ESQUELÉTICO',
+                question: '58. ¿Qué estructura rodea externamente al hueso, especialmente la diáfisis?',
+                options: [
+                    { letter: 'A', text: 'Endostio' },
+                    { letter: 'B', text: 'Periostio' },
+                    { letter: 'C', text: 'Canal de Havers' },
+                    { letter: 'D', text: 'Médula roja' }
+                ],
+                correct: 'B',
+                explanation: 'El periostio es la membrana fibromuscular externa que recubre todas las partes del hueso no recubiertas por cartílago articular.'
+            },
+            {
+                id: 59,
+                team: 't6',
+                teamName: 'SISTEMA ESQUELÉTICO',
+                question: '59. ¿Qué estructura recubre la cavidad medular?',
+                options: [
+                    { letter: 'A', text: 'Periostio' },
+                    { letter: 'B', text: 'Endostio' },
+                    { letter: 'C', text: 'Epidermis' },
+                    { letter: 'D', text: 'Fascia superficial' }
+                ],
+                correct: 'B',
+                explanation: 'El endostio recubre internamente las cavidades medulares del canal central de las diáfisis.'
+            },
+            {
+                id: 60,
+                team: 't6',
+                teamName: 'SISTEMA ESQUELÉTICO',
+                question: '60. ¿Cuál de las siguientes asociaciones es correcta?',
+                options: [
+                    { letter: 'A', text: 'Diáfisis = extremos del hueso largo' },
+                    { letter: 'B', text: 'Epífisis = cuerpo del hueso largo' },
+                    { letter: 'C', text: 'Periostio = recubrimiento externo del hueso' },
+                    { letter: 'D', text: 'Endostio = recubrimiento externo del hueso' }
+                ],
+                correct: 'C',
+                explanation: 'El periostio es la envoltura externa del hueso, mientras que la diáfisis es el cuerpo y la epífisis los extremos.'
+            },
+
+            // BONUS
+            {
+                id: 61,
+                team: 't7',
+                teamName: 'BONUS: CLASIFICACIÓN Y ESTRUCTURA ÓSEA',
+                question: '61. ¿Cuál de estos huesos es largo?',
+                options: [
+                    { letter: 'A', text: 'Fémur' },
+                    { letter: 'B', text: 'Escápula' },
+                    { letter: 'C', text: 'Vértebra' },
+                    { letter: 'D', text: 'Rótula' }
+                ],
+                correct: 'A',
+                explanation: 'El fémur es un hueso largo típico con eje tubular y extremidades diferenciadas.'
+            },
+            {
+                id: 62,
+                team: 't7',
+                teamName: 'BONUS: CLASIFICACIÓN Y ESTRUCTURA ÓSEA',
+                question: '62. ¿Cuál de estos es un hueso corto?',
+                options: [
+                    { letter: 'A', text: 'Fémur' },
+                    { letter: 'B', text: 'Carpo' },
+                    { letter: 'C', text: 'Esternón' },
+                    { letter: 'D', text: 'Vértebra' }
+                ],
+                correct: 'B',
+                explanation: 'Los huesos del carpo poseen dimensiones equivalentes de ancho, largo y grosor (huesos cuboides o cortos).'
+            },
+            {
+                id: 63,
+                team: 't7',
+                teamName: 'BONUS: CLASIFICACIÓN Y ESTRUCTURA ÓSEA',
+                question: '63. ¿Cuál es un hueso plano?',
+                options: [
+                    { letter: 'A', text: 'Fémur' },
+                    { letter: 'B', text: 'Vértebra' },
+                    { letter: 'C', text: 'Esternón' },
+                    { letter: 'D', text: 'Rótula' }
+                ],
+                correct: 'C',
+                explanation: 'El esternón es un hueso plano que ofrece protección y amplia superficie de inserción.'
+            },
+            {
+                id: 64,
+                team: 't7',
+                teamName: 'BONUS: CLASIFICACIÓN Y ESTRUCTURA ÓSEA',
+                question: '64. ¿Cuál es un hueso irregular?',
+                options: [
+                    { letter: 'A', text: 'Vértebra' },
+                    { letter: 'B', text: 'Fémur' },
+                    { letter: 'C', text: 'Carpo' },
+                    { letter: 'D', text: 'Rótula' }
+                ],
+                correct: 'A',
+                explanation: 'Las vértebras presentan geometrías complejas que no se clasifican como largas, cortas ni planas.'
+            },
+            {
+                id: 65,
+                team: 't7',
+                teamName: 'BONUS: CLASIFICACIÓN Y ESTRUCTURA ÓSEA',
+                question: '65. ¿Cuál es el ejemplo clásico de hueso sesamoideo?',
+                options: [
+                    { letter: 'A', text: 'Escápula' },
+                    { letter: 'B', text: 'Fémur' },
+                    { letter: 'C', text: 'Patela o rótula' },
+                    { letter: 'D', text: 'Esternón' }
+                ],
+                correct: 'C',
+                explanation: 'La patela/rótula es el principal hueso sesamoideo, desarrollado dentro del tendón del cuádriceps.'
+            },
+            {
+                id: 66,
+                team: 't7',
+                teamName: 'BONUS: CLASIFICACIÓN Y ESTRUCTURA ÓSEA',
+                question: '66. ¿Qué tipo de hueso tiene longitud predominante sobre el ancho y el grosor?',
+                options: [
+                    { letter: 'A', text: 'Corto' },
+                    { letter: 'B', text: 'Plano' },
+                    { letter: 'C', text: 'Largo' },
+                    { letter: 'D', text: 'Irregular' }
+                ],
+                correct: 'C',
+                explanation: 'Un hueso largo se caracteriza formalmente porque su dimensión longitudinal supera su anchura y grosor.'
+            },
+            {
+                id: 67,
+                team: 't7',
+                teamName: 'BONUS: CLASIFICACIÓN Y ESTRUCTURA ÓSEA',
+                question: '67. ¿Cuál de los siguientes grupos contiene solamente huesos largos?',
+                options: [
+                    { letter: 'A', text: 'Fémur, húmero y tibia' },
+                    { letter: 'B', text: 'Carpos, tarsos y rótula' },
+                    { letter: 'C', text: 'Esternón, costillas y escápula' },
+                    { letter: 'D', text: 'Vértebras, carpos y esternón' }
+                ],
+                correct: 'A',
+                explanation: 'El fémur, el húmero y la tibia son todos huesos pertenecientes a las extremidades de clasificación típica larga.'
+            },
+            {
+                id: 68,
+                team: 't7',
+                teamName: 'BONUS: CLASIFICACIÓN Y ESTRUCTURA ÓSEA',
+                question: '68. ¿Cuál de los siguientes grupos corresponde a huesos cortos?',
+                options: [
+                    { letter: 'A', text: 'Fémur y húmero' },
+                    { letter: 'B', text: 'Carpos y tarsos' },
+                    { letter: 'C', text: 'Esternón y costillas' },
+                    { letter: 'D', text: 'Vértebras y coxales' }
+                ],
+                correct: 'B',
+                explanation: 'Los carpos de la muñeca y tarsos del pie constituyen las familias características de huesos cortos.'
+            },
+            {
+                id: 69,
+                team: 't7',
+                teamName: 'BONUS: CLASIFICACIÓN Y ESTRUCTURA ÓSEA',
+                question: '69. ¿Qué estructura del hueso compacto contiene osteocitos?',
+                options: [
+                    { letter: 'A', text: 'Lagunas' },
+                    { letter: 'B', text: 'Epífisis' },
+                    { letter: 'C', text: 'Diáfisis' },
+                    { letter: 'D', text: 'Periostio' }
+                ],
+                correct: 'A',
+                explanation: 'Las lagunas u osteoplastos son los pequeños espacios de la matriz calcificada que albergan a los osteocitos.'
+            },
+            {
+                id: 70,
+                team: 't7',
+                teamName: 'BONUS: CLASIFICACIÓN Y ESTRUCTURA ÓSEA',
+                question: '70. ¿Qué estructuras conectan las lagunas entre sí y permiten la comunicación/nutrición de los osteocitos?',
+                options: [
+                    { letter: 'A', text: 'Trabéculas' },
+                    { letter: 'B', text: 'Canalículos' },
+                    { letter: 'C', text: 'Epífisis' },
+                    { letter: 'D', text: 'Metáfisis' }
+                ],
+                correct: 'B',
+                explanation: 'Los canalículos son microcanales que atraviesan la matriz interconectando las lagunas y permitiendo la transmisión de nutrientes entre osteocitos.'
+            }
+        ];
+
+        let currentFilter = 'all';
+        let userAnswers = {}; 
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let quizActive = true;
+
+        window.onload = function() {
+            startTimer();
+            renderQuestions();
+        };
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!quizActive) return;
+                timerSeconds++;
+                const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+                const secs = (timerSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const activeBtn = document.getElementById(`filter-${filter}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            renderQuestions();
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            const filtered = currentFilter === 'all' 
+                ? questionsData 
+                : questionsData.filter(q => q.team === currentFilter);
+
+            filtered.forEach((q, index) => {
+                const isAnswered = userAnswers[q.id] !== undefined;
+                const selectedOption = userAnswers[q.id];
+                const isCorrect = selectedOption === q.correct;
+
+                const card = document.createElement('div');
+                card.className = `question-card ${isAnswered ? (isCorrect ? 'correct' : 'incorrect') : ''}`;
+
+                let optionsHtml = '';
+                q.options.forEach(opt => {
+                    let btnClass = "option-btn";
+                    let badgeHtml = "";
+
+                    if (isAnswered) {
+                        if (opt.letter === q.correct) {
+                            btnClass += " opt-correct";
+                            badgeHtml = '<span class="badge-status badge-correct">✓ Correcta</span>';
+                        } else if (opt.letter === selectedOption) {
+                            btnClass += " opt-incorrect";
+                            badgeHtml = '<span class="badge-status badge-incorrect">✗ Tu respuesta</span>';
+                        } else {
+                            btnClass += " opt-disabled";
+                        }
+                    }
+
+                    optionsHtml += `
+                        <button onclick="selectOption(${q.id}, '${opt.letter}')" ${isAnswered ? 'disabled' : ''} class="${btnClass}">
+                            <span class="option-letter">${opt.letter}</span>
+                            <span>${opt.text}</span>
+                            ${badgeHtml}
+                        </button>
+                    `;
+                });
+
+                let feedbackHtml = '';
+                if (isAnswered) {
+                    feedbackHtml = `
+                        <div class="feedback-box ${isCorrect ? 'correct' : 'incorrect'}">
+                            <div class="feedback-title">${isCorrect ? '¡Excelente! Respuesta Correcta' : 'Respuesta Incorrecta'}</div>
+                            <div><strong>Explicación:</strong> ${q.explanation}</div>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="q-meta">
+                        <span class="q-team">${q.teamName}</span>
+                        <span class="q-id">Pregunta ${index + 1} de ${filtered.length} (ID: ${q.id})</span>
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options-list">${optionsHtml}</div>
+                    ${feedbackHtml}
+                `;
+
+                container.appendChild(card);
+            });
+
+            updateScoreUI();
+        }
+
+        function selectOption(questionId, letter) {
+            if (userAnswers[questionId] !== undefined) return;
+            userAnswers[questionId] = letter;
+            renderQuestions();
+        }
+
+        function updateScoreUI() {
+            const totalAnswered = Object.keys(userAnswers).length;
+            let correctCount = 0;
+            
+            for (const id in userAnswers) {
+                const q = questionsData.find(item => item.id == id);
+                if (q && userAnswers[id] === q.correct) {
+                    correctCount++;
+                }
+            }
+
+            document.getElementById('score-display').innerText = `${correctCount} / ${questionsData.length}`;
+            
+            if (totalAnswered === questionsData.length && quizActive) {
+                quizActive = false;
+                clearInterval(timerInterval);
+                const summaryCard = document.getElementById('summary-card');
+                const finalScore = document.getElementById('final-score');
+                const summaryText = document.getElementById('summary-text');
+                
+                finalScore.innerText = `${correctCount} / ${questionsData.length} aciertos`;
+                if (correctCount === questionsData.length) {
+                    summaryText.innerText = "¡Impresionante! Tienes un dominio absoluto de todos los temas de Anatomía Humana.";
+                } else if (correctCount >= 55) {
+                    summaryText.innerText = "¡Excelente desempeño! Tienes bases muy sólidas en anatomía.";
+                } else {
+                    summaryText.innerText = "Buen esfuerzo. Te recomendamos revisar los temas donde tuviste desaciertos para afianzar tu repaso.";
+                }
+                summaryCard.classList.remove('hidden');
+                summaryCard.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function resetQuiz() {
+            userAnswers = {};
+            timerSeconds = 0;
+            quizActive = true;
+            document.getElementById('summary-card').classList.add('hidden');
+            startTimer();
+            renderQuestions();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
