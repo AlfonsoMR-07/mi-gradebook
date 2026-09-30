@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen Interactivo de Salud Pública (50 Preguntas)</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; line-height: 1.5; padding-bottom: 40px; }
+        header { background-color: #0d9488; color: white; padding: 20px 16px; position: sticky; top: 0; z-index: 50; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header-content { max-width: 900px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
+        .tag { background-color: #0f766e; color: #ccfbf1; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; }
+        h1 { font-size: 1.5rem; font-weight: 700; margin-top: 4px; }
+        p.subtitle { color: #ccfbf1; font-size: 0.875rem; }
+        .stats { display: flex; align-items: center; gap: 16px; background-color: rgba(15, 118, 110, 0.8); padding: 8px 16px; border-radius: 12px; border: 1px solid rgba(45, 212, 191, 0.5); }
+        .stat-box { text-align: center; }
+        .stat-label { display: block; font-size: 11px; color: #99f6e4; text-transform: uppercase; }
+        .stat-val { font-size: 1.25rem; font-weight: 700; font-family: monospace; }
+        .divider { width: 1px; height: 32px; background-color: #0d9488; }
+        
+        main { max-width: 900px; margin: 24px auto; padding: 0 16px; display: flex; flex-direction: column; gap: 24px; }
+        .filter-card { background: white; border-radius: 16px; padding: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .filter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+        .filter-title { font-weight: 600; font-size: 0.875rem; color: #334155; }
+        .reset-btn { padding: 8px 16px; background-color: #f1f5f9; color: #334155; font-weight: 500; font-size: 0.875rem; border-radius: 12px; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s; }
+        .reset-btn:hover { background-color: #e2e8f0; }
+        
+        .filter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+        .filter-btn { padding: 8px 12px; border-radius: 10px; font-size: 0.75rem; font-weight: 500; border: 1px solid #cbd5e1; background-color: #f8fafc; color: #475569; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .filter-btn:hover { background-color: #f1f5f9; }
+        .filter-btn.active { background-color: #0d9488; color: white; border-color: #0d9488; font-weight: 600; }
+        
+        .questions-list { display: flex; flex-direction: column; gap: 20px; }
+        .question-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05); transition: all 0.2s; display: flex; flex-direction: column; gap: 16px; }
+        .question-card.correct { border-color: #6ee7b7; background-color: #f0fdf4; }
+        .question-card.incorrect { border-color: #fca5a5; background-color: #fff1f2; }
+        
+        .q-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .q-team { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background-color: #ccfbf1; color: #0f766e; border: 1px solid #99f6e4; }
+        .q-id { font-size: 12px; color: #94a3b8; font-weight: 500; }
+        .q-text { font-size: 1.05rem; font-weight: 600; color: #1e293b; }
+        
+        .options-list { display: flex; flex-direction: column; gap: 10px; }
+        .option-btn { width: 100%; text-align: left; padding: 12px 16px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; color: #334155; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s; }
+        .option-btn:hover:not(:disabled) { background-color: #f8fafc; border-color: #cbd5e1; }
+        .option-letter { width: 28px; height: 28px; border-radius: 8px; background-color: #f1f5f9; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; shrink: 0; }
+        
+        .option-btn.opt-correct { border-color: #10b981; background-color: #ecfdf5; color: #065f46; font-weight: 600; }
+        .option-btn.opt-incorrect { border-color: #f43f5e; background-color: #fff1f2; color: #9f1239; font-weight: 600; }
+        .option-btn.opt-disabled { opacity: 0.6; }
+        
+        .badge-status { margin-left: auto; font-size: 0.75rem; font-weight: 700; }
+        .badge-correct { color: #059669; }
+        .badge-incorrect { color: #e11d48; }
+        
+        .feedback-box { padding: 14px 16px; border-radius: 12px; font-size: 0.875rem; border: 1px solid; margin-top: 4px; }
+        .feedback-box.correct { background-color: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+        .feedback-box.incorrect { background-color: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+        .feedback-title { font-weight: 700; margin-bottom: 4px; }
+        
+        .summary-card { background: linear-gradient(135deg, #0d9488, #0f766e); color: white; border-radius: 20px; padding: 32px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 16px; }
+        .summary-card.hidden { display: none; }
+        .trophy { font-size: 3rem; background: rgba(255,255,255,0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .final-score { font-size: 2rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 8px 24px; border-radius: 16px; backdrop-filter: blur(4px); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div>
+                <span class="tag">Repaso Académico de Salud Pública</span>
+                <h1>Examen Interactivo de Salud Pública</h1>
+                <p class="subtitle">Evaluación interactiva con 50 preguntas de opción múltiple (Medición, Calidad de Vida e Indicadores)</p>
+            </div>
+            <div class="stats">
+                <div class="stat-box">
+                    <span class="stat-label">Tiempo</span>
+                    <span id="timer" class="stat-val">00:00</span>
+                </div>
+                <div class="divider"></div>
+                <div class="stat-box">
+                    <span class="stat-label">Puntaje</span>
+                    <span id="score-display" class="stat-val">0 / 50</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="filter-card">
+            <div class="filter-header">
+                <span class="filter-title">🔍 Filtrar por Bloque / Tema:</span>
+                <button onclick="resetQuiz()" class="reset-btn">🔄 Reiniciar Cuestionario</button>
+            </div>
+            <div class="filter-grid" id="filter-container">
+                <button onclick="setFilter('all')" id="filter-all" class="filter-btn active">Todos (50)</button>
+                <button onclick="setFilter('b1')" id="filter-b1" class="filter-btn">Preguntas 1 - 10</button>
+                <button onclick="setFilter('b2')" id="filter-b2" class="filter-btn">Preguntas 11 - 20</button>
+                <button onclick="setFilter('b3')" id="filter-b3" class="filter-btn">Preguntas 21 - 30</button>
+                <button onclick="setFilter('b4')" id="filter-b4" class="filter-btn">Preguntas 31 - 40</button>
+                <button onclick="setFilter('b5')" id="filter-b5" class="filter-btn">Preguntas 41 - 50</button>
+            </div>
+        </div>
+
+        <div id="questions-container" class="questions-list"></div>
+
+        <div id="summary-card" class="summary-card hidden">
+            <div class="trophy">🏆</div>
+            <h2>¡Examen de Salud Pública Finalizado!</h2>
+            <p id="summary-text" style="color: #ccfbf1; max-width: 500px;">Has completado la evaluación de todos los temas de Salud Pública.</p>
+            <div class="final-score" id="final-score">0 / 50 aciertos</div>
+            <button onclick="resetQuiz()" class="reset-btn" style="background: white; color: #0d9488; font-weight: 700; padding: 12px 24px; font-size: 1rem;">
+                Reiniciar Examen
+            </button>
+        </div>
+    </main>
+
+    <script>
+        const questionsData = [
+            {
+                id: 1,
+                team: 'b1',
+                teamName: 'Bloque 1: Medición e Información en Salud Pública',
+                question: '1. ¿Cuál es la secuencia correcta del proceso de medición en salud?',
+                options: [
+                    { letter: 'A', text: 'Intervenir → medir → conocer → evaluar → mejorar' },
+                    { letter: 'B', text: 'Medir → conocer → evaluar → diagnosticar / intervenir → mejorar' },
+                    { letter: 'C', text: 'Conocer → evaluar → medir → diagnosticar → intervenir' },
+                    { letter: 'D', text: 'Evaluar → medir → intervenir → conocer → mejorar' },
+                    { letter: 'E', text: 'Medir → intervenir → diagnosticar → conocer → evaluar' }
+                ],
+                correct: 'B',
+                explanation: 'El proceso lógico de medición en salud pública inicia con la recolección objetiva de datos (Medir), para luego entender la situación (Conocer), analizar los hallazgos (Evaluar), establecer un diagnóstico e Intervenir, y finalmente lograr una mejora en el estado de salud (Mejorar).'
+            },
+            {
+                id: 2,
+                team: 'b1',
+                teamName: 'Bloque 1: Medición e Información en Salud Pública',
+                question: '2. ¿Cuál es uno de los principales objetivos de medir la salud?',
+                options: [
+                    { letter: 'A', text: 'Sustituir el diagnóstico clínico' },
+                    { letter: 'B', text: 'Eliminar todas las enfermedades' },
+                    { letter: 'C', text: 'Identificar problemas y necesidades prioritarias' },
+                    { letter: 'D', text: 'Evitar la recolección de datos' },
+                    { letter: 'E', text: 'Reducir únicamente los costos hospitalarios' }
+                ],
+                correct: 'C',
+                explanation: 'La medición del estado de salud poblacional busca caracterizar el perfil epidemiológico con el propósito fundamental de identificar prioridades en salud y asignar recursos según las necesidades verdaderas.'
+            },
+            {
+                id: 3,
+                team: 'b1',
+                teamName: 'Bloque 1: Medición e Información en Salud Pública',
+                question: '3. ¿Cuál de las siguientes es una fuente de información en salud pública?',
+                options: [
+                    { letter: 'A', text: 'Opiniones personales' },
+                    { letter: 'B', text: 'Redes sociales exclusivamente' },
+                    { letter: 'C', text: 'Censos de población' },
+                    { letter: 'D', text: 'Publicidad médica' },
+                    { letter: 'E', text: 'Experiencias aisladas' }
+                ],
+                correct: 'C',
+                explanation: 'Los censos de población proporcionan datos demográficos clave esenciales como denominadores para el cálculo de tasas epidemiológicas e indicadores de salud.'
+            },
+            {
+                id: 4,
+                team: 'b1',
+                teamName: 'Bloque 1: Medición e Información en Salud Pública',
+                question: '4. La secuencia correcta para transformar información en decisiones es:',
+                options: [
+                    { letter: 'A', text: 'Indicadores → población → datos → decisiones → interpretación' },
+                    { letter: 'B', text: 'Población → datos → indicadores → interpretación → decisiones' },
+                    { letter: 'C', text: 'Datos → población → decisiones → indicadores → interpretación' },
+                    { letter: 'D', text: 'Población → decisiones → datos → indicadores → interpretación' },
+                    { letter: 'E', text: 'Datos → indicadores → población → decisiones → interpretación' }
+                ],
+                correct: 'B',
+                explanation: 'La cadena de decisión va desde el objeto de estudio (Población), pasando por la recolección primaria (Datos), su síntesis cuantitativa (Indicadores), la contextualización clínica o epidemiológica (Interpretación) hasta la acción dirigida (Decisiones).'
+            },
+            {
+                id: 5,
+                team: 'b1',
+                teamName: 'Bloque 1: Medición e Información en Salud Pública',
+                question: '5. Según la definición de la OMS presentada, la salud comprende:',
+                options: [
+                    { letter: 'A', text: 'Únicamente ausencia de enfermedad' },
+                    { letter: 'B', text: 'Bienestar físico, mental y social' },
+                    { letter: 'C', text: 'Únicamente bienestar físico' },
+                    { letter: 'D', text: 'Únicamente bienestar mental' },
+                    { letter: 'E', text: 'Ausencia de síntomas' }
+                ],
+                correct: 'B',
+                explanation: 'La célebre definición de la OMS de 1948 concibe la salud como un estado de completo bienestar físico, mental y social, y no solamente como la ausencia de afecciones o enfermedades.'
+            },
+            {
+                id: 6,
+                team: 'b1',
+                teamName: 'Bloque 1: Medición e Información en Salud Pública',
+                question: '6. ¿Cuál corresponde a la dimensión social de la salud?',
+                options: [
+                    { letter: 'A', text: 'Presión arterial' },
+                    { letter: 'B', text: 'Función pulmonar' },
+                    { letter: 'C', text: 'Relaciones e integración social' },
+                    { letter: 'D', text: 'Temperatura' },
+                    { letter: 'E', text: 'Dolor' }
+                ],
+                correct: 'C',
+                explanation: 'La dimensión social abarca la capacidad de interacción del individuo, el soporte comunitario, las relaciones interpersonales y su nivel de integración dentro de la sociedad.'
+            },
+            {
+                id: 7,
+                team: 'b1',
+                teamName: 'Bloque 1: Medición e Información en Salud Pública',
+                question: '7. El estado de salud responde principalmente a:',
+                options: [
+                    { letter: 'A', text: '¿Cómo vive la persona?' },
+                    { letter: 'B', text: '¿Cuánto cuesta la atención?' },
+                    { letter: 'C', text: '¿Qué está ocurriendo?' },
+                    { letter: 'D', text: '¿Cuánto tarda en ser atendida?' },
+                    { letter: 'E', text: '¿Qué tan satisfecha está?' }
+                ],
+                correct: 'C',
+                explanation: 'El estado de salud es una valoración objetiva y descriptiva de las condiciones morfológicas y funcionales del individuo o grupo para definir qué proceso patológico o biológico está sucediendo.'
+            },
+            {
+                id: 8,
+                team: 'b1',
+                teamName: 'Bloque 1: Medición e Información en Salud Pública',
+                question: '8. La calidad de vida responde principalmente a:',
+                options: [
+                    { letter: 'A', text: '¿Cómo vive la persona su condición?' },
+                    { letter: 'B', text: '¿Cuántas camas tiene un hospital?' },
+                    { letter: 'C', text: '¿Cuántas personas fallecieron?' },
+                    { letter: 'D', text: '¿Qué enfermedad tiene exclusivamente?' },
+                    { letter: 'E', text: '¿Cuál es el costo del tratamiento?' }
+                ],
+                correct: 'A',
+                explanation: 'La calidad de vida evalúa la percepción subjetiva e impacto personal de la enfermedad o el estado fisiológico en la vida diaria del paciente.'
+            },
+            {
+                id: 9,
+                team: 'b1',
+                teamName: 'Bloque 1: Medición e Información en Salud Pública',
+                question: '9. La atención sanitaria evalúa principalmente:',
+                options: [
+                    { letter: 'A', text: 'Solo síntomas' },
+                    { letter: 'B', text: 'Solo mortalidad' },
+                    { letter: 'C', text: 'La respuesta del sistema de salud' },
+                    { letter: 'D', text: 'Solo calidad de vida' },
+                    { letter: 'E', text: 'Solo enfermedades infecciosas' }
+                ],
+                correct: 'C',
+                explanation: 'La evaluación de la atención sanitaria analiza la oportunidad, cobertura, calidad y capacidad institucional de la respuesta ofrecida por el sistema de salud.'
+            },
+            {
+                id: 10,
+                team: 'b1',
+                teamName: 'Bloque 1: Medición e Información en Salud Pública',
+                question: '10. ¿Cuál es un ejemplo de signo?',
+                options: [
+                    { letter: 'A', text: 'Náusea' },
+                    { letter: 'B', text: 'Mareo' },
+                    { letter: 'C', text: 'Fatiga' },
+                    { letter: 'D', text: 'Presión arterial' },
+                    { letter: 'E', text: 'Sensación de dolor' }
+                ],
+                correct: 'D',
+                explanation: 'Un signo es una manifestación objetiva, medible u observable por el clínico (como la presión arterial), a diferencia de las sensaciones subjetivas referidas por el paciente (síntomas).'
+            },
+            {
+                id: 11,
+                team: 'b2',
+                teamName: 'Bloque 2: Psicometría, Fiabilidad y Validez',
+                question: '11. ¿Cuál es un ejemplo de síntoma?',
+                options: [
+                    { letter: 'A', text: 'Temperatura corporal medida' },
+                    { letter: 'B', text: 'Presión arterial' },
+                    { letter: 'C', text: 'Dolor' },
+                    { letter: 'D', text: 'Hallazgo radiológico' },
+                    { letter: 'E', text: 'Tamaño de un tumor' }
+                ],
+                correct: 'C',
+                explanation: 'El dolor es una experiencia subjetiva experimentada y relatada por el paciente que no puede ser observada directamente sin la percepción del individuo.'
+            },
+            {
+                id: 12,
+                team: 'b2',
+                teamName: 'Bloque 2: Psicometría, Fiabilidad y Validez',
+                question: '12. ¿Qué instrumento permite cuantificar la carga de enfermedades coexistentes?',
+                options: [
+                    { letter: 'A', text: 'SF-36' },
+                    { letter: 'B', text: 'Índice de Charlson' },
+                    { letter: 'C', text: 'EQ-5D' },
+                    { letter: 'D', text: 'WHOQOL' },
+                    { letter: 'E', text: 'Kappa' }
+                ],
+                correct: 'B',
+                explanation: 'El Índice de Comorbilidad de Charlson asigna puntuaciones a diversas patologías concomitantes para estimar la carga global de enfermedad y el riesgo de mortalidad.'
+            },
+            {
+                id: 13,
+                team: 'b2',
+                teamName: 'Bloque 2: Psicometría, Fiabilidad y Validez',
+                question: '13. La fiabilidad se refiere principalmente a:',
+                options: [
+                    { letter: 'A', text: 'Que el instrumento sea barato' },
+                    { letter: 'B', text: 'Que mida exactamente la enfermedad' },
+                    { letter: 'C', text: 'Que produzca resultados consistentes y reproducibles' },
+                    { letter: 'D', text: 'Que tenga muchas preguntas' },
+                    { letter: 'E', text: 'Que sea utilizado por un solo médico' }
+                ],
+                correct: 'C',
+                explanation: 'La fiabilidad (o confiabilidad) de una escala o instrumento indica su precisión y capacidad de repetir mediciones idénticas bajo condiciones constantes.'
+            },
+            {
+                id: 14,
+                team: 'b2',
+                teamName: 'Bloque 2: Psicometría, Fiabilidad y Validez',
+                question: '14. La validez significa que:',
+                options: [
+                    { letter: 'A', text: 'El instrumento siempre produce el mismo resultado' },
+                    { letter: 'B', text: 'El instrumento mide lo que pretende medir' },
+                    { letter: 'C', text: 'El instrumento es corto' },
+                    { letter: 'D', text: 'El instrumento no necesita estandarización' },
+                    { letter: 'E', text: 'Dos médicos obtienen siempre resultados idénticos' }
+                ],
+                correct: 'B',
+                explanation: 'La validez de un cuestionario o herramienta demuestra el grado en que realmente mide el constructo para el cual fue diseñado.'
+            },
+            {
+                id: 15,
+                team: 'b2',
+                teamName: 'Bloque 2: Psicometría, Fiabilidad y Validez',
+                question: '15. La capacidad de respuesta permite:',
+                options: [
+                    { letter: 'A', text: 'Comparar únicamente hospitales' },
+                    { letter: 'B', text: 'Detectar cambios clínicamente relevantes a lo largo del tiempo' },
+                    { letter: 'C', text: 'Eliminar el sesgo' },
+                    { letter: 'D', text: 'Diagnosticar todas las enfermedades' },
+                    { letter: 'E', text: 'Sustituir los cuestionarios' }
+                ],
+                correct: 'B',
+                explanation: 'La sensibilidad al cambio o capacidad de respuesta es la propiedad de un instrumento para identificar modificaciones significativas en la salud tras una intervención.'
+            },
+            {
+                id: 16,
+                team: 'b2',
+                teamName: 'Bloque 2: Psicometría, Fiabilidad y Validez',
+                question: '16. ¿Qué evalúa la prueba-reprueba (test-retest)?',
+                options: [
+                    { letter: 'A', text: 'Consistencia interna' },
+                    { letter: 'B', text: 'Estabilidad temporal' },
+                    { letter: 'C', text: 'Validez externa' },
+                    { letter: 'D', text: 'Costos' },
+                    { letter: 'E', text: 'Productividad' }
+                ],
+                correct: 'B',
+                explanation: 'El método test-retest examina la reproducibilidad y estabilidad de las puntuaciones al aplicar el mismo test en dos momentos diferentes.'
+            },
+            {
+                id: 17,
+                team: 'b2',
+                teamName: 'Bloque 2: Psicometría, Fiabilidad y Validez',
+                question: '17. ¿Qué evalúa principalmente Kappa?',
+                options: [
+                    { letter: 'A', text: 'Calidad de vida' },
+                    { letter: 'B', text: 'Consistencia interna' },
+                    { letter: 'C', text: 'Concordancia entre evaluadores' },
+                    { letter: 'D', text: 'Mortalidad' },
+                    { letter: 'E', text: 'Morbilidad' }
+                ],
+                correct: 'C',
+                explanation: 'El índice o coeficiente Kappa de Cohen mide el grado de acuerdo o concordancia entre observadores o métodos categóricos corrigiendo el azar.'
+            },
+            {
+                id: 18,
+                team: 'b2',
+                teamName: 'Bloque 2: Psicometría, Fiabilidad y Validez',
+                question: '18. ¿Qué estadístico se utiliza para evaluar la consistencia interna?',
+                options: [
+                    { letter: 'A', text: 'Kappa' },
+                    { letter: 'B', text: 'Alfa de Cronbach' },
+                    { letter: 'C', text: 'Charlson' },
+                    { letter: 'D', text: 'EQ-5D' },
+                    { letter: 'E', text: 'WHOQOL' }
+                ],
+                correct: 'B',
+                explanation: 'El coeficiente Alfa de Cronbach evalúa la homogeneidad o correlación media entre los diferentes ítems de una escala.'
+            },
+            {
+                id: 19,
+                team: 'b2',
+                teamName: 'Bloque 2: Psicometría, Fiabilidad y Validez',
+                question: '19. Según la presentación, un valor de alfa de Cronbach ≥ 0.70 se considera:',
+                options: [
+                    { letter: 'A', text: 'Inaceptable' },
+                    { letter: 'B', text: 'Insuficiente' },
+                    { letter: 'C', text: 'Aceptable' },
+                    { letter: 'D', text: 'Inválido' },
+                    { letter: 'E', text: 'Inexistente' }
+                ],
+                correct: 'C',
+                explanation: 'Un alfa de Cronbach igual o superior a 0.70 es el estándar psicométrico aceptado que demuestra adecuada consistencia interna.'
+            },
+            {
+                id: 20,
+                team: 'b2',
+                teamName: 'Bloque 2: Psicometría, Fiabilidad y Validez',
+                question: '20. Un instrumento produce resultados muy similares cada vez que se utiliza, pero mide algo diferente de lo que se pretendía medir. Es:',
+                options: [
+                    { letter: 'A', text: 'Válido pero no fiable' },
+                    { letter: 'B', text: 'Fiable pero no necesariamente válido' },
+                    { letter: 'C', text: 'Ni fiable ni válido' },
+                    { letter: 'D', text: 'Perfectamente válido' },
+                    { letter: 'E', text: 'Capaz de respuesta' }
+                ],
+                correct: 'B',
+                explanation: 'La repetibilidad de resultados idénticos indica alta fiabilidad; sin embargo, si no mide el fenómeno de interés, carece de validez.'
+            },
+            {
+                id: 21,
+                team: 'b3',
+                teamName: 'Bloque 3: Instrumentos de Calidad de Vida (SF-36, WHOQOL, EQ-5D)',
+                question: '21. ¿Cuál NO corresponde a una forma de mejorar la fiabilidad?',
+                options: [
+                    { letter: 'A', text: 'Formación de observadores' },
+                    { letter: 'B', text: 'Terminología estandarizada' },
+                    { letter: 'C', text: 'Protocolos definidos' },
+                    { letter: 'D', text: 'Eliminar las definiciones claras' },
+                    { letter: 'E', text: 'Revisión periódica' }
+                ],
+                correct: 'D',
+                explanation: 'Eliminar las definiciones claras aumenta el sesgo, la ambigüedad y la variabilidad, lo que deteriora la fiabilidad.'
+            },
+            {
+                id: 22,
+                team: 'b3',
+                teamName: 'Bloque 3: Instrumentos de Calidad de Vida (SF-36, WHOQOL, EQ-5D)',
+                question: '22. ¿Cuál ayuda a mejorar la validez?',
+                options: [
+                    { letter: 'A', text: 'Procedimientos estructurados' },
+                    { letter: 'B', text: 'Cambiar las definiciones constantemente' },
+                    { letter: 'C', text: 'Evitar instrumentos validados' },
+                    { letter: 'D', text: 'Eliminar protocolos' },
+                    { letter: 'E', text: 'Usar información irrelevante' }
+                ],
+                correct: 'A',
+                explanation: 'Los procedimientos estandarizados y estructurados reducen errores sistemáticos y aseguran que se mida con rigor la variable deseada.'
+            },
+            {
+                id: 23,
+                team: 'b3',
+                teamName: 'Bloque 3: Instrumentos de Calidad de Vida (SF-36, WHOQOL, EQ-5D)',
+                question: '23. ¿Cuál característica debe tener una medida de uso rutinario?',
+                options: [
+                    { letter: 'A', text: 'Ser complicada' },
+                    { letter: 'B', text: 'Ser muy extensa' },
+                    { letter: 'C', text: 'Ser viable en la práctica clínica' },
+                    { letter: 'D', text: 'No estar validada' },
+                    { letter: 'E', text: 'Requerir mucho tiempo' }
+                ],
+                correct: 'C',
+                explanation: 'Para la práctica asistencial regular, las mediciones deben ser viables, ágiles, comprensibles y no generar cargas excesivas a clínicos o pacientes.'
+            },
+            {
+                id: 24,
+                team: 'b3',
+                teamName: 'Bloque 3: Instrumentos de Calidad de Vida (SF-36, WHOQOL, EQ-5D)',
+                question: '24. La calidad de vida relacionada con la salud se obtiene principalmente:',
+                options: [
+                    { letter: 'A', text: 'Solo mediante estudios radiológicos' },
+                    { letter: 'B', text: 'Directamente del paciente mediante instrumentos validados' },
+                    { letter: 'C', text: 'Únicamente mediante censos' },
+                    { letter: 'D', text: 'Solo mediante registros hospitalarios' },
+                    { letter: 'E', text: 'Mediante presión arterial' }
+                ],
+                correct: 'B',
+                explanation: 'Al ser un constructo de percepción subjetiva (PROMs), la información sobre calidad de vida debe provenir directamente del reporte del paciente mediante cuestionarios estandarizados.'
+            },
+            {
+                id: 25,
+                team: 'b3',
+                teamName: 'Bloque 3: Instrumentos de Calidad de Vida (SF-36, WHOQOL, EQ-5D)',
+                question: '25. ¿Cuántos ítems tiene el SF-36?',
+                options: [
+                    { letter: 'A', text: '5' },
+                    { letter: 'B', text: '10' },
+                    { letter: 'C', text: '20' },
+                    { letter: 'D', text: '36' },
+                    { letter: 'E', text: '100' }
+                ],
+                correct: 'D',
+                explanation: 'Como indica su nombre (Short Form 36), este cuestionario ampliamente utilizado consta de 36 preguntas o ítems.'
+            },
+            {
+                id: 26,
+                team: 'b3',
+                teamName: 'Bloque 3: Instrumentos de Calidad de Vida (SF-36, WHOQOL, EQ-5D)',
+                question: '26. ¿Cuántas dimensiones evalúa el SF-36 según la presentación?',
+                options: [
+                    { letter: 'A', text: '4' },
+                    { letter: 'B', text: '5' },
+                    { letter: 'C', text: '6' },
+                    { letter: 'D', text: '8' },
+                    { letter: 'E', text: '10' }
+                ],
+                correct: 'D',
+                explanation: 'El SF-36 explora 8 dimensiones de salud: Función física, Rol físico, Dolor corporal, Salud general, Vitalidad, Función social, Rol emocional y Salud mental.'
+            },
+            {
+                id: 27,
+                team: 'b3',
+                teamName: 'Bloque 3: Instrumentos de Calidad de Vida (SF-36, WHOQOL, EQ-5D)',
+                question: '27. ¿Cuál pertenece al SF-36?',
+                options: [
+                    { letter: 'A', text: 'Movilidad exclusivamente' },
+                    { letter: 'B', text: 'Rol emocional' },
+                    { letter: 'C', text: 'Ocupación de camas' },
+                    { letter: 'D', text: 'Costos hospitalarios' },
+                    { letter: 'E', text: 'Mortalidad' }
+                ],
+                correct: 'B',
+                explanation: 'El "Rol emocional" (limitaciones del rol debido a problemas emocionales) es una de las 8 dimensiones evaluadas por el SF-36.'
+            },
+            {
+                id: 28,
+                team: 'b3',
+                teamName: 'Bloque 3: Instrumentos de Calidad de Vida (SF-36, WHOQOL, EQ-5D)',
+                question: '28. El WHOQOL fue desarrollado por:',
+                options: [
+                    { letter: 'A', text: 'CDC' },
+                    { letter: 'B', text: 'OMS' },
+                    { letter: 'C', text: 'Cruz Roja' },
+                    { letter: 'D', text: 'UNICEF' },
+                    { letter: 'E', text: 'ONU exclusivamente' }
+                ],
+                correct: 'B',
+                explanation: 'El WHOQOL (World Health Organization Quality of Life) fue diseñado por el grupo de calidad de vida de la Organización Mundial de la Salud.'
+            },
+            {
+                id: 29,
+                team: 'b3',
+                teamName: 'Bloque 3: Instrumentos de Calidad de Vida (SF-36, WHOQOL, EQ-5D)',
+                question: '29. ¿Cuál de los siguientes es un dominio del WHOQOL?',
+                options: [
+                    { letter: 'A', text: 'Financiero' },
+                    { letter: 'B', text: 'Psicológico' },
+                    { letter: 'C', text: 'Mortalidad' },
+                    { letter: 'D', text: 'Productividad hospitalaria' },
+                    { letter: 'E', text: 'Ocupación de camas' }
+                ],
+                correct: 'B',
+                explanation: 'El dominio psicológico es uno de los ejes centrales del WHOQOL para medir aspectos emocionales, autoestima y estado afectivo.'
+            },
+            {
+                id: 30,
+                team: 'b3',
+                teamName: 'Bloque 3: Instrumentos de Calidad de Vida (SF-36, WHOQOL, EQ-5D)',
+                question: '30. ¿Cuántas dimensiones principales tiene el EQ-5D?',
+                options: [
+                    { letter: 'A', text: '3' },
+                    { letter: 'B', text: '4' },
+                    { letter: 'C', text: '5' },
+                    { letter: 'D', text: '8' },
+                    { letter: 'E', text: '36' }
+                ],
+                correct: 'C',
+                explanation: 'El EuroQol 5D (EQ-5D) investiga 5 dimensiones: Movilidad, Cuidado personal, Actividades cotidianas, Dolor/Malestar y Ansiedad/Depresión.'
+            },
+            {
+                id: 31,
+                team: 'b4',
+                teamName: 'Bloque 4: Instrumentos Genéricos, Específicos y Servicios',
+                question: '31. ¿Cuál pertenece al EQ-5D?',
+                options: [
+                    { letter: 'A', text: 'Ansiedad/depresión' },
+                    { letter: 'B', text: 'Productividad' },
+                    { letter: 'C', text: 'Ocupación de camas' },
+                    { letter: 'D', text: 'Rol físico' },
+                    { letter: 'E', text: 'Vitalidad exclusivamente' }
+                ],
+                correct: 'A',
+                explanation: 'Ansiedad/depresión conforma la quinta dimensión evaluada en el cuestionario de estado de salud EQ-5D.'
+            },
+            {
+                id: 32,
+                team: 'b4',
+                teamName: 'Bloque 4: Instrumentos Genéricos, Específicos y Servicios',
+                question: '32. ¿Qué instrumento evalúa energía, dolor, movilidad física, reacciones emocionales, sueño y aislamiento social?',
+                options: [
+                    { letter: 'A', text: 'SF-36' },
+                    { letter: 'B', text: 'EQ-5D' },
+                    { letter: 'C', text: 'Nottingham Health Profile' },
+                    { letter: 'D', text: 'Kappa' },
+                    { letter: 'E', text: 'Charlson' }
+                ],
+                correct: 'C',
+                explanation: 'El Perfil de Salud de Nottingham (Nottingham Health Profile / NHP) comprende exactamente esas 6 secciones para medir la angustia física y emocional.'
+            },
+            {
+                id: 33,
+                team: 'b4',
+                teamName: 'Bloque 4: Instrumentos Genéricos, Específicos y Servicios',
+                question: '33. El Sickness Impact Profile evalúa:',
+                options: [
+                    { letter: 'A', text: 'Solo presión arterial' },
+                    { letter: 'B', text: 'Impacto de la enfermedad en actividades cotidianas y comportamiento' },
+                    { letter: 'C', text: 'Solo mortalidad' },
+                    { letter: 'D', text: 'Solo costos' },
+                    { letter: 'E', text: 'Solo ansiedad' }
+                ],
+                correct: 'B',
+                explanation: 'El SIP (Perfil del Impacto de la Enfermedad) mide los cambios de conducta e interferencias causadas por problemas de salud en el desempeño funcional diario.'
+            },
+            {
+                id: 34,
+                team: 'b4',
+                teamName: 'Bloque 4: Instrumentos Genéricos, Específicos y Servicios',
+                question: '34. Una característica de los instrumentos genéricos es:',
+                options: [
+                    { letter: 'A', text: 'Solo sirven para una enfermedad' },
+                    { letter: 'B', text: 'Permiten comparar diferentes grupos' },
+                    { letter: 'C', text: 'No permiten estudios poblacionales' },
+                    { letter: 'D', text: 'Solo sirven para niños' },
+                    { letter: 'E', text: 'No tienen utilidad epidemiológica' }
+                ],
+                correct: 'B',
+                explanation: 'Al ser genéricos y no específicos a una patología, posibilitan contrastar la calidad de vida entre diversas poblaciones, enfermos y sanos.'
+            },
+            {
+                id: 35,
+                team: 'b4',
+                teamName: 'Bloque 4: Instrumentos Genéricos, Específicos y Servicios',
+                question: '35. ¿Cuál es un instrumento genérico?',
+                options: [
+                    { letter: 'A', text: 'AQLQ para asma' },
+                    { letter: 'B', text: 'Instrumento específico para EPOC' },
+                    { letter: 'C', text: 'SF-36' },
+                    { letter: 'D', text: 'Escala exclusiva para oncología' },
+                    { letter: 'E', text: 'Cuestionario específico para diabetes' }
+                ],
+                correct: 'C',
+                explanation: 'El SF-36 es el prototipo de instrumento genérico aplicable universalmente sin importar la condición particular del paciente.'
+            },
+            {
+                id: 36,
+                team: 'b4',
+                teamName: 'Bloque 4: Instrumentos Genéricos, Específicos y Servicios',
+                question: '36. Los instrumentos específicos están diseñados para:',
+                options: [
+                    { letter: 'A', text: 'Cualquier población sin importar enfermedad' },
+                    { letter: 'B', text: 'Enfermedades o grupos concretos' },
+                    { letter: 'C', text: 'Únicamente población sana' },
+                    { letter: 'D', text: 'Solo estudios censales' },
+                    { letter: 'E', text: 'Solo medir mortalidad' }
+                ],
+                correct: 'B',
+                explanation: 'Los instrumentos específicos centran su contenido en los síntomas, signos o secuelas particulares de una afección o subgrupo determinado.'
+            },
+            {
+                id: 37,
+                team: 'b4',
+                teamName: 'Bloque 4: Instrumentos Genéricos, Específicos y Servicios',
+                question: '37. Una ventaja de los instrumentos específicos es:',
+                options: [
+                    { letter: 'A', text: 'Mayor profundidad en problemas específicos' },
+                    { letter: 'B', text: 'Menor sensibilidad al cambio' },
+                    { letter: 'C', text: 'No requieren validación' },
+                    { letter: 'D', text: 'Solo permiten comparar países' },
+                    { letter: 'E', text: 'No evalúan calidad de vida' }
+                ],
+                correct: 'A',
+                explanation: 'Tienen la ventaja de explorar con mucho mayor detalle y sensibilidad las limitaciones puntuales provocadas por una enfermedad determinada.'
+            },
+            {
+                id: 38,
+                team: 'b4',
+                teamName: 'Bloque 4: Instrumentos Genéricos, Específicos y Servicios',
+                question: '38. ¿Cuál NO corresponde a las cuatro dimensiones de atención sanitaria?',
+                options: [
+                    { letter: 'A', text: 'Satisfacción del paciente' },
+                    { letter: 'B', text: 'Calidad de la atención' },
+                    { letter: 'C', text: 'Productividad' },
+                    { letter: 'D', text: 'Aspecto financiero' },
+                    { letter: 'E', text: 'Temperatura corporal' }
+                ],
+                correct: 'E',
+                explanation: 'La temperatura corporal es una constante vital o signo clínico individual, no una dimensión organizativa de la evaluación de servicios sanitarios.'
+            },
+            {
+                id: 39,
+                team: 'b4',
+                teamName: 'Bloque 4: Instrumentos Genéricos, Específicos y Servicios',
+                question: '39. La ocupación de camas es un ejemplo de:',
+                options: [
+                    { letter: 'A', text: 'Calidad de vida' },
+                    { letter: 'B', text: 'Productividad' },
+                    { letter: 'C', text: 'Morbilidad' },
+                    { letter: 'D', text: 'Validez' },
+                    { letter: 'E', text: 'Fiabilidad' }
+                ],
+                correct: 'B',
+                explanation: 'El porcentaje de ocupación hospitalaria mide el aprovechamiento y uso del recurso físico, lo cual corresponde a la dimensión de productividad.'
+            },
+            {
+                id: 40,
+                team: 'b4',
+                teamName: 'Bloque 4: Instrumentos Genéricos, Específicos y Servicios',
+                question: '40. Los tiempos de espera corresponden a la evaluación de:',
+                options: [
+                    { letter: 'A', text: 'Productividad' },
+                    { letter: 'B', text: 'Síntomas' },
+                    { letter: 'C', text: 'Comorbilidad' },
+                    { letter: 'D', text: 'Calidad de vida exclusivamente' },
+                    { letter: 'E', text: 'Mortalidad' }
+                ],
+                correct: 'A',
+                explanation: 'La medición de diferimientos o tiempos de espera evalúa la eficiencia, flujo operativo y productividad en la prestación del servicio médico.'
+            },
+            {
+                id: 41,
+                team: 'b5',
+                teamName: 'Bloque 5: Indicadores Sanitarios e Integración',
+                question: '41. La satisfacción del paciente evalúa:',
+                options: [
+                    { letter: 'A', text: 'Percepción y experiencia durante la atención' },
+                    { letter: 'B', text: 'Número de defunciones' },
+                    { letter: 'C', text: 'Temperatura' },
+                    { letter: 'D', text: 'Consistencia interna' },
+                    { letter: 'E', text: 'Morbilidad' }
+                ],
+                correct: 'A',
+                explanation: 'Mide la discrepancia o cumplimiento entre las expectativas previas del usuario y su vivencia durante el trato o procedimiento de salud.'
+            },
+            {
+                id: 42,
+                team: 'b5',
+                teamName: 'Bloque 5: Indicadores Sanitarios e Integración',
+                question: '42. ¿Cuál es un indicador de salud mencionado en la segunda presentación?',
+                options: [
+                    { letter: 'A', text: 'Mortalidad' },
+                    { letter: 'B', text: 'Kappa' },
+                    { letter: 'C', text: 'Alfa de Cronbach' },
+                    { letter: 'D', text: 'SF-36' },
+                    { letter: 'E', text: 'WHOQOL' }
+                ],
+                correct: 'A',
+                explanation: 'La mortalidad es un indicador tradicional clave sobre la frecuencia de eventos de fallecimiento en una comunidad.'
+            },
+            {
+                id: 43,
+                team: 'b5',
+                teamName: 'Bloque 5: Indicadores Sanitarios e Integración',
+                question: '43. La mortalidad se relaciona con:',
+                options: [
+                    { letter: 'A', text: 'Enfermedades existentes' },
+                    { letter: 'B', text: 'Muertes' },
+                    { letter: 'C', text: 'Calidad de vida' },
+                    { letter: 'D', text: 'Satisfacción' },
+                    { letter: 'E', text: 'Costos' }
+                ],
+                correct: 'B',
+                explanation: 'La mortalidad mide el número absoluto o la tasa epidemiológica de defunciones acontecidas en una población.'
+            },
+            {
+                id: 44,
+                team: 'b5',
+                teamName: 'Bloque 5: Indicadores Sanitarios e Integración',
+                question: '44. La morbilidad se relaciona con:',
+                options: [
+                    { letter: 'A', text: 'Enfermedad' },
+                    { letter: 'B', text: 'Muertes exclusivamente' },
+                    { letter: 'C', text: 'Costos' },
+                    { letter: 'D', text: 'Ocupación hospitalaria' },
+                    { letter: 'E', text: 'Relaciones sociales' }
+                ],
+                correct: 'A',
+                explanation: 'La morbilidad hace referencia a la cantidad de personas enfermas o la frecuencia de casos (incidencia y prevalencia) en una población.'
+            },
+            {
+                id: 45,
+                team: 'b5',
+                teamName: 'Bloque 5: Indicadores Sanitarios e Integración',
+                question: '45. La esperanza de vida es:',
+                options: [
+                    { letter: 'A', text: 'Un instrumento de calidad de vida' },
+                    { letter: 'B', text: 'Un indicador de salud' },
+                    { letter: 'C', text: 'Un estadístico de fiabilidad' },
+                    { letter: 'D', text: 'Un tipo de cuestionario' },
+                    { letter: 'E', text: 'Una fuente de información' }
+                ],
+                correct: 'B',
+                explanation: 'La esperanza de vida al nacer es un indicador demográfico y de salud pública fundamental que sintetiza la mortalidad acumulada.'
+            },
+            {
+                id: 46,
+                team: 'b5',
+                teamName: 'Bloque 5: Indicadores Sanitarios e Integración',
+                question: '46. ¿Cuál de los siguientes es una fuente de información poblacional?',
+                options: [
+                    { letter: 'A', text: 'Censo' },
+                    { letter: 'B', text: 'Kappa' },
+                    { letter: 'C', text: 'SF-36' },
+                    { letter: 'D', text: 'WHOQOL' },
+                    { letter: 'E', text: 'Charlson' }
+                ],
+                correct: 'A',
+                explanation: 'El censo es la fuente primaria por excelencia para contabilizar a la población general y sus características estructurales.'
+            },
+            {
+                id: 47,
+                team: 'b5',
+                teamName: 'Bloque 5: Indicadores Sanitarios e Integración',
+                question: '47. El propósito de los indicadores de salud es principalmente:',
+                options: [
+                    { letter: 'A', text: 'Sustituir la atención médica' },
+                    { letter: 'B', text: 'Cuantificar el estado sanitario y orientar decisiones' },
+                    { letter: 'C', text: 'Eliminar la necesidad de estudios' },
+                    { letter: 'D', text: 'Medir únicamente satisfacción' },
+                    { letter: 'E', text: 'Evaluar exclusivamente costos' }
+                ],
+                correct: 'B',
+                explanation: 'Los indicadores transforman información compleja en variables cuantitativas para monitorear el nivel de salud y sustentar la toma de decisiones.'
+            },
+            {
+                id: 48,
+                team: 'b5',
+                teamName: 'Bloque 5: Indicadores Sanitarios e Integración',
+                question: '48. Si se desea comparar estudiantes de primeros y últimos semestres respecto a calidad de vida, sería útil un instrumento:',
+                options: [
+                    { letter: 'A', text: 'Genérico' },
+                    { letter: 'B', text: 'Exclusivamente oncológico' },
+                    { letter: 'C', text: 'Exclusivo para diabetes' },
+                    { letter: 'D', text: 'Exclusivo para asma' },
+                    { letter: 'E', text: 'Exclusivo para geriatría' }
+                ],
+                correct: 'A',
+                explanation: 'Para poblaciones no seleccionadas por una enfermedad específica (como estudiantes universitarios), un cuestionario genérico es la herramienta adecuada.'
+            },
+            {
+                id: 49,
+                team: 'b5',
+                teamName: 'Bloque 5: Indicadores Sanitarios e Integración',
+                question: '49. ¿Cuál situación representa mejor la diferencia entre estado de salud y calidad de vida?',
+                options: [
+                    { letter: 'A', text: 'Medir presión arterial y contar camas' },
+                    { letter: 'B', text: 'Diagnosticar una enfermedad y conocer cómo afecta la vida cotidiana' },
+                    { letter: 'C', text: 'Medir costos y mortalidad' },
+                    { letter: 'D', text: 'Contar médicos y enfermeras' },
+                    { letter: 'E', text: 'Medir temperatura y ocupación hospitalaria' }
+                ],
+                correct: 'B',
+                explanation: 'El diagnóstico de la enfermedad define el estado biológico/clínico (objetivo), mientras que la afección en la vida diaria constituye la calidad de vida percibida (subjetivo).'
+            },
+            {
+                id: 50,
+                team: 'b5',
+                teamName: 'Bloque 5: Indicadores Sanitarios e Integración',
+                question: '50. ¿Cuál integra correctamente todo el proceso de medición de la salud?',
+                options: [
+                    { letter: 'A', text: 'Datos → enfermedad → tratamiento → alta → decisiones' },
+                    { letter: 'B', text: 'Indicadores → diagnóstico → medicamento → alta' },
+                    { letter: 'C', text: 'Población → datos → indicadores → interpretación → decisiones' },
+                    { letter: 'D', text: 'Paciente → hospital → medicamento → egreso' },
+                    { letter: 'E', text: 'Enfermedad → síntomas → diagnóstico → cirugía' }
+                ],
+                correct: 'C',
+                explanation: 'Es el flujo conceptual completo de planificación epidemiológica: observación poblacional → registro de datos → estructuración de indicadores → interpretación clínica/sanitaria → toma de decisiones.'
+            }
+        ];
+
+        let currentFilter = 'all';
+        let userAnswers = {}; 
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let quizActive = true;
+
+        window.onload = function() {
+            startTimer();
+            renderQuestions();
+        };
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!quizActive) return;
+                timerSeconds++;
+                const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+                const secs = (timerSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const activeBtn = document.getElementById(`filter-${filter}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            renderQuestions();
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            const filtered = currentFilter === 'all' 
+                ? questionsData 
+                : questionsData.filter(q => q.team === currentFilter);
+
+            filtered.forEach((q, index) => {
+                const isAnswered = userAnswers[q.id] !== undefined;
+                const selectedOption = userAnswers[q.id];
+                const isCorrect = selectedOption === q.correct;
+
+                const card = document.createElement('div');
+                card.className = `question-card ${isAnswered ? (isCorrect ? 'correct' : 'incorrect') : ''}`;
+
+                let optionsHtml = '';
+                q.options.forEach(opt => {
+                    let btnClass = "option-btn";
+                    let badgeHtml = "";
+
+                    if (isAnswered) {
+                        if (opt.letter === q.correct) {
+                            btnClass += " opt-correct";
+                            badgeHtml = '<span class="badge-status badge-correct">✓ Correcta</span>';
+                        } else if (opt.letter === selectedOption) {
+                            btnClass += " opt-incorrect";
+                            badgeHtml = '<span class="badge-status badge-incorrect">✗ Tu respuesta</span>';
+                        } else {
+                            btnClass += " opt-disabled";
+                        }
+                    }
+
+                    optionsHtml += `
+                        <button onclick="selectOption(${q.id}, '${opt.letter}')" ${isAnswered ? 'disabled' : ''} class="${btnClass}">
+                            <span class="option-letter">${opt.letter}</span>
+                            <span>${opt.text}</span>
+                            ${badgeHtml}
+                        </button>
+                    `;
+                });
+
+                let feedbackHtml = '';
+                if (isAnswered) {
+                    feedbackHtml = `
+                        <div class="feedback-box ${isCorrect ? 'correct' : 'incorrect'}">
+                            <div class="feedback-title">${isCorrect ? '¡Excelente! Respuesta Correcta' : 'Respuesta Incorrecta'}</div>
+                            <div><strong>Explicación:</strong> ${q.explanation}</div>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="q-meta">
+                        <span class="q-team">${q.teamName}</span>
+                        <span class="q-id">Pregunta ${index + 1} de ${filtered.length} (ID: ${q.id})</span>
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options-list">${optionsHtml}</div>
+                    ${feedbackHtml}
+                `;
+
+                container.appendChild(card);
+            });
+
+            updateScoreUI();
+        }
+
+        function selectOption(questionId, letter) {
+            if (userAnswers[questionId] !== undefined) return;
+            userAnswers[questionId] = letter;
+            renderQuestions();
+        }
+
+        function updateScoreUI() {
+            const totalAnswered = Object.keys(userAnswers).length;
+            let correctCount = 0;
+            
+            for (const id in userAnswers) {
+                const q = questionsData.find(item => item.id == id);
+                if (q && userAnswers[id] === q.correct) {
+                    correctCount++;
+                }
+            }
+
+            document.getElementById('score-display').innerText = `${correctCount} / ${questionsData.length}`;
+            
+            if (totalAnswered === questionsData.length && quizActive) {
+                quizActive = false;
+                clearInterval(timerInterval);
+                const summaryCard = document.getElementById('summary-card');
+                const finalScore = document.getElementById('final-score');
+                const summaryText = document.getElementById('summary-text');
+                
+                finalScore.innerText = `${correctCount} / ${questionsData.length} aciertos`;
+                if (correctCount === questionsData.length) {
+                    summaryText.innerText = "¡Excelente! Dominas perfectamente los conceptos de Salud Pública, medición e indicadores.";
+                } else if (correctCount >= 40) {
+                    summaryText.innerText = "¡Buen trabajo! Tienes bases muy sólidas en la materia.";
+                } else {
+                    summaryText.innerText = "Te recomendamos repasar los conceptos de fiabilidad, validez y los cuestionarios de calidad de vida.";
+                }
+                summaryCard.classList.remove('hidden');
+                summaryCard.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function resetQuiz() {
+            userAnswers = {};
+            timerSeconds = 0;
+            quizActive = true;
+            document.getElementById('summary-card').classList.add('hidden');
+            startTimer();
+            renderQuestions();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
