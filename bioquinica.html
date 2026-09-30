@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen Integral - Bioquímica y Célula (160 Preguntas)</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; line-height: 1.5; padding-bottom: 40px; }
+        header { background-color: #0284c7; color: white; padding: 20px 16px; position: sticky; top: 0; z-index: 50; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header-content { max-width: 950px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
+        .tag { background-color: #0369a1; color: #e0f2fe; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; }
+        h1 { font-size: 1.5rem; font-weight: 700; margin-top: 4px; }
+        p.subtitle { color: #bae6fd; font-size: 0.875rem; }
+        .stats { display: flex; align-items: center; gap: 16px; background-color: rgba(3, 105, 161, 0.8); padding: 8px 16px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.5); }
+        .stat-box { text-align: center; }
+        .stat-label { display: block; font-size: 11px; color: #7dd3fc; text-transform: uppercase; }
+        .stat-val { font-size: 1.25rem; font-weight: 700; font-family: monospace; }
+        .divider { width: 1px; height: 32px; background-color: #0284c7; }
+        
+        main { max-width: 950px; margin: 24px auto; padding: 0 16px; display: flex; flex-direction: column; gap: 24px; }
+        .filter-card { background: white; border-radius: 16px; padding: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .filter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+        .filter-title { font-weight: 600; font-size: 0.875rem; color: #334155; }
+        .reset-btn { padding: 8px 16px; background-color: #f1f5f9; color: #334155; font-weight: 500; font-size: 0.875rem; border-radius: 12px; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s; }
+        .reset-btn:hover { background-color: #e2e8f0; }
+        
+        .filter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; max-height: 220px; overflow-y: auto; padding-right: 4px; }
+        .filter-btn { padding: 6px 10px; border-radius: 8px; font-size: 0.72rem; font-weight: 500; border: 1px solid #cbd5e1; background-color: #f8fafc; color: #475569; cursor: pointer; text-align: center; transition: all 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .filter-btn:hover { background-color: #f1f5f9; }
+        .filter-btn.active { background-color: #0284c7; color: white; border-color: #0284c7; font-weight: 600; }
+        
+        .questions-list { display: flex; flex-direction: column; gap: 20px; }
+        .question-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05); transition: all 0.2s; display: flex; flex-direction: column; gap: 16px; }
+        .question-card.correct { border-color: #6ee7b7; background-color: #f0fdf4; }
+        .question-card.incorrect { border-color: #fca5a5; background-color: #fff1f2; }
+        
+        .q-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .q-team { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .q-id { font-size: 12px; color: #94a3b8; font-weight: 500; }
+        .q-text { font-size: 1.05rem; font-weight: 600; color: #1e293b; }
+        
+        .options-list { display: flex; flex-direction: column; gap: 10px; }
+        .option-btn { width: 100%; text-align: left; padding: 12px 16px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; color: #334155; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s; }
+        .option-btn:hover:not(:disabled) { background-color: #f8fafc; border-color: #cbd5e1; }
+        .option-letter { width: 28px; height: 28px; border-radius: 8px; background-color: #f1f5f9; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; shrink: 0; }
+        
+        .option-btn.opt-correct { border-color: #10b981; background-color: #ecfdf5; color: #065f46; font-weight: 600; }
+        .option-btn.opt-incorrect { border-color: #f43f5e; background-color: #fff1f2; color: #9f1239; font-weight: 600; }
+        .option-btn.opt-disabled { opacity: 0.6; }
+        
+        .badge-status { margin-left: auto; font-size: 0.75rem; font-weight: 700; }
+        .badge-correct { color: #059669; }
+        .badge-incorrect { color: #e11d48; }
+        
+        .feedback-box { padding: 14px 16px; border-radius: 12px; font-size: 0.875rem; border: 1px solid; margin-top: 4px; }
+        .feedback-box.correct { background-color: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+        .feedback-box.incorrect { background-color: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+        .feedback-title { font-weight: 700; margin-bottom: 4px; }
+        
+        .summary-card { background: linear-gradient(135deg, #0284c7, #0369a1); color: white; border-radius: 20px; padding: 32px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 16px; }
+        .summary-card.hidden { display: none; }
+        .trophy { font-size: 3rem; background: rgba(255,255,255,0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .final-score { font-size: 2rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 8px 24px; border-radius: 16px; backdrop-filter: blur(4px); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div>
+                <span class="tag">Examen Medicina USEP</span>
+                <h1>Examen Integral de Bioquímica y Célula</h1>
+                <p class="subtitle">Evaluación de nivel universitario con 160 preguntas de opción múltiple (Partes I a XXI)</p>
+            </div>
+            <div class="stats">
+                <div class="stat-box">
+                    <span class="stat-label">Tiempo</span>
+                    <span id="timer" class="stat-val">00:00</span>
+                </div>
+                <div class="divider"></div>
+                <div class="stat-box">
+                    <span class="stat-label">Puntaje</span>
+                    <span id="score-display" class="stat-val">0 / 160</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="filter-card">
+            <div class="filter-header">
+                <span class="filter-title">🔍 Filtrar por Sección / Tema:</span>
+                <button onclick="resetQuiz()" class="reset-btn">🔄 Reiniciar Cuestionario</button>
+            </div>
+            <div class="filter-grid" id="filter-container">
+                <button onclick="setFilter('all')" id="filter-all" class="filter-btn active">Todas (160)</button>
+                <button onclick="setFilter('p1')" id="filter-p1" class="filter-btn">Parte I: Intro</button>
+                <button onclick="setFilter('p2')" id="filter-p2" class="filter-btn">Parte II: Átomos</button>
+                <button onclick="setFilter('p3')" id="filter-p3" class="filter-btn">Parte III: T. Periódica</button>
+                <button onclick="setFilter('p4')" id="filter-p4" class="filter-btn">Parte IV: Bioelementos</button>
+                <button onclick="setFilter('p5')" id="filter-p5" class="filter-btn">Parte V: Biomoléculas</button>
+                <button onclick="setFilter('p6')" id="filter-p6" class="filter-btn">Parte VI: Carbohidratos</button>
+                <button onclick="setFilter('p7')" id="filter-p7" class="filter-btn">Parte VII: Lípidos</button>
+                <button onclick="setFilter('p8')" id="filter-p8" class="filter-btn">Parte VIII: Proteínas</button>
+                <button onclick="setFilter('p9')" id="filter-p9" class="filter-btn">Parte IX: Ác. Nucleicos/Vit</button>
+                <button onclick="setFilter('p10')" id="filter-p10" class="filter-btn">Parte X: Proc/Euc</button>
+                <button onclick="setFilter('p11')" id="filter-p11" class="filter-btn">Parte XI: Org. Celular</button>
+                <button onclick="setFilter('p12')" id="filter-p12" class="filter-btn">Parte XII: Núcleo</button>
+                <button onclick="setFilter('p13')" id="filter-p13" class="filter-btn">Parte XIII: Ribosomas/RE</button>
+                <button onclick="setFilter('p14')" id="filter-p14" class="filter-btn">Parte XIV: Golgi/Lisosomas</button>
+                <button onclick="setFilter('p15')" id="filter-p15" class="filter-btn">Parte XV: Citoesqueleto</button>
+                <button onclick="setFilter('p16')" id="filter-p16" class="filter-btn">Parte XVI: Cilios/Flagelos</button>
+                <button onclick="setFilter('p17')" id="filter-p17" class="filter-btn">Parte XVII: Mitocondria</button>
+                <button onclick="setFilter('p18')" id="filter-p18" class="filter-btn">Parte XVIII: Membrana</button>
+                <button onclick="setFilter('p19')" id="filter-p19" class="filter-btn">Parte XIX: Transporte</button>
+                <button onclick="setFilter('p20')" id="filter-p20" class="filter-btn">Parte XX: Integración</button>
+                <button onclick="setFilter('p21')" id="filter-p21" class="filter-btn">Parte XXI: Integradoras</button>
+            </div>
+        </div>
+
+        <div id="questions-container" class="questions-list"></div>
+
+        <div id="summary-card" class="summary-card hidden">
+            <div class="trophy">🏆</div>
+            <h2>¡Examen de Bioquímica y Célula Finalizado!</h2>
+            <p id="summary-text" style="color: #e0f2fe; max-width: 500px;">Has completado las 160 preguntas del examen.</p>
+            <div class="final-score" id="final-score">0 / 160 aciertos</div>
+            <button onclick="resetQuiz()" class="reset-btn" style="background: white; color: #0284c7; font-weight: 700; padding: 12px 24px; font-size: 1rem;">
+                Reiniciar Cuestionario
+            </button>
+        </div>
+    </main>
+
+    <script>
+        const questionsData = [
+            // PARTE I
+            { id: 1, team: 'p1', teamName: 'PARTE I. INTRODUCCIÓN A LA BIOQUÍMICA', question: '1. ¿Cuál es la definición de bioquímica presentada en la clase?', options: [{letter:'A',text:'Ciencia que estudia exclusivamente las enfermedades metabólicas.'},{letter:'B',text:'Ciencia que investiga los procesos químicos que ocurren dentro y en relación con los organismos vivos.'},{letter:'C',text:'Ciencia que estudia únicamente la estructura anatómica de las células.'},{letter:'D',text:'Ciencia encargada de clasificar los elementos químicos.'},{letter:'E',text:'Ciencia que estudia exclusivamente las reacciones farmacológicas.'}], correct: 'B', explanation: 'La bioquímica investiga las bases químicas de la vida y las transformaciones de las moléculas biológicas en los seres vivos.' },
+            { id: 2, team: 'p1', teamName: 'PARTE I. INTRODUCCIÓN A LA BIOQUÍMICA', question: '2. ¿Quién introdujo el término "bioquímica" en 1903?', options: [{letter:'A',text:'Antoine Lavoisier'},{letter:'B',text:'Eduard Buchner'},{letter:'C',text:'Carl Neuberg'},{letter:'D',text:'Dmitri Mendeléiev'},{letter:'E',text:'Henry Moseley'}], correct: 'C', explanation: 'Carl Neuberg es considerado el padre de la bioquímica moderna por acuñar este término en 1903.' },
+            { id: 3, team: 'p1', teamName: 'PARTE I. INTRODUCCIÓN A LA BIOQUÍMICA', question: '3. ¿Qué científico definió la respiración como un proceso de oxidación?', options: [{letter:'A',text:'Lavoisier'},{letter:'B',text:'Buchner'},{letter:'C',text:'Neuberg'},{letter:'D',text:'Newlands'},{letter:'E',text:'Döbereiner'}], correct: 'A', explanation: 'Antoine Lavoisier demostró que la respiración celular es análoga a una combustión que consume O2 y libera CO2.' },
+            { id: 4, team: 'p1', teamName: 'PARTE I. INTRODUCCIÓN A LA BIOQUÍMICA', question: '4. ¿Qué acontecimiento fue fundamental para el nacimiento de la enzimología?', options: [{letter:'A',text:'Descubrimiento del ADN'},{letter:'B',text:'Demostración de la catálisis enzimática fuera de la célula por Buchner'},{letter:'C',text:'Descubrimiento de los ribosomas'},{letter:'D',text:'Formulación del modelo del mosaico fluido'},{letter:'E',text:'Descubrimiento de la mitocondria'}], correct: 'B', explanation: 'Eduard Buchner demostró la fermentación alcohólica por extractos celulares sin células vivas de levadura, ganando el Nobel.' },
+            { id: 5, team: 'p1', teamName: 'PARTE I. INTRODUCCIÓN A LA BIOQUÍMICA', question: '5. ¿Cuál de las siguientes disciplinas explica las respuestas moleculares que ocurren en la célula con el uso de medicamentos?', options: [{letter:'A',text:'Genética'},{letter:'B',text:'Fisiología'},{letter:'C',text:'Farmacología'},{letter:'D',text:'Anatomía'},{letter:'E',text:'Histología'}], correct: 'C', explanation: 'La farmacología analiza el mecanismo de acción de los fármacos a nivel molecular y su efecto celular.' },
+            { id: 6, team: 'p1', teamName: 'PARTE I. INTRODUCCIÓN A LA BIOQUÍMICA', question: '6. La bioquímica permite conectar principalmente:', options: [{letter:'A',text:'Anatomía con embriología'},{letter:'B',text:'Alteraciones moleculares con manifestaciones clínicas'},{letter:'C',text:'Histología con anatomía macroscópica'},{letter:'D',text:'Farmacología con microbiología únicamente'},{letter:'E',text:'Genética con evolución'}], correct: 'B', explanation: 'La comprensión de las fallas moleculares es el cimiento para diagnosticar y tratar las manifestaciones fisiopatológicas y clínicas.' },
+
+            // PARTE II
+            { id: 7, team: 'p2', teamName: 'PARTE II. ÁTOMOS Y MOLÉCULAS', question: '7. ¿Cuál es la partícula más pequeña que conserva las características químicas de un elemento?', options: [{letter:'A',text:'Molécula'},{letter:'B',text:'Ion'},{letter:'C',text:'Átomo'},{letter:'D',text:'Protón'},{letter:'E',text:'Electrón'}], correct: 'C', explanation: 'El átomo es la unidad fundamental de la materia que mantiene la identidad de un elemento químico.' },
+            { id: 8, team: 'p2', teamName: 'PARTE II. ÁTOMOS Y MOLÉCULAS', question: '8. ¿Qué determina la identidad de un elemento químico?', options: [{letter:'A',text:'Número de neutrones'},{letter:'B',text:'Número de electrones'},{letter:'C',text:'Número de protones'},{letter:'D',text:'Masa atómica'},{letter:'E',text:'Número de enlaces'}], correct: 'C', explanation: 'El número atómico (Z) representa la cantidad fija de protones presentes en el núcleo del átomo.' },
+            { id: 9, team: 'p2', teamName: 'PARTE II. ÁTOMOS Y MOLÉCULAS', question: '9. ¿Cuál es la carga eléctrica del electrón?', options: [{letter:'A',text:'+2'},{letter:'B',text:'+1'},{letter:'C',text:'0'},{letter:'D',text:'-1'},{letter:'E',text:'-2'}], correct: 'D', explanation: 'El electrón posee una carga elemental negativa igual a -1.' },
+            { id: 10, team: 'p2', teamName: 'PARTE II. ÁTOMOS Y MOLÉCULAS', question: '10. ¿Dónde se localizan los protones y neutrones?', options: [{letter:'A',text:'En la nube electrónica'},{letter:'B',text:'En el citoplasma'},{letter:'C',text:'En el núcleo atómico'},{letter:'D',text:'En los orbitales moleculares'},{letter:'E',text:'En la membrana'}], correct: 'C', explanation: 'Protones y neutrones se concentran densamente en el centro o núcleo del átomo.' },
+            { id: 11, team: 'p2', teamName: 'PARTE II. ÁTOMOS Y MOLÉCULAS', question: '11. Un átomo pierde un electrón. ¿Qué se forma?', options: [{letter:'A',text:'Anión'},{letter:'B',text:'Catión'},{letter:'C',text:'Isótopo'},{letter:'D',text:'Molécula'},{letter:'E',text:'Neutrón'}], correct: 'B', explanation: 'La pérdida de electrones (cargas negativas) genera un ion con carga positiva o catión.' },
+            { id: 12, team: 'p2', teamName: 'PARTE II. ÁTOMOS Y MOLÉCULAS', question: '12. Un átomo gana un electrón. ¿Qué se forma?', options: [{letter:'A',text:'Catión'},{letter:'B',text:'Protón'},{letter:'C',text:'Anión'},{letter:'D',text:'Isótopo'},{letter:'E',text:'Molécula'}], correct: 'C', explanation: 'La ganancia de electrones produce un exceso de cargas negativas, formando un anión.' },
+            { id: 13, team: 'p2', teamName: 'PARTE II. ÁTOMOS Y MOLÉCULAS', question: '13. ¿Cuál de las siguientes es una molécula homonuclear?', options: [{letter:'A',text:'H₂O'},{letter:'B',text:'CO2'},{letter:'C',text:'NH3'},{letter:'D',text:'O2'},{letter:'E',text:'HCl'}], correct: 'D', explanation: 'Las moléculas homonucleares están compuestas por un solo tipo de elemento (como O2).' },
+            { id: 14, team: 'p2', teamName: 'PARTE II. ÁTOMOS Y MOLÉCULAS', question: '14. ¿Cuál de las siguientes es heteronuclear?', options: [{letter:'A',text:'O2'},{letter:'B',text:'N2'},{letter:'C',text:'H2'},{letter:'D',text:'H₂O'},{letter:'E',text:'Cl2'}], correct: 'D', explanation: 'H2O contiene átomos de distintos elementos (Hidrógeno y Oxígeno), por lo que es heteronuclear.' },
+            { id: 15, team: 'p2', teamName: 'PARTE II. ÁTOMOS Y MOLÉCULAS', question: '15. Una molécula formada por tres o más átomos se clasifica como:', options: [{letter:'A',text:'Mononuclear'},{letter:'B',text:'Diatómica'},{letter:'C',text:'Poliatómica'},{letter:'D',text:'Catiónica'},{letter:'E',text:'Isotópica'}], correct: 'C', explanation: 'Las moléculas constituida por tres o más átomos covalentemente unidos se denominan poliatómicas.' },
+            { id: 16, team: 'p2', teamName: 'PARTE II. ÁTOMOS Y MOLÉCULAS', question: '16. ¿Cuál molécula participa como sustrato central para la producción de energía?', options: [{letter:'A',text:'CO2'},{letter:'B',text:'Glucosa'},{letter:'C',text:'Hemoglobina'},{letter:'D',text:'Insulina'},{letter:'E',text:'NaCl'}], correct: 'B', explanation: 'La glucosa es el monosacárido primordial degradado en la glucólysis y respiración celular para producir energía.' },
+            { id: 17, team: 'p2', teamName: 'PARTE II. ÁTOMOS Y MOLÉCULAS', question: '17. ¿Cuál es una función importante del ATP?', options: [{letter:'A',text:'Almacenar información genética'},{letter:'B',text:'Transportar oxígeno'},{letter:'C',text:'Transferir energía para procesos celulares'},{letter:'D',text:'Formar anticuerpos exclusivamente'},{letter:'E',text:'Regular directamente el pH sanguíneo'}], correct: 'C', explanation: 'El trifosfato de adenosina (ATP) es la moneda energética universal de la célula.' },
+
+            // PARTE III
+            { id: 18, team: 'p3', teamName: 'PARTE III. TABLA PERIÓDICA', question: '18. La tabla periódica organiza los elementos principalmente de acuerdo con:', options: [{letter:'A',text:'Masa corporal'},{letter:'B',text:'Número atómico creciente'},{letter:'C',text:'Número de neutrones decreciente'},{letter:'D',text:'Densidad'},{letter:'E',text:'Estado físico'}], correct: 'B', explanation: 'La ley periódica moderna ordena a los elementos según sus números atómicos (Z) ascendentes.' },
+            { id: 19, team: 'p3', teamName: 'PARTE III. TABLA PERIÓDICA', question: '19. ¿Quién propuso las tríadas de elementos con propiedades semejantes?', options: [{letter:'A',text:'Lavoisier'},{letter:'B',text:'Newlands'},{letter:'C',text:'Döbereiner'},{letter:'D',text:'Mendeléiev'},{letter:'E',text:'Moseley'}], correct: 'C', explanation: 'Johann Wolfgang Döbereiner agrupó los elementos con propiedades similares en conjuntos de tres o Tríadas.' },
+            { id: 20, team: 'p3', teamName: 'PARTE III. TABLA PERIÓDICA', question: '20. ¿Quién organizó elementos por masa atómica y propiedades, dejando espacios para elementos aún no descubiertos?', options: [{letter:'A',text:'Moseley'},{letter:'B',text:'Mendeléiev'},{letter:'C',text:'Lavoisier'},{letter:'D',text:'Newlands'},{letter:'E',text:'Neuberg'}], correct: 'B', explanation: 'Dmitri Mendeléiev creó la primera tabla periódica y predijo con exactitud las propiedades de elementos futuros.' },
+            { id: 21, team: 'p3', teamName: 'PARTE III. TABLA PERIÓDICA', question: '21. ¿Qué científico demostró que el orden fundamental de los elementos depende del número atómico?', options: [{letter:'A',text:'Lavoisier'},{letter:'B',text:'Mendeléiev'},{letter:'C',text:'Döbereiner'},{letter:'D',text:'Moseley'},{letter:'E',text:'Buchner'}], correct: 'D', explanation: 'Henry Moseley utilizó la espectroscopía de rayos X para reorganizar la tabla según el número de protones.' },
+            { id: 22, team: 'p3', teamName: 'PARTE III. TABLA PERIÓDICA', question: '22. ¿Cuántos grupos tiene la tabla periódica?', options: [{letter:'A',text:'7'},{letter:'B',text:'8'},{letter:'C',text:'16'},{letter:'D',text:'18'},{letter:'E',text:'32'}], correct: 'D', explanation: 'La tabla periódica estándar comprende 18 columnas verticales o grupos.' },
+            { id: 23, team: 'p3', teamName: 'PARTE III. TABLA PERIÓDICA', question: '23. ¿Qué indican los períodos?', options: [{letter:'A',text:'Número de protones'},{letter:'B',text:'Niveles principales de energía ocupados por electrones'},{letter:'C',text:'Número de neutrones'},{letter:'D',text:'Electrones de valencia exclusivamente'},{letter:'E',text:'Masa atómica'}], correct: 'B', explanation: 'Las 7 filas horizontales o períodos corresponden al nivel de energía principal más externo de los electrones.' },
+            { id: 24, team: 'p3', teamName: 'PARTE III. TABLA PERIÓDICA', question: '24. ¿Qué característica comparten generalmente los elementos de un mismo grupo?', options: [{letter:'A',text:'La misma masa atómica'},{letter:'B',text:'El mismo número de neutrones'},{letter:'C',text:'Propiedades químicas semejantes'},{letter:'D',text:'El mismo número atómico'},{letter:'E',text:'El mismo número de protones'}], correct: 'C', explanation: 'Al poseer el mismo número de electrones en su capa de valencia, comparten comportamiento y propiedades similares.' },
+            { id: 25, team: 'p3', teamName: 'PARTE III. TABLA PERIÓDICA', question: '25. ¿A qué grupo pertenecen principalmente Na y K?', options: [{letter:'A',text:'Alcalinotérreos'},{letter:'B',text:'Halógenos'},{letter:'C',text:'Gases nobles'},{letter:'D',text:'Metales alcalinos'},{letter:'E',text:'Metales de transición'}], correct: 'D', explanation: 'Sodio (Na) y Potasio (K) se ubican en el Grupo 1 (metales alcalinos).' },
+            { id: 26, team: 'p3', teamName: 'PARTE III. TABLA PERIÓDICA', question: '26. ¿Qué ion forman principalmente los elementos del grupo 2?', options: [{letter:'A',text:'+1'},{letter:'B',text:'+2'},{letter:'C',text:'-1'},{letter:'D',text:'-2'},{letter:'E',text:'0'}], correct: 'B', explanation: 'Los metales alcalinotérreos (Grupo 2) ceden 2 electrones de valencia para formar cationes divalentes (+2).' },
+            { id: 27, team: 'p3', teamName: 'PARTE III. TABLA PERIÓDICA', question: '27. ¿Cuál de los siguientes pertenece a los metales de transición?', options: [{letter:'A',text:'Na'},{letter:'B',text:'Ca'},{letter:'C',text:'Fe'},{letter:'D',text:'Cl'},{letter:'E',text:'Ne'}], correct: 'C', explanation: 'El Hierro (Fe) es un elemento metálico de transición ubicado en el bloque d.' },
+            { id: 28, team: 'p3', teamName: 'PARTE III. TABLA PERIÓDICA', question: '28. ¿Qué elemento constituye la base fundamental de las biomoléculas orgánicas?', options: [{letter:'A',text:'Oxígeno'},{letter:'B',text:'Carbono'},{letter:'C',text:'Sodio'},{letter:'D',text:'Calcio'},{letter:'E',text:'Cloro'}], correct: 'B', explanation: 'La tetravalencia del carbono le permite formar esqueletos estables para todas las biomoléculas orgánicas.' },
+            { id: 29, team: 'p3', teamName: 'PARTE III. TABLA PERIÓDICA', question: '29. ¿Cuáles son elementos esenciales de proteínas, ácidos nucleicos, ATP y membranas celulares?', options: [{letter:'A',text:'N y P'},{letter:'B',text:'Na y K'},{letter:'C',text:'Ca y Mg'},{letter:'D',text:'Cl y F'},{letter:'E',text:'Fe y Zn'}], correct: 'A', explanation: 'Nitrógeno (presente en aminoácidos y bases nitrogenadas) y Fósforo (en nucleótidos y fosfolípidos) son bioelementos indispensables.' },
+            { id: 30, team: 'p3', teamName: 'PARTE III. TABLA PERIÓDICA', question: '30. ¿Qué grupo incluye al oxígeno y azufre?', options: [{letter:'A',text:'Grupo 14'},{letter:'B',text:'Grupo 15'},{letter:'C',text:'Grupo 16'},{letter:'D',text:'Grupo 17'},{letter:'E',text:'Grupo 18'}], correct: 'C', explanation: 'El Oxígeno y Azufre pertenecen a la familia de los anfígenos o calcógenos (Grupo 16).' },
+            { id: 31, team: 'p3', teamName: 'PARTE III. TABLA PERIÓDICA', question: '31. ¿Cuál pertenece al grupo de los halógenos?', options: [{letter:'A',text:'Ca'},{letter:'B',text:'Na'},{letter:'C',text:'Fe'},{letter:'D',text:'Cl'},{letter:'E',text:'Mg'}], correct: 'D', explanation: 'El Cloro (Cl) es un elemento altamente electronegativo integrante del Grupo 17 (halógenos).' },
+
+            // PARTE IV
+            { id: 32, team: 'p4', teamName: 'PARTE IV. BIOELEMENTOS', question: '32. ¿Cuáles son los bioelementos primarios?', options: [{letter:'A',text:'Ca, Na, K, Mg, Cl'},{letter:'B',text:'Fe, Zn, Cu, I, Se'},{letter:'C',text:'C, H, O, N, P, S'},{letter:'D',text:'Na, K, Cl, Fe, Zn'},{letter:'E',text:'C, Ca, Mg, Fe, I'}], correct: 'C', explanation: 'C, H, O, N, P, S constituyen aproximadamente el 96% de la masa viva y son los bioelementos primarios.' },
+            { id: 33, team: 'p4', teamName: 'PARTE IV. BIOELEMENTOS', question: '33. ¿Cuál es una función principal del carbono?', options: [{letter:'A',text:'Formación exclusiva de electrolitos'},{letter:'B',text:'Estructura de moléculas orgánicas'},{letter:'C',text:'Generación del potencial de membrana exclusivamente'},{letter:'D',text:'Coagulación exclusivamente'},{letter:'E',text:'Regulación de la tiroides'}], correct: 'B', explanation: 'Forma la estructura o armazón esquelético de las macromoléculas orgánicas.' },
+            { id: 34, team: 'p4', teamName: 'PARTE IV. BIOELEMENTOS', question: '34. ¿Qué elemento participa especialmente en proteínas y bases nitrogenadas?', options: [{letter:'A',text:'Nitrógeno'},{letter:'B',text:'Calcio'},{letter:'C',text:'Sodio'},{letter:'D',text:'Cloro'},{letter:'E',text:'Magnesio'}], correct: 'A', explanation: 'El Nitrógeno integra los grupos amino de los aminoácidos y los anillos aromáticos de purinas y pirimidinas.' },
+            { id: 35, team: 'p4', teamName: 'PARTE IV. BIOELEMENTOS', question: '35. ¿Qué elemento es fundamental en ATP, fosfolípidos y ácidos nucleicos?', options: [{letter:'A',text:'Azufre'},{letter:'B',text:'Oxígeno'},{letter:'C',text:'Fósforo'},{letter:'D',text:'Sodio'},{letter:'E',text:'Cloro'}], correct: 'C', explanation: 'El Fósforo forma grupos fosfato esenciales en enlaces de alta energía (ATP), esqueletos de ADN/ARN y membranas.' },
+            { id: 36, team: 'p4', teamName: 'PARTE IV. BIOELEMENTOS', question: '36. ¿Cuál es una función destacada del sodio?', options: [{letter:'A',text:'Formación de hemoglobina'},{letter:'B',text:'Osmolaridad y volumen extracelular'},{letter:'C',text:'Síntesis de colágeno'},{letter:'D',text:'Contracción mediante actina'},{letter:'E',text:'Síntesis de ADN'}], correct: 'B', explanation: 'El Na+ es el catión dominante del líquido extracelular y determina la presión osmótica y volemia.' },
+            { id: 37, team: 'p4', teamName: 'PARTE IV. BIOELEMENTOS', question: '37. Una alteración importante del potasio puede producir:', options: [{letter:'A',text:'Cataratas exclusivamente'},{letter:'B',text:'Arritmias potencialmente graves'},{letter:'C',text:'Anemia megaloblástica'},{letter:'D',text:'Mala cicatrización'},{letter:'E',text:'Alteración visual'}], correct: 'B', explanation: 'Desequilibrios de K+ alteran drásticamente el potencial de membrana en reposo miocárdico, provocando arritmias mortales.' },
+            { id: 38, team: 'p4', teamName: 'PARTE IV. BIOELEMENTOS', question: '38. ¿Qué bioelemento funciona como cofactor en reacciones relacionadas con ATP?', options: [{letter:'A',text:'Mg2+'},{letter:'B',text:'Cl-'},{letter:'C',text:'Na'},{letter:'D',text:'I'},{letter:'E',text:'F'}], correct: 'A', explanation: 'El magnesio estabiliza las cargas negativas del ATP formando complejosMg-ATP indispensables para quinasas.' },
+            { id: 39, team: 'p4', teamName: 'PARTE IV. BIOELEMENTOS', question: '39. La hipocalcemia puede producir:', options: [{letter:'A',text:'Parestesias y tetania'},{letter:'B',text:'Polidipsia exclusivamente'},{letter:'C',text:'Hiperglucemia'},{letter:'D',text:'Anemia megaloblástica'},{letter:'E',text:'Aumento de colesterol'}], correct: 'A', explanation: 'La baja concentración de Ca2+ aumenta la excitabilidad neuromuscular originando parestesias, espasmos y tetania.' },
+
+            // PARTE V
+            { id: 40, team: 'p5', teamName: 'PARTE V. BIOMOLÉCULAS', question: '40. ¿Cuál de las siguientes NO corresponde a una función general de las biomoléculas?', options: [{letter:'A',text:'Estructural'},{letter:'B',text:'Energética'},{letter:'C',text:'Catalítica'},{letter:'D',text:'Comunicación'},{letter:'E',text:'Radiactiva'}], correct: 'E', explanation: 'La emisión de radiación no es una función biológica ni fisiológica general de las biomoléculas.' },
+            { id: 41, team: 'p5', teamName: 'PARTE V. BIOMOLÉCULAS', question: '41. ¿Cuál es una biomolécula inorgánica?', options: [{letter:'A',text:'Proteína'},{letter:'B',text:'Lípido'},{letter:'C',text:'Agua'},{letter:'D',text:'Ácido nucleico'},{letter:'E',text:'Vitamina'}], correct: 'C', explanation: 'El agua y las sales minerales carecen de esqueletos carbonados complejos y son biomoléculas inorgánicas.' },
+            { id: 42, team: 'p5', teamName: 'PARTE V. BIOMOLÉCULAS', question: '42. ¿Cuáles son biomoléculas orgánicas?', options: [{letter:'A',text:'Agua y sales'},{letter:'B',text:'Gases y agua'},{letter:'C',text:'Carbohidratos, lípidos, proteínas y ácidos nucleicos'},{letter:'D',text:'Sodio y potasio'},{letter:'E',text:'Oxígeno y CO2'}], correct: 'C', explanation: 'Constituyen los cuatro grandes grupos de polímeros u oligómeros orgánicos celulares.' },
+            { id: 43, team: 'p5', teamName: 'PARTE V. BIOMOLÉCULAS', question: '43. ¿Cuál es una característica del agua?', options: [{letter:'A',text:'Es una molécula apolar'},{letter:'B',text:'Es un solvente importante'},{letter:'C',text:'Es una proteína'},{letter:'D',text:'Es un lípido'},{letter:'E',text:'Es un ácido nucleico'}], correct: 'B', explanation: 'Su polaridad y capacidad de formar puentes de hidrógeno la convierten en el solvente universal biológico.' },
+            { id: 44, team: 'p5', teamName: 'PARTE V. BIOMOLÉCULAS', question: '44. ¿Cuál de las siguientes corresponde a una sal mineral insoluble?', options: [{letter:'A',text:'NaCl'},{letter:'B',text:'KCl'},{letter:'C',text:'CaCO3'},{letter:'D',text:'MgSO4'},{letter:'E',text:'NaHCO3'}], correct: 'C', explanation: 'El carbonato de calcio (CaCO3) es una sal precipitada sólida que brinda soporte esquelético e insoluibilizable en huesos/conchas.' },
+            { id: 45, team: 'p5', teamName: 'PARTE V. BIOMOLÉCULAS', question: '45. ¿Por qué los electrolitos concentrados se consideran medicamentos de alto riesgo?', options: [{letter:'A',text:'Porque siempre producen alergias'},{letter:'B',text:'Porque cualquier error en su manejo puede producir daño grave o muerte'},{letter:'C',text:'Porque no tienen funciones fisiológicas'},{letter:'D',text:'Porque son exclusivamente de uso oral'},{letter:'E',text:'Porque destruyen eritrocitos'}], correct: 'B', explanation: 'Errores en la dosificación de soluciones como KCl o NaCl concentrado pueden desencadenar paros cardíacos o colapso osmótico.' },
+
+            // PARTE VI
+            { id: 46, team: 'p6', teamName: 'PARTE VI. CARBOHIDRATOS', question: '46. ¿Cuál es la función principal inmediata de los carbohidratos?', options: [{letter:'A',text:'Almacenar información genética'},{letter:'B',text:'Fuente energética'},{letter:'C',text:'Formar anticuerpos'},{letter:'D',text:'Transportar oxígeno'},{letter:'E',text:'Formar membranas exclusivamente'}], correct: 'B', explanation: 'Son los sustratos metabólicos primarios oxidados para obtener energía rápida.' },
+            { id: 47, team: 'p6', teamName: 'PARTE VI. CARBOHIDRATOS', question: '47. ¿Cuál es un monosacárido?', options: [{letter:'A',text:'Lactosa'},{letter:'B',text:'Sacarosa'},{letter:'C',text:'Glucosa'},{letter:'D',text:'Glucógeno'},{letter:'E',text:'Celulosa'}], correct: 'C', explanation: 'La glucosa es un monómero azucarado de 6 carbonos (hexosa).' },
+            { id: 48, team: 'p6', teamName: 'PARTE VI. CARBOHIDRATOS', question: '48. ¿Cuál es un disacárido?', options: [{letter:'A',text:'Glucosa'},{letter:'B',text:'Fructosa'},{letter:'C',text:'Galactosa'},{letter:'D',text:'Lactosa'},{letter:'E',text:'Glucógeno'}], correct: 'D', explanation: 'La lactosa es un disacárido formado por la unión glucosídica de glucosa y galactosa.' },
+            { id: 49, team: 'p6', teamName: 'PARTE VI. CARBOHIDRATOS', question: '49. ¿Cuál es un polisacárido?', options: [{letter:'A',text:'Glucosa'},{letter:'B',text:'Fructosa'},{letter:'C',text:'Lactosa'},{letter:'D',text:'Glucógeno'},{letter:'E',text:'Galactosa'}], correct: 'D', explanation: 'El glucógeno es un polímero ramificado de glucosa que sirve de reserva energética en animales.' },
+            { id: 50, team: 'p6', teamName: 'PARTE VI. CARBOHIDRATOS', question: '50. Los polisacáridos pueden funcionar principalmente como:', options: [{letter:'A',text:'Reserva energética o estructura'},{letter:'B',text:'Hormonas'},{letter:'C',text:'Anticuerpos'},{letter:'D',text:'Material genético'},{letter:'E',text:'Electrolitos'}], correct: 'A', explanation: 'Ejemplos de reserva son el glucógeno y almidón; de estructura, la celulosa y quitina.' },
+
+            // PARTE VII
+            { id: 51, team: 'p7', teamName: 'PARTE VII. LÍPIDOS', question: '51. Los lípidos se caracterizan predominantemente por ser:', options: [{letter:'A',text:'Hidrofílicos'},{letter:'B',text:'Hidrofóbicos'},{letter:'C',text:'Proteicos'},{letter:'D',text:'Ácidos nucleicos'},{letter:'E',text:'Electrolitos'}], correct: 'B', explanation: 'Su insolubilidad en agua obedece a la abundancia de enlaces no polares C-H y C-C.' },
+            { id: 52, team: 'p7', teamName: 'PARTE VII. LÍPIDOS', question: '52. ¿Cuál es una función principal de los triglicéridos?', options: [{letter:'A',text:'Reserva energética'},{letter:'B',text:'Síntesis de ADN'},{letter:'C',text:'Transporte de oxígeno'},{letter:'D',text:'Formación de ribosomas'},{letter:'E',text:'Contracción muscular'}], correct: 'A', explanation: 'Son la forma más eficiente de almacenamiento calórico neutro e inanhidro en el tejido adiposo.' },
+            { id: 53, team: 'p7', teamName: 'PARTE VII. LÍPIDOS', question: '53. ¿Qué lípidos son componentes fundamentales de las membranas celulares?', options: [{letter:'A',text:'Triglicéridos'},{letter:'B',text:'Fosfolípidos'},{letter:'C',text:'Eicosanoides'},{letter:'D',text:'Vitaminas'},{letter:'E',text:'Glucógeno'}], correct: 'B', explanation: 'Los glicerofosfolípidos y esfingolípidos forman la bicapa lipídica que constituye la matriz de la membrana.' },
+            { id: 54, team: 'p7', teamName: 'PARTE VII. LÍPIDOS', question: '54. El colesterol participa en:', options: [{letter:'A',text:'Membranas y síntesis de hormonas esteroideas'},{letter:'B',text:'Síntesis directa de ADN'},{letter:'C',text:'Formación de ribosomas'},{letter:'D',text:'Contracción muscular exclusivamente'},{letter:'E',text:'Transporte de oxígeno'}], correct: 'A', explanation: 'Regula la fluidez membranal y es el precursor de sales biliares, vitamina D y hormonas como cortisol o testosterona.' },
+            { id: 55, team: 'p7', teamName: 'PARTE VII. LÍPIDOS', question: '55. Los eicosanoides están relacionados con:', options: [{letter:'A',text:'Inflamación, hemostasia y tono vascular'},{letter:'B',text:'Almacenamiento de información genética'},{letter:'C',text:'Formación de hueso exclusivamente'},{letter:'D',text:'Síntesis de ATP exclusivamente'},{letter:'E',text:'Transporte de aminoácidos'}], correct: 'A', explanation: 'Mediadores lipídicos derivados del ácido araquidónico (prostaglandinas, tromboxanos, leucotrienos) median respuestas inflamatorias e inmunes.' },
+
+            // PARTE VIII
+            { id: 56, team: 'p8', teamName: 'PARTE VIII. PROTEÍNAS', question: '56. Las proteínas están formadas por:', options: [{letter:'A',text:'Nucleótidos'},{letter:'B',text:'Monosacáridos'},{letter:'C',text:'Aminoácidos unidos por enlaces peptídicos'},{letter:'D',text:'Ácidos grasos'},{letter:'E',text:'Electrolitos'}], correct: 'C', explanation: 'Son polímeros lineales de L-alfa-aminoácidos enlazados por amidas complejas (enlaces peptídicos).' },
+            { id: 57, team: 'p8', teamName: 'PARTE VIII. PROTEÍNAS', question: '57. ¿Qué determina principalmente la estructura tridimensional y función de una proteína?', options: [{letter:'A',text:'Su cantidad de agua'},{letter:'B',text:'La secuencia de aminoácidos'},{letter:'C',text:'Su cantidad de glucosa'},{letter:'D',text:'El número de nucleótidos'},{letter:'E',text:'La concentración de Na'}], correct: 'B', explanation: 'La estructura primaria (orden lineal de aminoácidos) dicta el plegamiento terciario nativo final.' },
+            { id: 58, team: 'p8', teamName: 'PARTE VIII. PROTEÍNAS', question: '58. ¿Cuál es una proteína estructural?', options: [{letter:'A',text:'Hemoglobina'},{letter:'B',text:'Colágeno'},{letter:'C',text:'Insulina'},{letter:'D',text:'Amilasa'},{letter:'E',text:'Albúmina'}], correct: 'B', explanation: 'El colágeno es la proteína fibrosa más abundante de la matriz extracelular que aporta resistencia a la tracción.' },
+            { id: 59, team: 'p8', teamName: 'PARTE VIII. PROTEÍNAS', question: '59. ¿Cuál es una proteína de transporte?', options: [{letter:'A',text:'Queratina'},{letter:'B',text:'Colágeno'},{letter:'C',text:'Hemoglobina'},{letter:'D',text:'Actina'},{letter:'E',text:'Miosina'}], correct: 'C', explanation: 'La hemoglobina transporta O2 y CO2 en los eritrocitos sanguíneos.' },
+            { id: 60, team: 'p8', teamName: 'PARTE VIII. PROTEÍNAS', question: '60. ¿Cuáles proteínas participan en la contracción muscular?', options: [{letter:'A',text:'Actina y miosina'},{letter:'B',text:'Albúmina y transferrina'},{letter:'C',text:'Colágeno y queratina'},{letter:'D',text:'Insulina y glucagón'},{letter:'E',text:'Amilasa y lipasa'}], correct: 'A', explanation: 'Los filamentos delgados (actina) y gruesos (miosina) se deslizan para generar acortamiento sarcomérico.' },
+            { id: 61, team: 'p8', teamName: 'PARTE VIII. PROTEÍNAS', question: '61. ¿Cuál es una proteína con función inmunitaria?', options: [{letter:'A',text:'Hemoglobina'},{letter:'B',text:'Inmunoglobulina'},{letter:'C',text:'Colágeno'},{letter:'D',text:'Actina'},{letter:'E',text:'Insulina'}], correct: 'B', explanation: 'Los anticuerpos o inmunoglobulinas reconocen específicos determinantes antigénicos para neutralizar patógenos.' },
+            { id: 62, team: 'p8', teamName: 'PARTE VIII. PROTEÍNAS', question: '62. ¿Qué proteínas pueden funcionar como enzimas y marcadores de lesión?', options: [{letter:'A',text:'Amilasa, lipasa y transaminasas'},{letter:'B',text:'Colágeno y queratina'},{letter:'C',text:'Actina y miosina'},{letter:'D',text:'Insulina y glucagón'},{letter:'E',text:'Hemoglobina y albúmina'}], correct: 'A', explanation: 'Su elevación en suero (e.g., ALT, AST, lipasa) evidencia necrosis o daño tisular específico.' },
+
+            // PARTE IX
+            { id: 63, team: 'p9', teamName: 'PARTE IX. ÁCIDOS NUCLEICOS Y VITAMINAS', question: '63. ¿Cuál es la función principal del ADN?', options: [{letter:'A',text:'Transportar aminoácidos'},{letter:'B',text:'Almacenar información genética hereditaria'},{letter:'C',text:'Formar ATP directamente'},{letter:'D',text:'Degradar proteínas'},{letter:'E',text:'Transportar oxígeno'}], correct: 'B', explanation: 'Conserva el código genético requerido para el desarrollo y funcionamiento biológico transmisible a la descendencia.' },
+            { id: 64, team: 'p9', teamName: 'PARTE IX. ÁCIDOS NUCLEICOS Y VITAMINAS', question: '64. Un nucleótido de ADN contiene:', options: [{letter:'A',text:'Ribosa + aminoácido + fosfato'},{letter:'B',text:'Desoxirribosa + base nitrogenada + fosfato'},{letter:'C',text:'Glucosa + fosfato + lípido'},{letter:'D',text:'Ribosa + lípido + proteína'},{letter:'E',text:'Aminoácido + base + glucosa'}], correct: 'B', explanation: 'Un desoxirribonucleótido consta de una pentosa (2-desoxirribosa), un grupo fosfato y una base (A, T, C, G).' },
+            { id: 65, team: 'p9', teamName: 'PARTE IX. ÁCIDOS NUCLEICOS Y VITAMINAS', question: '65. ¿Qué bases se aparean en el ADN?', options: [{letter:'A',text:'A-U y G-C'},{letter:'B',text:'A-T y G-C'},{letter:'C',text:'A-G y T-C'},{letter:'D',text:'A-C y G-T'},{letter:'E',text:'A-U y C-T'}], correct: 'B', explanation: 'Reglas de Chargaff: Adenina complementa a Timina (A=T) y Guanina a Citosina (G≡C).' },
+            { id: 66, team: 'p9', teamName: 'PARTE IX. ÁCIDOS NUCLEICOS Y VITAMINAS', question: '66. ¿Cuántos puentes de hidrógeno forman A y T?', options: [{letter:'A',text:'1'},{letter:'B',text:'2'},{letter:'C',text:'3'},{letter:'D',text:'4'},{letter:'E',text:'5'}], correct: 'B', explanation: 'El par de bases A-T se une mediante dos puentes de hidrógeno; G-C forma tres.' },
+            { id: 67, team: 'p9', teamName: 'PARTE IX. ÁCIDOS NUCLEICOS Y VITAMINAS', question: '67. ¿Qué azúcar contiene el ARN?', options: [{letter:'A',text:'Desoxirribosa'},{letter:'B',text:'Glucosa'},{letter:'C',text:'Ribosa'},{letter:'D',text:'Fructosa'},{letter:'E',text:'Galactosa'}], correct: 'C', explanation: 'El ácido ribonucleico posee la pentosa ribosa (con un hidroxilo en el C2\').' },
+            { id: 68, team: 'p9', teamName: 'PARTE IX. ÁCIDOS NUCLEICOS Y VITAMINAS', question: '68. ¿Qué base nitrogenada está presente en ARN en lugar de timina?', options: [{letter:'A',text:'Adenina'},{letter:'B',text:'Guanina'},{letter:'C',text:'Citosina'},{letter:'D',text:'Uracilo'},{letter:'E',text:'Timina'}], correct: 'D', explanation: 'El uracilo sustituye a la timina como base pirimidínica complementaria de la adenina en el ARN.' },
+            { id: 69, team: 'p9', teamName: 'PARTE IX. ÁCIDOS NUCLEICOS Y VITAMINAS', question: '69. ¿Qué tipo de ARN transporta aminoácidos hacia el ribosoma?', options: [{letter:'A',text:'ARNm'},{letter:'B',text:'ARNt'},{letter:'C',text:'ARNr'},{letter:'D',text:'ADN'},{letter:'E',text:'miRNA'}], correct: 'B', explanation: 'El ARN de transferencia (ARNt) lleva el aminoácido acoplado según su anticodón hacia la maquinaria ribosomal.' },
+            { id: 70, team: 'p9', teamName: 'PARTE IX. ÁCIDOS NUCLEICOS Y VITAMINAS', question: '70. ¿Qué tipo de ARN forma parte estructural de los ribosomas?', options: [{letter:'A',text:'ARNm'},{letter:'B',text:'ARNt'},{letter:'C',text:'ARNr'},{letter:'D',text:'ADN'},{letter:'E',text:'ATP'}], correct: 'C', explanation: 'El ARN ribosomal (ARNr) integra la arquitectura del ribosoma y cataliza la unión peptídica (ribozima).' },
+            { id: 71, team: 'p9', teamName: 'PARTE IX. ÁCIDOS NUCLEICOS Y VITAMINAS', question: '71. ¿Cuáles vitaminas son liposolubles?', options: [{letter:'A',text:'B y C'},{letter:'B',text:'A, D, E y K'},{letter:'C',text:'B1, B9 y B12'},{letter:'D',text:'C y K'},{letter:'E',text:'B y D'}], correct: 'B', explanation: 'Las vitaminas A, D, E y K son apolares y se absorben junto con los lípidos de la dieta.' },
+            { id: 72, team: 'p9', teamName: 'PARTE IX. ÁCIDOS NUCLEICOS Y VITAMINAS', question: '72. ¿Cuál vitamina participa en la activación de factores de coagulación?', options: [{letter:'A',text:'A'},{letter:'B',text:'D'},{letter:'C',text:'E'},{letter:'D',text:'K'},{letter:'E',text:'C'}], correct: 'D', explanation: 'Es el cofactor de la gamma-glutamil carboxilasa necesaria para activar los factores II, VII, IX y X.' },
+            { id: 73, team: 'p9', teamName: 'PARTE IX. ÁCIDOS NUCLEICOS Y VITAMINAS', question: '73. El déficit de vitamina B9 se relaciona con:', options: [{letter:'A',text:'Anemia megaloblástica'},{letter:'B',text:'Alteración visual'},{letter:'C',text:'Sangrado'},{letter:'D',text:'Mala cicatrización'},{letter:'E',text:'Neuropatía exclusivamente'}], correct: 'A', explanation: 'La falta de ácido fólico (B9) interrumpe la síntesis de timidilato causando maduración nuclear defectuosa de precursores eritroides.' },
+            { id: 74, team: 'p9', teamName: 'PARTE IX. ÁCIDOS NUCLEICOS Y VITAMINAS', question: '74. ¿Qué vitamina participa en la síntesis de colágeno?', options: [{letter:'A',text:'A'},{letter:'B',text:'B1'},{letter:'C',text:'B12'},{letter:'D',text:'C'},{letter:'E',text:'K'}], correct: 'D', explanation: 'La vitamina C (ácido ascórbico) es el agente reductor esencial para las enzimas prolil y lisil hidroxilasas del colágeno.' },
+
+            // PARTE X
+            { id: 75, team: 'p10', teamName: 'PARTE X. CÉLULA PROCARIOTA Y EUCARIOTA', question: '75. La palabra procariota significa:', options: [{letter:'A',text:'Núcleo verdadero'},{letter:'B',text:'Antes del núcleo'},{letter:'C',text:'Núcleo doble'},{letter:'D',text:'Sin citoplasma'},{letter:'E',text:'Célula especializada'}], correct: 'B', explanation: 'Etimológicamente procede del griego pro (antes) y karyon (núcleo o nuez).' },
+            { id: 76, team: 'p10', teamName: 'PARTE X. CÉLULA PROCARIOTA Y EUCARIOTA', question: '76. ¿Cuáles organismos pertenecen a los dominios procariotas?', options: [{letter:'A',text:'Eukarya únicamente'},{letter:'B',text:'Bacteria y Archaea'},{letter:'C',text:'Animales y plantas'},{letter:'D',text:'Hongos y plantas'},{letter:'E',text:'Protistas y animales'}], correct: 'B', explanation: 'Los dominios de la vida Bacteria y Archaea agrupan a todos los seres procariontes.' },
+            { id: 77, team: 'p10', teamName: 'PARTE X. CÉLULA PROCARIOTA Y EUCARIOTA', question: '77. ¿Cuál característica corresponde a una célula procariota?', options: [{letter:'A',text:'Núcleo rodeado por membrana'},{letter:'B',text:'Mitocondrias'},{letter:'C',text:'ADN localizado en nucleoide'},{letter:'D',text:'Retículo endoplásmico'},{letter:'E',text:'Aparato de Golgi'}], correct: 'C', explanation: 'Poseen una región cromosómica desnuda no delimitada llamada nucleoide.' },
+            { id: 78, team: 'p10', teamName: 'PARTE X. CÉLULA PROCARIOTA Y EUCARIOTA', question: '78. ¿Qué significa eucariota?', options: [{letter:'A',text:'Antes del núcleo'},{letter:'B',text:'Núcleo verdadero'},{letter:'C',text:'Sin ADN'},{letter:'D',text:'Sin organelos'},{letter:'E',text:'Célula bacteriana'}], correct: 'B', explanation: 'Del griego eu (bueno/verdadero) y karyon (núcleo).' },
+            { id: 79, team: 'p10', teamName: 'PARTE X. CÉLULA PROCARIOTA Y EUCARIOTA', question: '79. ¿Cuál organismo es eucariota?', options: [{letter:'A',text:'Escherichia coli'},{letter:'B',text:'Staphylococcus aureus'},{letter:'C',text:'Mycobacterium tuberculosis'},{letter:'D',text:'Ser humano'},{letter:'E',text:'Salmonella enterica'}], correct: 'D', explanation: 'Los seres humanos son organismos multicelulares formados por células eucariotas.' },
+            { id: 80, team: 'p10', teamName: 'PARTE X. CÉLULA PROCARIOTA Y EUCARIOTA', question: '80. ¿Cuál diferencia es correcta?', options: [{letter:'A',text:'Procariotas tienen núcleo; eucariotas no'},{letter:'B',text:'Ambas poseen exactamente los mismos organelos'},{letter:'C',text:'Procariotas carecen de núcleo delimitado; eucariotas poseen núcleo'},{letter:'D',text:'Eucariotas tienen ADN circular exclusivamente'},{letter:'E',text:'Procariotas realizan meiosis'}], correct: 'C', explanation: 'La compartimentalización nuclear es el límite evolutivo distintivo entre ambos dominios.' },
+            { id: 81, team: 'p10', teamName: 'PARTE X. CÉLULA PROCARIOTA Y EUCARIOTA', question: '81. ¿Cuál es el rango de tamaño general de las células procariotas presentado?', options: [{letter:'A',text:'0.1-5 μm'},{letter:'B',text:'10-100 μm'},{letter:'C',text:'100-500 µm'},{letter:'D',text:'1-100 mm'},{letter:'E',text:'0.01-0.05 µm'}], correct: 'A', explanation: 'Las bacterias miden típicamente de 0.1 a 5 micrómetros de diámetro.' },
+            { id: 82, team: 'p10', teamName: 'PARTE X. CÉLULA PROCARIOTA Y EUCARIOTA', question: '82. ¿Cuál es el rango de tamaño general de las células eucariotas presentado?', options: [{letter:'A',text:'0.1-5 μm'},{letter:'B',text:'10-100 μm'},{letter:'C',text:'1-5 nm'},{letter:'D',text:'100-500 nm'},{letter:'E',text:'0.01-0.1 µm'}], correct: 'B', explanation: 'Las células eucariotas son notoriamente mayores, oscilando habitualmente entre 10 y 100 µm.' },
+            { id: 83, team: 'p10', teamName: 'PARTE X. CÉLULA PROCARIOTA Y EUCARIOTA', question: '83. ¿Cómo se dividen las células procariotas?', options: [{letter:'A',text:'Mitosis'},{letter:'B',text:'Meiosis'},{letter:'C',text:'Fisión binaria'},{letter:'D',text:'Gemación exclusivamente'},{letter:'E',text:'Fragmentación'}], correct: 'C', explanation: 'Se replican mediante fisión binaria asexual (duplicación cromosómica y citocinesis simple).' },
+            { id: 84, team: 'p10', teamName: 'PARTE X. CÉLULA PROCARIOTA Y EUCARIOTA', question: '84. Los ribosomas citosólicos de las células eucariotas son:', options: [{letter:'A',text:'30S'},{letter:'B',text:'40S'},{letter:'C',text:'50S'},{letter:'D',text:'70S'},{letter:'E',text:'80S'}], correct: 'E', explanation: 'Los ribosomas eucariotas son de coeficiente de sedimentación 80S (subunidades 40S y 60S).' },
+
+            // PARTE XI
+            { id: 85, team: 'p11', teamName: 'PARTE XI. ORGANIZACIÓN CELULAR', question: '85. ¿Cuál es la unidad anatómica, estructural y funcional de los seres vivos?', options: [{letter:'A',text:'Tejido'},{letter:'B',text:'Órgano'},{letter:'C',text:'Célula'},{letter:'D',text:'Sistema'},{letter:'E',text:'Organelo'}], correct: 'C', explanation: 'Postulado clásico de la Teoría Celular: la célula es la unidad de vida.' },
+            { id: 86, team: 'p11', teamName: 'PARTE XI. ORGANIZACIÓN CELULAR', question: '86. Un tejido se define como:', options: [{letter:'A',text:'Una sola célula especializada'},{letter:'B',text:'Conjunto organizado de células similares con origen embrionario común'},{letter:'C',text:'Agrupación de órganos'},{letter:'D',text:'Conjunto de moléculas'},{letter:'E',text:'Una estructura exclusivamente muscular'}], correct: 'B', explanation: 'Las células afines se agrupan morfológicamente para coordinar funciones tisulares específicas.' },
+            { id: 87, team: 'p11', teamName: 'PARTE XI. ORGANIZACIÓN CELULAR', question: '87. ¿Cuál tejido transmite señales eléctricas?', options: [{letter:'A',text:'Epitelial'},{letter:'B',text:'Conectivo'},{letter:'C',text:'Muscular'},{letter:'D',text:'Nervioso'},{letter:'E',text:'Óseo'}], correct: 'D', explanation: 'El tejido nervioso conduce impulsos electroquímicos (potenciales de acción) mediante neuronas.' },
+            { id: 88, team: 'p11', teamName: 'PARTE XI. ORGANIZACIÓN CELULAR', question: '88. Un órgano está formado por:', options: [{letter:'A',text:'Un solo tipo de célula'},{letter:'B',text:'Dos o más tipos de tejidos'},{letter:'C',text:'Únicamente tejido epitelial'},{letter:'D',text:'Únicamente tejido muscular'},{letter:'E',text:'Moléculas sin células'}], correct: 'B', explanation: 'Múltiples capas tisulares se acoplan anatómicamente para desempeñar metas fisiológicas integradas.' },
+            { id: 89, team: 'p11', teamName: 'PARTE XI. ORGANIZACIÓN CELULAR', question: '89. ¿Cuál es el órgano más grande del cuerpo?', options: [{letter:'A',text:'Hígado'},{letter:'B',text:'Pulmón'},{letter:'C',text:'Corazón'},{letter:'D',text:'Piel'},{letter:'E',text:'Riñón'}], correct: 'D', explanation: 'El tegumento o piel representa el órgano de mayor superficie y peso corporal.' },
+
+            // PARTE XII
+            { id: 90, team: 'p12', teamName: 'PARTE XII. NÚCLEO Y MATERIAL GENÉTICO', question: '90. ¿Cuál es una función de la envoltura nuclear?', options: [{letter:'A',text:'Sintetizar ATP'},{letter:'B',text:'Proteger el ADN y regular intercambio molecular'},{letter:'C',text:'Degradar proteínas'},{letter:'D',text:'Formar lípidos'},{letter:'E',text:'Realizar glucólisis'}], correct: 'B', explanation: 'La carioteca aísla el material genético del citosol y norma el tráfico por los poros nucleares.' },
+            { id: 91, team: 'p12', teamName: 'PARTE XII. NÚCLEO Y MATERIAL GENÉTICO', question: '91. Los poros nucleares permiten:', options: [{letter:'A',text:'La síntesis de ATP'},{letter:'B',text:'El flujo selectivo de ARN y proteínas entre núcleo y citoplasma'},{letter:'C',text:'La digestión celular'},{letter:'D',text:'La β-oxidación'},{letter:'E',text:'La formación de lisosomas'}], correct: 'B', explanation: 'El complejo del poro nuclear (NPC) fiscaliza el transporte bidireccional macromolecular.' },
+            { id: 92, team: 'p12', teamName: 'PARTE XII. NÚCLEO Y MATERIAL GENÉTICO', question: '92. La cromatina está formada por:', options: [{letter:'A',text:'ARN asociado a ribosomas'},{letter:'B',text:'ADN asociado a histonas'},{letter:'C',text:'Proteínas asociadas a lípidos'},{letter:'D',text:'ARN y glucosa'},{letter:'E',text:'ADN y triglicéridos'}], correct: 'B', explanation: 'La cromatina es el complejo nucleoproteico constituido por la doble hélice de ADN empaquetada con octámeros de histonas.' },
+            { id: 93, team: 'p12', teamName: 'PARTE XII. NÚCLEO Y MATERIAL GENÉTICO', question: '93. ¿Cuál tipo de cromatina se presenta como activa?', options: [{letter:'A',text:'Heterocromatina'},{letter:'B',text:'Eucromatina'},{letter:'C',text:'Cromosoma'},{letter:'D',text:'Nucleoide'},{letter:'E',text:'Centrómero'}], correct: 'B', explanation: 'La eucromatina está descondensada y es accesible para la transcripción génica.' },
+            { id: 94, team: 'p12', teamName: 'PARTE XII. NÚCLEO Y MATERIAL GENÉTICO', question: '94. El nucléolo se caracteriza por:', options: [{letter:'A',text:'Tener doble membrana'},{letter:'B',text:'No poseer membrana propia'},{letter:'C',text:'Contener mitocondrias'},{letter:'D',text:'Ser parte del lisosoma'},{letter:'E',text:'Formar ATP'}], correct: 'B', explanation: 'Es un subcompartimento nuclear denso producido por condensación de ARN y proteínas sin membrana envolvente.' },
+            { id: 95, team: 'p12', teamName: 'PARTE XII. NÚCLEO Y MATERIAL GENÉTICO', question: '95. Una función fundamental del nucléolo es:', options: [{letter:'A',text:'Síntesis de ARN ribosomal y producción de ribosomas'},{letter:'B',text:'Síntesis de lípidos'},{letter:'C',text:'β-oxidación'},{letter:'D',text:'Formación del huso mitótico'},{letter:'E',text:'Exocitosis'}], correct: 'A', explanation: 'Sintetiza y procesa los pre-ARNr para ensamblar las subunidades ribosómicas 40S y 60S.' },
+
+            // PARTE XIII
+            { id: 96, team: 'p13', teamName: 'PARTE XIII. RIBOSOMAS Y RETÍCULO ENDOPLÁSMICO', question: '96. ¿Cuál es la función principal de los ribosomas?', options: [{letter:'A',text:'Degradación celular'},{letter:'B',text:'Síntesis de proteínas'},{letter:'C',text:'Síntesis de ATP'},{letter:'D',text:'Almacenamiento de ADN'},{letter:'E',text:'Digestión de lípidos'}], correct: 'B', explanation: 'Traducen la secuencia codificante del ARNm hacia cadenas de aminoácidos.' },
+            { id: 97, team: 'p13', teamName: 'PARTE XIII. RIBOSOMAS Y RETÍCULO ENDOPLÁSMICO', question: '97. ¿Qué subunidad ribosomal eucariota se une al ARNm?', options: [{letter:'A',text:'20S'},{letter:'B',text:'30S'},{letter:'C',text:'40S'},{letter:'D',text:'50S'},{letter:'E',text:'60S'}], correct: 'C', explanation: 'La subunidad menor 40S reconoce el capuchón 5\' y escanea el ARNm buscando el codón de inicio AUG.' },
+            { id: 98, team: 'p13', teamName: 'PARTE XIII. RIBOSOMAS Y RETÍCULO ENDOPLÁSMICO', question: '98. ¿Qué subunidad cataliza la formación de enlaces peptídicos?', options: [{letter:'A',text:'20S'},{letter:'B',text:'30S'},{letter:'C',text:'40S'},{letter:'D',text:'60S'},{letter:'E',text:'80S'}], correct: 'D', explanation: 'La subunidad mayor 60S alberga el centro de la peptidil transferasa en su ARNr 28S.' },
+            { id: 99, team: 'p13', teamName: 'PARTE XIII. RIBOSOMAS Y RETÍCULO ENDOPLÁSMICO', question: '99. Los ribosomas unidos al RER producen principalmente proteínas:', options: [{letter:'A',text:'Exclusivamente citosólicas'},{letter:'B',text:'Secretadas, de membrana y lisosomales'},{letter:'C',text:'Exclusivamente mitocondriales'},{letter:'D',text:'Exclusivamente nucleares'},{letter:'E',text:'Exclusivamente del citoesqueleto'}], correct: 'B', explanation: 'Pertenecen a la vía secretora destinada a la membrana plasmática, digestión lisosomal o exportación al exterior.' },
+            { id: 100, team: 'p13', teamName: 'PARTE XIII. RIBOSOMAS Y RETÍCULO ENDOPLÁSMICO', question: '100. ¿Cuál es una característica del RER?', options: [{letter:'A',text:'Carece de ribosomas'},{letter:'B',text:'Presenta ribosomas adheridos'},{letter:'C',text:'Sintetiza exclusivamente ATP'},{letter:'D',text:'Degrada ADN'},{letter:'E',text:'Produce lisosomas directamente'}], correct: 'B', explanation: 'Su cara citosólica aparece rugosa debido al tachonado continuo de ribosomas en traducción.' },
+            { id: 101, team: 'p13', teamName: 'PARTE XIII. RIBOSOMAS Y RETÍCULO ENDOPLÁSMICO', question: '101. ¿Cuál es una función importante del REL?', options: [{letter:'A',text:'Síntesis de lípidos y detoxificación'},{letter:'B',text:'Síntesis de ARN ribosomal'},{letter:'C',text:'Formación de cromosomas'},{letter:'D',text:'Traducción'},{letter:'E',text:'Producción de anticuerpos'}], correct: 'A', explanation: 'El retículo endoplásmico liso sintetiza fosfolípidos/esteroides y metaboliza toxinas xenobióticas por citocromo P450.' },
+
+            // PARTE XIV
+            { id: 102, team: 'p14', teamName: 'PARTE XIV. GOLGI, LISOSOMAS Y VESÍCULAS', question: '102. ¿Cuál es una función característica del aparato de Golgi?', options: [{letter:'A',text:'Almacenar ADN'},{letter:'B',text:'Modificar, clasificar y distribuir proteínas y lípidos'},{letter:'C',text:'Producir ATP'},{letter:'D',text:'Realizar β-oxidación'},{letter:'E',text:'Sintetizar ADN'}], correct: 'B', explanation: 'El complejo de Golgi modifica glucosídicamente las proteínas procesadas y las empaqueta en vesículas con destinos específicos.' },
+            { id: 103, team: 'p14', teamName: 'PARTE XIV. GOLGI, LISOSOMAS Y VESÍCULAS', question: '103. La glucosilación de proteínas ocurre principalmente como parte de la función de:', options: [{letter:'A',text:'Mitocondria'},{letter:'B',text:'Lisosoma'},{letter:'C',text:'Aparato de Golgi'},{letter:'D',text:'Núcleo'},{letter:'E',text:'Centrosoma'}], correct: 'C', explanation: 'En sus cisternas cis, medial y trans se adicionan y remodelan las cadenas de oligosacáridos (O-glucosilación y N-glucosilación tardía).' },
+            { id: 104, team: 'p14', teamName: 'PARTE XIV. GOLGI, LISOSOMAS Y VESÍCULAS', question: '104. ¿Qué organelo contiene enzimas hidrolíticas y un interior ácido?', options: [{letter:'A',text:'Ribosoma'},{letter:'B',text:'Lisosoma'},{letter:'C',text:'Núcleo'},{letter:'D',text:'Mitocondria'},{letter:'E',text:'Centrosoma'}], correct: 'B', explanation: 'Los lisosomas mantienen un pH interno ~4.5 a 5 gracias a bombas de protones para activar sus hidrolasas ácidas.' },
+            { id: 105, team: 'p14', teamName: 'PARTE XIV. GOLGI, LISOSOMAS Y VESÍCULAS', question: '105. La autofagia consiste principalmente en:', options: [{letter:'A',text:'Producción de proteínas'},{letter:'B',text:'Degradación de organelos envejecidos y reciclaje de componentes'},{letter:'C',text:'Síntesis de lípidos'},{letter:'D',text:'Transporte de oxígeno'},{letter:'E',text:'Replicación de ADN'}], correct: 'B', explanation: 'Mecanismo celular mediante el cual vacuolas autofágicas destruyen componentes celulares defectuosos para reciclar nutrientes.' },
+            { id: 106, team: 'p14', teamName: 'PARTE XIV. GOLGI, LISOSOMAS Y VESÍCULAS', question: '106. ¿Qué estructura clasifica materiales que ingresan a la célula mediante endocitosis?', options: [{letter:'A',text:'Endosoma'},{letter:'B',text:'Nucléolo'},{letter:'C',text:'Ribosoma'},{letter:'D',text:'Centrosoma'},{letter:'E',text:'Mitocondria'}], correct: 'A', explanation: 'El endosoma temprano y tardío clasifica el material internalizado enviando moléculas reciclables de vuelta o a degradación lisosomal.' },
+            { id: 107, team: 'p14', teamName: 'PARTE XIV. GOLGI, LISOSOMAS Y VESÍCULAS', question: '107. El reciclaje de receptores hacia la membrana plasmática corresponde a una función de:', options: [{letter:'A',text:'Endosomas y vesículas'},{letter:'B',text:'Mitocondrias'},{letter:'C',text:'Ribosomas'},{letter:'D',text:'Nucléolos'},{letter:'E',text:'Cromatina'}], correct: 'A', explanation: 'Los endosomas de reciclaje separan el ligando del receptor para restituir a este último en la superficie membranosa.' },
+
+            // PARTE XV
+            { id: 108, team: 'p15', teamName: 'PARTE XV. CITOESQUELETO', question: '108. ¿Cuál es la función general del citoesqueleto?', options: [{letter:'A',text:'Almacenar ADN'},{letter:'B',text:'Mantener la forma celular y organizar componentes'},{letter:'C',text:'Sintetizar glucosa'},{letter:'D',text:'Formar anticuerpos'},{letter:'E',text:'Regular exclusivamente el pH'}], correct: 'B', explanation: 'Otorga soporte mecánico, forma, polaridad espacial y facilita el movimiento intracellular y la división.' },
+            { id: 109, team: 'p15', teamName: 'PARTE XV. CITOESQUELETO', question: '109. ¿Cuál componente del citoesqueleto está formado por actina?', options: [{letter:'A',text:'Microtúbulos'},{letter:'B',text:'Filamentos intermedios'},{letter:'C',text:'Microfilamentos'},{letter:'D',text:'Centríolos'},{letter:'E',text:'Flagelos'}], correct: 'C', explanation: 'Los microfilamentos de actina (actina F) son polímeros de actina G polares de ~7 nm de grosor.' },
+            { id: 110, team: 'p15', teamName: 'PARTE XV. CITOESQUELETO', question: '110. Los filamentos intermedios participan principalmente en:', options: [{letter:'A',text:'Resistencia mecánica y estabilidad'},{letter:'B',text:'Síntesis de ATP'},{letter:'C',text:'Traducción'},{letter:'D',text:'Exocitosis'},{letter:'E',text:'Transporte de electrones'}], correct: 'A', explanation: 'Resisten fuerzas de tensión e impacto físico (e.g. queratinas, neurofilamentos, láminas nucleares).' },
+            { id: 111, team: 'p15', teamName: 'PARTE XV. CITOESQUELETO', question: '111. Los microtúbulos están formados principalmente por:', options: [{letter:'A',text:'Actina'},{letter:'B',text:'Tubulina α y β'},{letter:'C',text:'Queratina'},{letter:'D',text:'Colágeno'},{letter:'E',text:'Miosina'}], correct: 'B', explanation: 'Son cilindros huecos formados por protofilamentos de heterodímeros de α y β tubulina.' },
+            { id: 112, team: 'p15', teamName: 'PARTE XV. CITOESQUELETO', question: '112. ¿Qué proteína motora se relaciona principalmente con el transporte anterógrado?', options: [{letter:'A',text:'Dineína'},{letter:'B',text:'Cinesina'},{letter:'C',text:'Miosina'},{letter:'D',text:'Actina'},{letter:'E',text:'Tubulina'}], correct: 'B', explanation: 'La cinesina o kinesina camina sobre microtúbulos hacia el extremo positivo (+) o anterógrado.' },
+            { id: 113, team: 'p15', teamName: 'PARTE XV. CITOESQUELETO', question: '113. ¿Qué proteína motora participa en el transporte retrógrado?', options: [{letter:'A',text:'Cinesina'},{letter:'B',text:'Miosina'},{letter:'C',text:'Dineína'},{letter:'D',text:'Actina'},{letter:'E',text:'Queratina'}], correct: 'C', explanation: 'La dineína se desplaza retrogradamente hacia el extremo negativo (-) cerca del centrosoma.' },
+            { id: 114, team: 'p15', teamName: 'PARTE XV. CITOESQUELETO', question: '114. ¿Cuál proteína motora interactúa con actina?', options: [{letter:'A',text:'Cinesina'},{letter:'B',text:'Dineína'},{letter:'C',text:'Miosina'},{letter:'D',text:'Tubulina'},{letter:'E',text:'Colágeno'}], correct: 'C', explanation: 'Las miosinas se acoplan e hidrolizan ATP para deslizarse sobre los microfilamentos de actina.' },
+
+            // PARTE XVI
+            { id: 115, team: 'p16', teamName: 'PARTE XVI. CILIOS Y FLAGELOS', question: '115. Los cilios están formados principalmente por:', options: [{letter:'A',text:'Microtúbulos'},{letter:'B',text:'Filamentos intermedios'},{letter:'C',text:'Actina exclusivamente'},{letter:'D',text:'Colágeno'},{letter:'E',text:'ADN'}], correct: 'A', explanation: 'Su esqueleto es el axonema, formado por un arreglo microtubular 9+2 de tubulina.' },
+            { id: 116, team: 'p16', teamName: 'PARTE XVI. CILIOS Y FLAGELOS', question: '116. ¿Cuál es una función de los cilios móviles?', options: [{letter:'A',text:'Almacenar ADN'},{letter:'B',text:'Desplazar líquidos o partículas'},{letter:'C',text:'Sintetizar ATP'},{letter:'D',text:'Formar anticuerpos'},{letter:'E',text:'Degradar proteínas'}], correct: 'B', explanation: 'Baten rítmicamente para movilizar moco en el epitelio respiratorio u ovocitos en las trompas uterinas.' },
+            { id: 117, team: 'p16', teamName: 'PARTE XVI. CILIOS Y FLAGELOS', question: '117. ¿Cuál es un ejemplo de célula humana con flagelo?', options: [{letter:'A',text:'Eritrocito'},{letter:'B',text:'Neurona'},{letter:'C',text:'Espermatozoide'},{letter:'D',text:'Hepatocito'},{letter:'E',text:'Neutrófilo'}], correct: 'C', explanation: 'El gameto masculino o espermatozoide posee el único flagelo funcional en el cuerpo humano para su propulsión.' },
+
+            // PARTE XVII
+            { id: 118, team: 'p17', teamName: 'PARTE XVII. MITOCONDRIA', question: '118. La principal función de la mitocondria es:', options: [{letter:'A',text:'Síntesis de proteínas exclusivamente'},{letter:'B',text:'Respiración celular y producción de ATP'},{letter:'C',text:'Degradación de ADN'},{letter:'D',text:'Almacenamiento de glucógeno'},{letter:'E',text:'Formación del glicocálix'}], correct: 'B', explanation: 'Alberga la descarboxilación del piruvato, ciclo de Krebs y fosforilación oxidativa para generar energía.' },
+            { id: 119, team: 'p17', teamName: 'PARTE XVII. MITOCONDRIA', question: '119. ¿Cuántas membranas posee una mitocondria?', options: [{letter:'A',text:'Ninguna'},{letter:'B',text:'Una'},{letter:'C',text:'Dos'},{letter:'D',text:'Tres'},{letter:'E',text:'Cuatro'}], correct: 'C', explanation: 'Está envuelta por dos membranas: la externa lisa y la interna plegada en crestas.' },
+            { id: 120, team: 'p17', teamName: 'PARTE XVII. MITOCONDRIA', question: '120. ¿Dónde se encuentra el ADN mitocondrial?', options: [{letter:'A',text:'En el espacio intermembranoso'},{letter:'B',text:'En la matriz mitocondrial'},{letter:'C',text:'En la membrana externa'},{letter:'D',text:'En el citosol'},{letter:'E',text:'En el nucléolo'}], correct: 'B', explanation: 'El genoma mitocondrial (ADNmt) flota libremente en el compartimento fluido interno o matriz.' },
+            { id: 121, team: 'p17', teamName: 'PARTE XVII. MITOCONDRIA', question: '121. El ADN mitocondrial se caracteriza por ser:', options: [{letter:'A',text:'Lineal y heredado exclusivamente del padre'},{letter:'B',text:'Circular y heredado por vía materna'},{letter:'C',text:'Lineal y exclusivamente nuclear'},{letter:'D',text:'Circular y exclusivamente paterno'},{letter:'E',text:'ARN y materno'}], correct: 'B', explanation: 'Es una molécula circular bicatenaria que se transmite casi en su totalidad por la línea materna a través del ovocito.' },
+            { id: 122, team: 'p17', teamName: 'PARTE XVII. MITOCONDRIA', question: '122. ¿Qué estructura de la mitocondria contiene las crestas?', options: [{letter:'A',text:'Membrana externa'},{letter:'B',text:'Membrana interna'},{letter:'C',text:'Matriz'},{letter:'D',text:'Citosol'},{letter:'E',text:'Espacio intercelular'}], correct: 'B', explanation: 'La membrana mitocondrial interna se repliega profundamente hacia adentro formando crestas.' },
+            { id: 123, team: 'p17', teamName: 'PARTE XVII. MITOCONDRIA', question: '123. ¿Dónde ocurre el ciclo de Krebs según la presentación?', options: [{letter:'A',text:'Citosol'},{letter:'B',text:'Membrana externa'},{letter:'C',text:'Matriz mitocondrial'},{letter:'D',text:'Espacio intermembranoso'},{letter:'E',text:'Membrana plasmática'}], correct: 'C', explanation: 'Las enzimas solubles del ciclo del ácido cítrico se ubican en la matriz mitocondrial.' },
+            { id: 124, team: 'p17', teamName: 'PARTE XVII. MITOCONDRIA', question: '124. ¿Dónde ocurre la cadena de transporte de electrones?', options: [{letter:'A',text:'Matriz mitocondrial'},{letter:'B',text:'Membrana interna/crestas'},{letter:'C',text:'Citosol'},{letter:'D',text:'Núcleo'},{letter:'E',text:'Membrana externa'}], correct: 'B', explanation: 'Los complejos multienzimáticos I-IV y cofactores se encuentran anclados en la membrana interna.' },
+            { id: 125, team: 'p17', teamName: 'PARTE XVII. MITOCONDRIA', question: '125. ¿Qué genera el bombeo de protones durante la cadena respiratoria?', options: [{letter:'A',text:'Un gradiente electroquímico'},{letter:'B',text:'ADN'},{letter:'C',text:'Ribosomas'},{letter:'D',text:'Glucógeno'},{letter:'E',text:'Colágeno'}], correct: 'A', explanation: 'Acumula H+ en el espacio intermembrana estableciendo la fuerza protón-motriz.' },
+            { id: 126, team: 'p17', teamName: 'PARTE XVII. MITOCONDRIA', question: '126. El flujo de protones a través de la ATP sintasa permite:', options: [{letter:'A',text:'Degradar ADN'},{letter:'B',text:'Sintetizar ATP a partir de ADP + Pi'},{letter:'C',text:'Formar glucosa'},{letter:'D',text:'Crear proteínas directamente'},{letter:'E',text:'Producir ARN'}], correct: 'B', explanation: 'El paso quimiosmótico rotacional del flujo protónico acciona la catálisis de ADP + Pi -> ATP.' },
+            { id: 127, team: 'p17', teamName: 'PARTE XVII. MITOCONDRIA', question: '127. La β-oxidación de ácidos grasos ocurre principalmente en:', options: [{letter:'A',text:'Núcleo'},{letter:'B',text:'Matriz mitocondrial'},{letter:'C',text:'Aparato de Golgi'},{letter:'D',text:'Lisosoma'},{letter:'E',text:'RER'}], correct: 'B', explanation: 'La degradación oxidativa repetida del acil-CoA ocurre dentro de la matriz mitocondrial.' },
+            { id: 128, team: 'p17', teamName: 'PARTE XVII. MITOCONDRIA', question: '128. ¿Qué molécula puede liberarse desde la mitocondria al citosol para iniciar una cascada apoptótica?', options: [{letter:'A',text:'Insulina'},{letter:'B',text:'Citocromo c'},{letter:'C',text:'Glucógeno'},{letter:'D',text:'Hemoglobina'},{letter:'E',text:'Colágeno'}], correct: 'B', explanation: 'La salida de citocromo c al citoplasma activa el apoptosoma y las caspasas iniciadoras (vía intrínseca).' },
+
+            // PARTE XVIII
+            { id: 129, team: 'p18', teamName: 'PARTE XVIII. MEMBRANA CELULAR', question: '129. La membrana plasmática está constituida principalmente por:', options: [{letter:'A',text:'Una monocapa de proteínas'},{letter:'B',text:'Una bicapa lipídica con proteínas y otros componentes'},{letter:'C',text:'ADN y ARN'},{letter:'D',text:'Carbohidratos exclusivamente'},{letter:'E',text:'Colágeno'}], correct: 'B', explanation: 'Su matriz estructural es la doble capa de fosfolípidos con proteínas integrales y periféricas.' },
+            { id: 130, team: 'p18', teamName: 'PARTE XVIII. MEMBRANA CELULAR', question: '130. El modelo que describe la membrana plasmática es:', options: [{letter:'A',text:'Modelo de doble hélice'},{letter:'B',text:'Modelo del mosaico fluido'},{letter:'C',text:'Modelo de cadena fija'},{letter:'D',text:'Modelo de micela rígida'},{letter:'E',text:'Modelo nuclear'}], correct: 'B', explanation: 'Postulado por Singer y Nicolson en 1972.' },
+            { id: 131, team: 'p18', teamName: 'PARTE XVIII. MEMBRANA CELULAR', question: '131. ¿Cuáles son los componentes fundamentales de la membrana?', options: [{letter:'A',text:'ADN, ARN y ATP'},{letter:'B',text:'Lípidos, proteínas y glúcidos'},{letter:'C',text:'Agua, ADN y proteínas'},{letter:'D',text:'Aminoácidos, glucosa y ADN'},{letter:'E',text:'Sales, proteínas y ARN'}], correct: 'B', explanation: 'Son las tres clases moleculares constituyentes de la membrana celular.' },
+            { id: 132, team: 'p18', teamName: 'PARTE XVIII. MEMBRANA CELULAR', question: '132. ¿Cuáles son los lípidos más abundantes de la membrana?', options: [{letter:'A',text:'Triglicéridos'},{letter:'B',text:'Fosfolípidos'},{letter:'C',text:'Eicosanoides'},{letter:'D',text:'Vitaminas'},{letter:'E',text:'Glucógeno'}], correct: 'B', explanation: 'Forman la matriz estructural continua de la bicapa.' },
+            { id: 133, team: 'p18', teamName: 'PARTE XVIII. MEMBRANA CELULAR', question: '133. Los fosfolípidos son moléculas:', options: [{letter:'A',text:'Hidrofóbicas exclusivamente'},{letter:'B',text:'Anfipáticas'},{letter:'C',text:'Proteicas'},{letter:'D',text:'Nucleotídicas'},{letter:'E',text:'Electrolíticas'}], correct: 'B', explanation: 'Poseen una cabeza polar hidrofílica y dos colas de ácidos grasos apolares hidrofóbicas.' },
+            { id: 134, team: 'p18', teamName: 'PARTE XVIII. MEMBRANA CELULAR', question: '134. ¿Cuál es una función del colesterol en la membrana?', options: [{letter:'A',text:'Codificar proteínas'},{letter:'B',text:'Regular estabilidad y fluidez'},{letter:'C',text:'Sintetizar ADN'},{letter:'D',text:'Formar ribosomas'},{letter:'E',text:'Transportar aminoácidos'}], correct: 'B', explanation: 'Impide la cristalización a bajas temperaturas y restringe el movimiento excesivo a elevadas temperaturas.' },
+            { id: 135, team: 'p18', teamName: 'PARTE XVIII. MEMBRANA CELULAR', question: '135. Los glucolípidos se encuentran principalmente:', options: [{letter:'A',text:'En la cara externa de la membrana'},{letter:'B',text:'En el núcleo'},{letter:'C',text:'En la matriz mitocondrial'},{letter:'D',text:'En el nucléolo'},{letter:'E',text:'En el citosol'}], correct: 'A', explanation: 'Están orientados asimétricamente hacia la monocapa extracelular formando el glicocálix.' },
+            { id: 136, team: 'p18', teamName: 'PARTE XVIII. MEMBRANA CELULAR', question: '136. Las proteínas integrales:', options: [{letter:'A',text:'Se encuentran exclusivamente en el núcleo'},{letter:'B',text:'Atraviesan parcial o totalmente la bicapa'},{letter:'C',text:'Son exclusivamente enzimas'},{letter:'D',text:'No interactúan con la membrana'},{letter:'E',text:'Son únicamente carbohidratos'}], correct: 'B', explanation: 'Están estrechamente unidas mediante interacciones hidrofóbicas con el interior apolar de los lípidos.' },
+            { id: 137, team: 'p18', teamName: 'PARTE XVIII. MEMBRANA CELULAR', question: '137. Las proteínas periféricas participan principalmente en:', options: [{letter:'A',text:'Soporte estructural y señalización'},{letter:'B',text:'Síntesis de ADN exclusivamente'},{letter:'C',text:'Producción de ATP'},{letter:'D',text:'β-oxidación'},{letter:'E',text:'Formación de glucógeno'}], correct: 'A', explanation: 'Se asocian no covalentemente a las cabezas lipídicas o proteínas integrales sirviendo de anclaje citosólico.' },
+            { id: 138, team: 'p18', teamName: 'PARTE XVIII. MEMBRANA CELULAR', question: '138. El glicocálix está formado principalmente por:', options: [{letter:'A',text:'ADN y ARN'},{letter:'B',text:'Oligosacáridos y polisacáridos unidos a lípidos o proteínas'},{letter:'C',text:'ATP'},{letter:'D',text:'Fosfato libre'},{letter:'E',text:'Aminoácidos libres'}], correct: 'B', explanation: 'Constituye la cubierta de glucoproteínas y glucolípidos que recubre la cara extracelular.' },
+            { id: 139, team: 'p18', teamName: 'PARTE XVIII. MEMBRANA CELULAR', question: '139. Una función del glicocálix es:', options: [{letter:'A',text:'Reconocimiento celular'},{letter:'B',text:'Síntesis de ATP'},{letter:'C',text:'Replicación de ADN'},{letter:'D',text:'β-oxidación'},{letter:'E',text:'Síntesis de ribosomas'}], correct: 'A', explanation: 'Participa en la adhesión celular, protección y reconocimiento específico histocompatible.' },
+
+            // PARTE XIX
+            { id: 140, team: 'p19', teamName: 'PARTE XIX. TRANSPORTE DE MEMBRANA', question: '140. El transporte pasivo se caracteriza por:', options: [{letter:'A',text:'Requerir ATP siempre'},{letter:'B',text:'Mover sustancias contra el gradiente'},{letter:'C',text:'Ocurrir a favor del gradiente sin gasto de energía'},{letter:'D',text:'Utilizar exclusivamente vesículas'},{letter:'E',text:'Ser exclusivo de proteínas'}], correct: 'C', explanation: 'Aprovecha la diferencia electroquímica de concentración espontáneamente.' },
+            { id: 141, team: 'p19', teamName: 'PARTE XIX. TRANSPORTE DE MEMBRANA', question: '141. ¿Cuál es un ejemplo de transporte activo?', options: [{letter:'A',text:'Difusión simple'},{letter:'B',text:'Difusión facilitada'},{letter:'C',text:'Bomba Na+/K+'},{letter:'D',text:'Ósmosis'},{letter:'E',text:'Movimiento espontáneo de gases'}], correct: 'C', explanation: 'La bomba Na+/K+-ATPasa hidroliza ATP directamente para bombear iones contra sus gradientes.' },
+            { id: 142, team: 'p19', teamName: 'PARTE XIX. TRANSPORTE DE MEMBRANA', question: '142. El transporte activo mueve sustancias:', options: [{letter:'A',text:'A favor del gradiente y sin ATP'},{letter:'B',text:'Contra el gradiente y requiere energía'},{letter:'C',text:'Únicamente mediante difusión'},{letter:'D',text:'Exclusivamente mediante canales'},{letter:'E',text:'Sin participación proteica'}], correct: 'B', explanation: 'Asciende por el gradiente electroquímico invirtiendo energía metabólica.' },
+            { id: 143, team: 'p19', teamName: 'PARTE XIX. TRANSPORTE DE MEMBRANA', question: '143. ¿Qué mecanismo permite transportar macromoléculas mediante vesículas?', options: [{letter:'A',text:'Difusión simple'},{letter:'B',text:'Difusión facilitada'},{letter:'C',text:'Endocitosis y exocitosis'},{letter:'D',text:'Transporte pasivo'},{letter:'E',text:'Ósmosis'}], correct: 'C', explanation: 'El transporte en masa engloba o fusiona partículas mediante vesículas membranosas.' },
+            { id: 144, team: 'p19', teamName: 'PARTE XIX. TRANSPORTE DE MEMBRANA', question: '144. La endocitosis permite:', options: [{letter:'A',text:'Expulsar sustancias al exterior'},{letter:'B',text:'Capturar sustancias mediante invaginación y vesículas'},{letter:'C',text:'Sintetizar ATP'},{letter:'D',text:'Formar ADN'},{letter:'E',text:'Degradar proteínas exclusivamente'}], correct: 'B', explanation: 'Invagina la membrana celular para internalizar fluidos o partículas de gran tamaño.' },
+            { id: 145, team: 'p19', teamName: 'PARTE XIX. TRANSPORTE DE MEMBRANA', question: '145. La exocitosis permite:', options: [{letter:'A',text:'Introducir sustancias mediante vesículas'},{letter:'B',text:'Liberar sustancias hacia el exterior celular'},{letter:'C',text:'Formar ribosomas'},{letter:'D',text:'Crear mitocondrias'},{letter:'E',text:'Replicar ADN'}], correct: 'B', explanation: 'Fusiona vesículas secretoras con la membrana plasmática vaciando su contenido al espacio extracelular.' },
+
+            // PARTE XX
+            { id: 146, team: 'p20', teamName: 'PARTE XX. INTEGRACIÓN CLÍNICA', question: '146. Una alteración molecular produce resistencia celular a la insulina. Según la secuencia explicada en bioquímica, ¿qué ocurre posteriormente?', options: [{letter:'A',text:'Aumento inmediato de ATP'},{letter:'B',text:'Alteración metabólica con disminución de glucosa celular'},{letter:'C',text:'Formación de ADN'},{letter:'D',text:'Aumento de calcio óseo'},{letter:'E',text:'Síntesis de ribosomas'}], correct: 'B', explanation: 'La falla de señalización de la insulina bloquea el reclutamiento de GLUT4, disminuyendo el ingreso de glucosa a las células.' },
+            { id: 147, team: 'p20', teamName: 'PARTE XX. INTEGRACIÓN CLÍNICA', question: '147. La alteración metabólica puede producir:', options: [{letter:'A',text:'Cambios bioquímicos sanguíneos detectables'},{letter:'B',text:'Formación de tejidos nuevos'},{letter:'C',text:'División celular exclusivamente'},{letter:'D',text:'Síntesis de anticuerpos automáticamente'},{letter:'E',text:'Producción de ADN mitocondrial'}], correct: 'A', explanation: 'Se refleja clínicamente en pruebas de laboratorio como hiperglucemia o alteración del perfil lipídico.' },
+            { id: 148, team: 'p20', teamName: 'PARTE XX. INTEGRACIÓN CLÍNICA', question: '148. En el ejemplo de diabetes mellitus presentado, ¿qué cambio sanguíneo se menciona?', options: [{letter:'A',text:'Glucosa sanguínea disminuida'},{letter:'B',text:'Glucosa sanguínea elevada'},{letter:'C',text:'Sodio elevado'},{letter:'D',text:'Calcio disminuido'},{letter:'E',text:'Potasio elevado'}], correct: 'B', explanation: 'La baja captación de glucosa genera acumulación sistémica manifestada como hiperglucemia.' },
+            { id: 149, team: 'p20', teamName: 'PARTE XX. INTEGRACIÓN CLÍNICA', question: '149. ¿Cuál conjunto corresponde a manifestaciones clínicas mencionadas en el ejemplo de diabetes mellitus?', options: [{letter:'A',text:'Disnea, hemoptisis y cianosis'},{letter:'B',text:'Polidipsia, poliuria y polifagia'},{letter:'C',text:'Tetania, parestesias y convulsiones'},{letter:'D',text:'Tos, fiebre y cefalea'},{letter:'E',text:'Náusea, vómito y diarrea'}], correct: 'B', explanation: 'Tríada clásica de la diabetes descompensada: sed excesiva (polidipsia), orina abundante (poliuria) y hambre voraz (polifagia).' },
+            { id: 150, team: 'p20', teamName: 'PARTE XX. INTEGRACIÓN CLÍNICA', question: '150. ¿Cuál representa correctamente la secuencia planteada?', options: [{letter:'A',text:'Enfermedad → molécula → síntoma → metabolismo'},{letter:'B',text:'Alteración molecular → alteración metabólica → cambio bioquímico sanguíneo → signos/síntomas → enfermedad'},{letter:'C',text:'Síntoma → órgano → molécula → enfermedad'},{letter:'D',text:'Metabolismo → órgano → átomo → enfermedad'},{letter:'E',text:'Enfermedad → ADN → átomo'}], correct: 'B', explanation: 'Evolución fisiopatológica continua desde la falla básica en la biomolécula hasta el síndrome clínico.' },
+
+            // PARTE XXI
+            { id: 151, team: 'p21', teamName: 'PARTE XXI. PREGUNTAS INTEGRADORAS', question: '151. Una célula necesita sintetizar una proteína que será secretada al exterior. ¿Cuál ruta es más adecuada?', options: [{letter:'A',text:'Ribosoma libre citosol → lisosoma'},{letter:'B',text:'Ribosoma unido a RER → RER → Golgi → vesícula secretora'},{letter:'C',text:'Núcleo → mitocondria → lisosoma'},{letter:'D',text:'REL → núcleo → Golgi'},{letter:'E',text:'Mitocondria → RER → núcleo'}], correct: 'B', explanation: 'Ruta biosintética secretora estándar: síntesis mediada por péptido señal en RER, transporte vesicular a Golgi y exocitosis.' },
+            { id: 152, team: 'p21', teamName: 'PARTE XXI. PREGUNTAS INTEGRADORAS', question: '152. Una célula presenta una alteración que impide la formación de microtúbulos. ¿Qué proceso podría verse directamente afectado?', options: [{letter:'A',text:'Formación del huso mitótico'},{letter:'B',text:'Síntesis de ADN en el núcleo exclusivamente'},{letter:'C',text:'Formación de fosfolípidos'},{letter:'D',text:'Síntesis de glucógeno'},{letter:'E',text:'Formación de enlaces peptídicos'}], correct: 'A', explanation: 'El huso mitótico está compuesto por microtúbulos cinetocóricos, polares y astrales indispensables para la segregación cromosómica.' },
+            { id: 153, team: 'p21', teamName: 'PARTE XXI. PREGUNTAS INTEGRADORAS', question: '153. Una célula presenta una alteración de la membrana interna mitocondrial que impide establecer correctamente el gradiente de protones. ¿Qué proceso se afectaría directamente?', options: [{letter:'A',text:'Traducción'},{letter:'B',text:'Fosforilación oxidativa'},{letter:'C',text:'Replicación del ADN nuclear'},{letter:'D',text:'Glucosilación'},{letter:'E',text:'Endocitosis'}], correct: 'B', explanation: 'Sin gradiente electroquímico protónico no existe la fuerza motriz para acoplar la síntesis de ATP en la ATP sintasa.' },
+            { id: 154, team: 'p21', teamName: 'PARTE XXI. PREGUNTAS INTEGRADORAS', question: '154. Una mutación afecta una proteína integral de membrana que funciona como receptor. ¿Qué función celular podría alterarse directamente?', options: [{letter:'A',text:'Reconocimiento y transducción de señales'},{letter:'B',text:'Síntesis de ADN mitocondrial'},{letter:'C',text:'Formación de ribosomas en nucléolo'},{letter:'D',text:'β-oxidación exclusivamente'},{letter:'E',text:'Síntesis de colágeno exclusivamente'}], correct: 'A', explanation: 'La alteración de la estructura del receptor impide el acoplamiento del ligando y la cascada de señalización intracelular.' },
+            { id: 155, team: 'p21', teamName: 'PARTE XXI. PREGUNTAS INTEGRADORAS', question: '155. Una célula pierde la capacidad de degradar organelos envejecidos. ¿Qué organelo estaría principalmente involucrado?', options: [{letter:'A',text:'Ribosoma'},{letter:'B',text:'Lisosoma'},{letter:'C',text:'Nucléolo'},{letter:'D',text:'Centrosoma'},{letter:'E',text:'Golgi'}], correct: 'B', explanation: 'Los lisosomas se encargan del reciclamiento de componentes viejos mediante fusión con autofagosomas.' },
+            { id: 156, team: 'p21', teamName: 'PARTE XXI. PREGUNTAS INTEGRADORAS', question: '156. Un paciente presenta una alteración importante de K+. De acuerdo con la presentación, ¿qué consecuencia clínica es especialmente relevante?', options: [{letter:'A',text:'Alteración visual'},{letter:'B',text:'Arritmias potencialmente graves'},{letter:'C',text:'Mala cicatrización'},{letter:'D',text:'Anemia megaloblástica'},{letter:'E',text:'Alteración de la mineralización ósea'}], correct: 'B', explanation: 'Trastornos del potasio modifican la despolarización y repolarización miocárdica induciendo arritmias potencialmente mortales.' },
+            { id: 157, team: 'p21', teamName: 'PARTE XXI. PREGUNTAS INTEGRADORAS', question: '157. Una alteración de Ca²⁺ puede afectar directamente:', options: [{letter:'A',text:'Contracción, coagulación y señalización'},{letter:'B',text:'Síntesis de ADN exclusivamente'},{letter:'C',text:'Transporte de aminoácidos exclusivamente'},{letter:'D',text:'Producción de anticuerpos exclusivamente'},{letter:'E',text:'Formación de ARN exclusivamente'}], correct: 'A', explanation: 'El calcio actúa como segundo mensajero universal, activa la troponina C muscular y participa como Factor IV de la cascada de coagulación.' },
+            { id: 158, team: 'p21', teamName: 'PARTE XXI. PREGUNTAS INTEGRADORAS', question: '158. Una célula presenta abundante RER. Esto sugiere que está especializada principalmente en:', options: [{letter:'A',text:'Síntesis de proteínas'},{letter:'B',text:'Almacenamiento de triglicéridos'},{letter:'C',text:'Producción de ATP exclusivamente'},{letter:'D',text:'Degradación lisosomal'},{letter:'E',text:'Movimiento mediante flagelos'}], correct: 'A', explanation: 'Las células de alta actividad secretora de proteínas (e.g. plasmocitos o acinos pancreáticos) exhiben RER abundante.' },
+            { id: 159, team: 'p21', teamName: 'PARTE XXI. PREGUNTAS INTEGRADORAS', question: '159. Una célula presenta abundante REL. ¿Qué funciones serían especialmente relevantes?', options: [{letter:'A',text:'Síntesis de lípidos y detoxificación'},{letter:'B',text:'Síntesis de ARN ribosomal'},{letter:'C',text:'Traducción de proteínas secretadas'},{letter:'D',text:'Formación del huso mitótico'},{letter:'E',text:'Replicación del ADN'}], correct: 'A', explanation: 'Abunda en hepatocitos (detoxificación de sustancias y metabolismo esteroideo) y células de Leydig o suprarrenales.' },
+            { id: 160, team: 'p21', teamName: 'PARTE XXI. PREGUNTAS INTEGRADORAS', question: '160. ¿Cuál afirmación integra correctamente bioquímica y biología celular?', options: [{letter:'A',text:'Las biomoléculas funcionan independientemente de las células.'},{letter:'B',text:'La estructura molecular determina funciones celulares y sus alteraciones pueden producir enfermedad.'},{letter:'C',text:'Las enfermedades siempre se originan fuera de las células.'},{letter:'D',text:'La célula funciona sin moléculas orgánicas.'},{letter:'E',text:'La bioquímica no tiene aplicación clínica.'}], correct: 'B', explanation: 'Principio unificador: la salud fisiológica es reflejo de la integridad molecular y celular correcta.' }
+        ];
+
+        let currentFilter = 'all';
+        let userAnswers = {}; 
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let quizActive = true;
+
+        window.onload = function() {
+            startTimer();
+            renderQuestions();
+        };
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!quizActive) return;
+                timerSeconds++;
+                const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+                const secs = (timerSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const activeBtn = document.getElementById(`filter-${filter}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            renderQuestions();
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            const filtered = currentFilter === 'all' 
+                ? questionsData 
+                : questionsData.filter(q => q.team === currentFilter);
+
+            filtered.forEach((q, index) => {
+                const isAnswered = userAnswers[q.id] !== undefined;
+                const selectedOption = userAnswers[q.id];
+                const isCorrect = selectedOption === q.correct;
+
+                const card = document.createElement('div');
+                card.className = `question-card ${isAnswered ? (isCorrect ? 'correct' : 'incorrect') : ''}`;
+
+                let optionsHtml = '';
+                q.options.forEach(opt => {
+                    let btnClass = "option-btn";
+                    let badgeHtml = "";
+
+                    if (isAnswered) {
+                        if (opt.letter === q.correct) {
+                            btnClass += " opt-correct";
+                            badgeHtml = '<span class="badge-status badge-correct">✓ Correcta</span>';
+                        } else if (opt.letter === selectedOption) {
+                            btnClass += " opt-incorrect";
+                            badgeHtml = '<span class="badge-status badge-incorrect">✗ Tu respuesta</span>';
+                        } else {
+                            btnClass += " opt-disabled";
+                        }
+                    }
+
+                    optionsHtml += `
+                        <button onclick="selectOption(${q.id}, '${opt.letter}')" ${isAnswered ? 'disabled' : ''} class="${btnClass}">
+                            <span class="option-letter">${opt.letter}</span>
+                            <span>${opt.text}</span>
+                            ${badgeHtml}
+                        </button>
+                    `;
+                });
+
+                let feedbackHtml = '';
+                if (isAnswered) {
+                    feedbackHtml = `
+                        <div class="feedback-box ${isCorrect ? 'correct' : 'incorrect'}">
+                            <div class="feedback-title">${isCorrect ? '¡Excelente! Respuesta Correcta' : 'Respuesta Incorrecta'}</div>
+                            <div><strong>Explicación:</strong> ${q.explanation}</div>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="q-meta">
+                        <span class="q-team">${q.teamName}</span>
+                        <span class="q-id">Pregunta ${index + 1} de ${filtered.length} (ID: ${q.id})</span>
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options-list">${optionsHtml}</div>
+                    ${feedbackHtml}
+                `;
+
+                container.appendChild(card);
+            });
+
+            updateScoreUI();
+        }
+
+        function selectOption(questionId, letter) {
+            if (userAnswers[questionId] !== undefined) return;
+            userAnswers[questionId] = letter;
+            renderQuestions();
+        }
+
+        function updateScoreUI() {
+            const totalAnswered = Object.keys(userAnswers).length;
+            let correctCount = 0;
+            
+            for (const id in userAnswers) {
+                const q = questionsData.find(item => item.id == id);
+                if (q && userAnswers[id] === q.correct) {
+                    correctCount++;
+                }
+            }
+
+            document.getElementById('score-display').innerText = `${correctCount} / ${questionsData.length}`;
+            
+            if (totalAnswered === questionsData.length && quizActive) {
+                quizActive = false;
+                clearInterval(timerInterval);
+                const summaryCard = document.getElementById('summary-card');
+                const finalScore = document.getElementById('final-score');
+                const summaryText = document.getElementById('summary-text');
+                
+                finalScore.innerText = `${correctCount} / ${questionsData.length} aciertos`;
+                if (correctCount === questionsData.length) {
+                    summaryText.innerText = "¡Excelente! Has respondido a la perfección todas las preguntas de Bioquímica y Biología Celular.";
+                } else if (correctCount >= 130) {
+                    summaryText.innerText = "¡Felicidades! Tienes un desempeño sobresaliente y bases sólidas para tu examen de medicina.";
+                } else {
+                    summaryText.innerText = "Buen intento. Te recomendamos repasar los temas con más desaciertos para afianzar tus conocimientos.";
+                }
+                summaryCard.classList.remove('hidden');
+                summaryCard.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function resetQuiz() {
+            userAnswers = {};
+            timerSeconds = 0;
+            quizActive = true;
+            document.getElementById('summary-card').classList.add('hidden');
+            startTimer();
+            renderQuestions();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
