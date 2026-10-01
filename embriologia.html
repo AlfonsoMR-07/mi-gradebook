@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulacro Interactivo - Examen de Embriología</title>
+    <style>
+        :root {
+            --primary-color: #0f766e;
+            --secondary-color: #14b8a6;
+            --bg-color: #f0fdfa;
+            --card-bg: #ffffff;
+            --text-color: #134e4a;
+            --correct-color: #22c55e;
+            --incorrect-color: #ef4444;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        header h1 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        header p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--secondary-color);
+        }
+        .question-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .options-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .option-item {
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border: 1px solid #ccfbf1;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #ffffff;
+        }
+        .option-item:hover:not(.disabled) {
+            background: #f0fdfa;
+            border-color: var(--secondary-color);
+        }
+        .option-item.selected {
+            background: #ccfbf1;
+            border-color: var(--secondary-color);
+        }
+        .option-item.correct {
+            background: #dcfce7 !important;
+            border-color: var(--correct-color) !important;
+            color: #166534;
+            font-weight: 600;
+        }
+        .option-item.incorrect {
+            background: #fee2e2 !important;
+            border-color: var(--incorrect-color) !important;
+            color: #991b1b;
+        }
+        .option-item.disabled {
+            cursor: default;
+        }
+        .feedback {
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: none;
+        }
+        .feedback.show {
+            display: block;
+        }
+        .feedback.correct-feedback {
+            background: #f0fdf4;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+        }
+        .feedback.incorrect-feedback {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        #score-box {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Simulacro Interactivo: Bases Celulares y Moleculares de la Embriología</h1>
+        <p>Evaluación interactiva basada en el examen oficial (70 preguntas).</p>
+    </header>
+
+    <div id="score-box">Aciertos: <span id="current-score">0</span> / 70</div>
+
+    <div id="quiz-container"></div>
+</div>
+
+<script>
+    const questions = [
+        {
+            q: "1. ¿Cuál es el evento principal que ocurre durante la fase S del ciclo celular?",
+            options: ["A) Separación de cromátidas hermanas", "B) Duplicación del ADN", "C) Condensación de cromosomas", "D) División del citoplasma"],
+            correct: 1,
+            explanation: "Durante la fase S (síntesis) del ciclo celular ocurre la duplicación o replicación del ADN."
+        },
+        {
+            q: "2. Una célula se encuentra en G2. ¿Cuál de las siguientes actividades es característica de esta fase?",
+            options: ["A) Duplicación inicial de los cromosomas", "B) Separación de cromosomas homólogos", "C) Preparación para la mitosis y revisión del ADN replicado", "D) Formación del cigoto"],
+            correct: 2,
+            explanation: "En la fase G2 la célula se prepara para la división mitótica y revisa que el ADN se haya replicado correctamente."
+        },
+        {
+            q: "3. ¿Cuál es la principal función de los puntos de control del ciclo celular?",
+            options: ["A) Aumentar la velocidad de división celular", "B) Evitar que las células entren en división cuando existen problemas importantes", "C) Convertir células haploides en diploides", "D) Producir gametos"],
+            correct: 1,
+            explanation: "Los puntos de control vigilan la integridad celular y detienen el ciclo si hay fallas o daños en el ADN."
+        },
+        {
+            q: "4. Durante la anafase de la mitosis ocurre:",
+            options: ["A) Alineación de cromosomas en el ecuador", "B) Duplicación del ADN", "C) Separación de cromátidas hermanas", "D) Recombinación genética"],
+            correct: 2,
+            explanation: "En la anafase las cromátidas hermanas se separan y migran hacia los polos opuestos de la célula."
+        },
+        {
+            q: "5. Una célula somática humana normal se divide por mitosis. ¿Cuál será el resultado?",
+            options: ["A) Cuatro células haploides", "B) Dos células con 46 cromosomas", "C) Dos células con 23 cromosomas", "D) Cuatro células con 46 cromosomas"],
+            correct: 1,
+            explanation: "La mitosis en células somáticas genera dos células hijas idénticas con el número diploide completo (46 cromosomas)."
+        },
+        {
+            q: "6. ¿Cuál es una diferencia fundamental entre células somáticas y células germinales?",
+            options: ["A) Las germinales nunca contienen ADN", "B) Las somáticas realizan meiosis y las germinales mitosis", "C) Las células germinales participan en la formación de gametos", "D) Las somáticas siempre son haploides"],
+            correct: 2,
+            explanation: "Las células germinales son las precursoras dedicadas a la formación de gametos (óvulos y espermatozoides)."
+        },
+        {
+            q: "7. ¿Qué característica distingue principalmente a la meiosis de la mitosis?",
+            options: ["A) La meiosis tiene una sola división celular", "B) La meiosis produce células con reducción del número cromosómico", "C) La mitosis siempre produce cuatro células", "D) La mitosis incluye crossing-over"],
+            correct: 1,
+            explanation: "La meiosis reduce el número cromosómico a la mitad (de diploide a haploide)."
+        },
+        {
+            q: "8. Durante la meiosis I se separan:",
+            options: ["A) Cromátidas hermanas", "B) Centríolos", "C) Cromosomas homólogos", "D) Moléculas de ARN"],
+            correct: 2,
+            explanation: "La primera división meiótica (meiosis I) se caracteriza por la separación de los cromosomas homólogos."
+        },
+        {
+            q: "9. Durante la meiosis II se separan principalmente:",
+            options: ["A) Cromosomas homólogos", "B) Cromátidas hermanas", "C) Genes dominantes", "D) Cromosomas sexuales exclusivamente"],
+            correct: 1,
+            explanation: "La meiosis II es similar a una mitosis, separando las cromátidas hermanas de cada cromosoma."
+        },
+        {
+            q: "10. ¿En qué etapa ocurre el crossing-over?",
+            options: ["A) Profase I", "B) Metafase II", "C) Anafase II", "D) Telofase I"],
+            correct: 0,
+            explanation: "El entrecruzamiento o crossing-over ocurre específicamente durante la profase I de la meiosis."
+        },
+        {
+            q: "11. La importancia biológica principal del crossing-over es:",
+            options: ["A) Evitar la replicación del ADN", "B) Reducir la cantidad de cromosomas", "C) Aumentar la variabilidad genética", "D) Evitar la formación de gametos"],
+            correct: 2,
+            explanation: "El intercambio de material genético genera diversidad y variabilidad genética en los descendientes."
+        },
+        {
+            q: "12. Una célula humana diploide contiene:",
+            options: ["A) 23 cromosomas", "B) 46 cromosomas", "C) 92 cromosomas", "D) 44 cromosomas"],
+            correct: 1,
+            explanation: "El número diploide (2n) en los seres humanos es de 46 cromosomas."
+        },
+        {
+            q: "13. Un gameto humano normal contiene:",
+            options: ["A) 46 cromosomas", "B) 92 cromosomas", "C) 23 cromosomas", "D) 22 pares de cromosomas"],
+            correct: 2,
+            explanation: "Los gametos son células haploides (n) que contienen 23 cromosomas individuales."
+        },
+        {
+            q: "14. ¿Cuál es la secuencia correcta de la espermatogénesis?",
+            options: ["A) Espermatocito primario → espermatogonia → espermatocitos secundarios → espermátidas → espermatozoides", "B) Espermatogonia → espermatocito primario → espermatocitos secundarios → espermátidas → espermatozoides", "C) Espermatogonia → ovocito → espermátida → espermatozoide", "D) Espermatocito secundario → espermatogonia → espermatozoide"],
+            correct: 1,
+            explanation: "La secuencia va desde las células troncales (espermatogonias), pasando por espermatocitos primarios y secundarios, hasta espermátidas y espermatozoides maduros."
+        },
+        {
+            q: "15. ¿Dónde ocurre principalmente la espermatogénesis?",
+            options: ["A) Epidídimo", "B) Próstata", "C) Túbulos seminíferos", "D) Vesículas seminales"],
+            correct: 2,
+            explanation: "Los túbulos seminíferos en los testículos son el sitio donde se produce la espermatogénesis."
+        },
+        {
+            q: "16. La espermiogénesis corresponde a:",
+            options: ["A) Formación del espermatocito primario", "B) Transformación de espermátidas en espermatozoides", "C) Formación de espermatogonias por meiosis", "D) Fusión del espermatozoide con el ovocito"],
+            correct: 1,
+            explanation: "La espermiogénesis es el proceso de diferenciación estructural donde la espermátida se convierte en un espermatozoide funcional."
+        },
+        {
+            q: "17. Una característica particular de la ovogénesis es que:",
+            options: ["A) Comienza después de la menopausia", "B) Comienza antes del nacimiento", "C) Produce cuatro gametos funcionales", "D) Nunca utiliza meiosis"],
+            correct: 1,
+            explanation: "La ovogénesis inicia durante el periodo fetal antes del nacimiento, deteniéndose en profase I."
+        },
+        {
+            q: "18. El ovocito primario permanece detenido durante un periodo prolongado en:",
+            options: ["A) Metafase II", "B) Profase I", "C) Anafase I", "D) Telofase II"],
+            correct: 1,
+            explanation: "Los ovocitos primarios quedan detenidos en la profase I (dictiotena) desde el nacimiento hasta la pubertad."
+        },
+        {
+            q: "19. El ovocito secundario queda detenido normalmente en:",
+            options: ["A) Profase I", "B) Metafase I", "C) Metafase II", "D) Anafase II"],
+            correct: 2,
+            explanation: "El ovocito secundario se ovula y se detiene en la metafase de la meiosis II."
+        },
+        {
+            q: "20. ¿Cuándo completa normalmente el ovocito secundario la meiosis II?",
+            options: ["A) Antes del nacimiento", "B) En cada menstruación", "C) Durante la implantación", "D) Después de la fecundación"],
+            correct: 3,
+            explanation: "La meiosis II solo se completa si el ovocito es fecundado por un espermatozoide."
+        },
+        {
+            q: "21. ¿Cuál es una diferencia correcta entre espermatogénesis y ovogénesis?",
+            options: ["A) La ovogénesis produce cuatro gametos funcionales iguales", "B) La espermatogénesis comienza antes del nacimiento", "C) La ovogénesis presenta divisiones citoplasmáticas desiguales", "D) La espermatogénesis no utiliza meiosis"],
+            correct: 2,
+            explanation: "La ovogénesis reparte el citoplasma de forma desigual, generando un óvulo grande y cuerpos polares."
+        },
+        {
+            q: "22. ¿Cuál representa de manera simplificada el flujo de información genética?",
+            options: ["A) Proteína → ARN → ADN", "B) ADN → ARN → proteína", "C) ARN → proteína → ADN exclusivamente", "D) ADN → proteína → ARN"],
+            correct: 1,
+            explanation: "El dogma central de la biología molecular postula el flujo: ADN se transcribe a ARN y este se traduce a proteína."
+        },
+        {
+            q: "23. La transcripción consiste principalmente en:",
+            options: ["A) Producción de ADN a partir de proteínas", "B) Formación de ARN utilizando ADN como molde", "C) Formación de proteínas a partir de ARN", "D) Separación de cromosomas"],
+            correct: 1,
+            explanation: "La transcripción sintetiza una molécula de ARN mensajero tomando como molde una cadena de ADN."
+        },
+        {
+            q: "24. La traducción ocurre cuando:",
+            options: ["A) Se utiliza el ARN mensajero para sintetizar una proteína", "B) Se replica el ADN", "C) Se separan cromosomas homólogos", "D) Se forma el blastocisto"],
+            correct: 0,
+            explanation: "La traducción decodifica el ARNm en los ribosomas para ensamblar una cadena de aminoácidos (proteína)."
+        },
+        {
+            q: "25. ¿Por qué una neurona y una célula muscular pueden ser diferentes si contienen prácticamente el mismo ADN?",
+            options: ["A) Porque tienen diferente número de cromosomas", "B) Porque una no contiene genes", "C) Porque expresan conjuntos diferentes de genes", "D) Porque una es haploide"],
+            correct: 2,
+            explanation: "La diferenciación celular depende de la regulación génica, expresando distintas combinaciones de genes."
+        },
+        {
+            q: "26. La regulación génica es fundamental para:",
+            options: ["A) Determinar qué genes se expresan en una célula", "B) Eliminar todos los genes de una célula", "C) Convertir automáticamente células diploides en haploides", "D) Impedir toda diferenciación celular"],
+            correct: 0,
+            explanation: "Controla qué proteínas se producen en cada tipo celular, permitiendo la especialización."
+        },
+        {
+            q: "27. ¿Cuál describe mejor a un factor de transcripción?",
+            options: ["A) Una molécula que destruye cromosomas", "B) Una proteína que regula la expresión de genes", "C) Un tipo de gameto", "D) Una enzima exclusiva de la fecundación"],
+            correct: 1,
+            explanation: "Los factores de transcripción son proteínas que se unen a secuencias específicas de ADN para activar o reprimir la transcripción."
+        },
+        {
+            q: "28. Una célula recibe una molécula señalizadora. Esta se une a un receptor y finalmente activa un factor de transcripción. ¿Cuál podría ser el resultado?",
+            options: ["A) Cambio en la expresión de determinados genes", "B) Eliminación inmediata del ADN", "C) Conversión obligatoria en espermatozoide", "D) Pérdida de todos los cromosomas"],
+            correct: 0,
+            explanation: "Las vías de señalización intracelular modulan la actividad de los factores de transcripción alterando la expresión génica."
+        },
+        {
+            q: "29. Una célula libera una molécula que actúa sobre células vecinas. ¿Qué tipo de señalización es?",
+            options: ["A) Endocrina", "B) Autocrina", "C) Paracrina", "D) Intracrina exclusivamente"],
+            correct: 2,
+            explanation: "La señalización paracrina afecta a células blanco localizadas en la vecindad inmediata."
+        },
+        {
+            q: "30. Una célula libera una señal que actúa sobre ella misma. Esto corresponde a señalización:",
+            options: ["A) Autocrina", "B) Paracrina", "C) Endocrina", "D) Yuxtacrina"],
+            correct: 0,
+            explanation: "En la señalización autocrina, la célula responde a las moléculas señalizadoras que ella misma secreta."
+        },
+        {
+            q: "31. Una hormona viaja por la sangre y actúa sobre una célula localizada a distancia. Es un ejemplo de señalización:",
+            options: ["A) Paracrina", "B) Endocrina", "C) Autocrina", "D) Yuxtacrina"],
+            correct: 1,
+            explanation: "La señalización endocrina utiliza el torrente sanguíneo para distribuir hormonas a distancia."
+        },
+        {
+            q: "32. ¿Cuál representa mejor la relación entre señalización celular y regulación génica?",
+            options: ["A) Señal → receptor → vía intracelular → factores de transcripción → expresión génica", "B) Señal → meiosis → fecundación → proteína", "C) Receptor → cromosoma → gameto → mitosis", "D) Proteína → señal → cromosoma → fecundación"],
+            correct: 0,
+            explanation: "Muestra la ruta completa desde el estímulo externo hasta la respuesta en el núcleo celular."
+        },
+        {
+            q: "33. ¿Qué proceso prepara funcionalmente al espermatozoide para poder fecundar?",
+            options: ["A) Compactación", "B) Capacitación", "C) Segmentación", "D) Implantación"],
+            correct: 1,
+            explanation: "La capacitación es el cambio fisiológico que experimenta el espermatozoide en el tracto femenino para adquirir poder fecundante."
+        },
+        {
+            q: "34. La capacitación espermática ocurre principalmente:",
+            options: ["A) En el tracto reproductor femenino", "B) En el núcleo del ovocito", "C) En el útero después de la implantación", "D) En el blastocisto"],
+            correct: 0,
+            explanation: "Se lleva a cabo conforme los espermatozoides ascienden por el útero y las trompas uterinas."
+        },
+        {
+            q: "35. El acrosoma del espermatozoide es importante porque:",
+            options: ["A) Produce progesterona", "B) Contiene componentes que participan en la penetración de las cubiertas del ovocito", "C) Forma el cuerpo lúteo", "D) Produce el embrioblasto"],
+            correct: 1,
+            explanation: "El acrosoma es una vesícula rica en enzimas hidrolíticas necesarias para atravesar la zona pelúcida."
+        },
+        {
+            q: "36. ¿Cuál es el orden más adecuado para la fecundación?",
+            options: ["A) Fusión → capacitación → reconocimiento → reacción acrosómica", "B) Capacitación → reconocimiento/interacción → reacción acrosómica → fusión", "C) Implantación → meiosis → reacción acrosómica → fusión", "D) Segmentación → capacitación → meiosis → fecundación"],
+            correct: 1,
+            explanation: "Primero se capacita, luego reconoce al óvulo, efectúa la reacción acrosómica y finalmente fusiona sus membranas."
+        },
+        {
+            q: "37. ¿Qué significa polispermia?",
+            options: ["A) Entrada de múltiples espermatozoides al ovocito", "B) Ausencia de espermatozoides", "C) Producción de varios ovocitos", "D) División del cigoto en varios blastómeros"],
+            correct: 0,
+            explanation: "La polispermia es la penetración anormal de más de un espermatozoide en el óvulo."
+        },
+        {
+            q: "38. ¿Por qué debe evitarse la polispermia?",
+            options: ["A) Porque impediría la formación del ADN", "B) Porque produciría una cantidad anormal de material cromosómico", "C) Porque evitaría la implantación por completo", "D) Porque impediría la meiosis I"],
+            correct: 1,
+            explanation: "Alteraría el número diploide normal provocando un cariotipo incompatible con el desarrollo viable."
+        },
+        {
+            q: "39. ¿Dónde ocurre normalmente la fecundación?",
+            options: ["A) Cavidad uterina", "B) Cuello uterino", "C) Ampolla de la trompa uterina", "D) Ovario"],
+            correct: 2,
+            explanation: "El sitio anatómico más frecuente y propicio para la fecundación es la ampolla tubárica."
+        },
+        {
+            q: "40. ¿Cuál es el resultado inmediato fundamental de la fecundación?",
+            options: ["A) Formación de la mórula", "B) Formación del cigoto", "C) Formación del blastocisto", "D) Implantación"],
+            correct: 1,
+            explanation: "La unión de los pronúcleos masculino y femenino da origen inmediato al cigoto."
+        },
+        {
+            q: "41. ¿Cuál es una consecuencia cromosómica de la fecundación?",
+            options: ["A) Reducción de 46 a 23 cromosomas", "B) Restauración del número diploide", "C) Eliminación del material genético paterno", "D) Duplicación permanente del número cromosómico"],
+            correct: 1,
+            explanation: "Al unirse dos gametos haploides (23 + 23), se restablece el número diploide (46 cromosomas)."
+        },
+        {
+            q: "42. Si el ovocito aporta un cromosoma X y el espermatozoide aporta un cromosoma Y, el cigoto será:",
+            options: ["A) XX", "B) YY", "C) XY", "D) XO"],
+            correct: 2,
+            explanation: "La combinación de los cromosomas sexuales X del óvulo e Y del espermatozoide determina el sexo genético masculino (XY)."
+        },
+        {
+            q: "43. ¿Qué ocurre con el ovocito secundario después de que se inicia la fecundación?",
+            options: ["A) Permanece permanentemente en metafase II", "B) Completa la meiosis II", "C) Inicia meiosis I", "D) Se convierte directamente en mórula"],
+            correct: 1,
+            explanation: "La entrada del espermatozoide reactiva y concluye la segunda división meiótica del ovocito."
+        },
+        {
+            q: "44. ¿Cuál de las siguientes opciones representa mejor los acontecimientos posteriores a la entrada del espermatozoide?",
+            options: ["A) Activación del ovocito → finalización de meiosis II → formación de pronúcleos → cigoto", "B) Implantación → meiosis I → mórula → cigoto", "C) Blastocisto → capacitación → meiosis II → cigoto", "D) Mórula → pronúcleos → fecundación → blastocisto"],
+            correct: 0,
+            explanation: "Secuencia fisiológica ordenada tras el contacto y penetración inicial del espermatozoide."
+        },
+        {
+            q: "45. ¿Qué proceso ocurre inmediatamente después de la fecundación y permite aumentar rápidamente el número de células?",
+            options: ["A) Segmentación", "B) Implantación", "C) Gastrulación", "D) Organogénesis"],
+            correct: 1, // Nota: La opción correcta descrita es segmentación (marcada en el índice correspondiente)
+            options: ["A) Segmentación", "B) Implantación", "C) Gastrulación", "D) Organogénesis"],
+            correct: 0,
+            explanation: "La segmentación es el periodo de divisiones mitóticas sucesivas sin aumento del volumen total del embrión."
+        },
+        {
+            q: "46. Las células producidas durante las primeras divisiones del cigoto se denominan:",
+            options: ["A) Trofoblastos", "B) Blastómeros", "C) Pronúcleos", "D) Gametos"],
+            correct: 1,
+            explanation: "Los blastómeros son las células hijas generadas durante las primeras etapas de segmentación."
+        },
+        {
+            q: "47. ¿Cuál es la secuencia correcta del desarrollo temprano?",
+            options: ["A) Cigoto → 2 células → 4 → 8 → mórula → blastocisto", "B) Cigoto → blastocisto → 2 células → mórula", "C) Cigoto → mórula → 2 células → 4 células", "D) Cigoto → blastocisto → mórula"],
+            correct: 0,
+            explanation: "El cigoto se divide progresivamente duplicando sus blastómeros hasta formar la mórula y luego el blastocisto."
+        },
+        {
+            q: "48. ¿Qué característica corresponde a la segmentación?",
+            options: ["A) Son divisiones mitóticas tempranas del cigoto", "B) Ocurre mediante meiosis", "C) Produce gametos", "D) Reduce el número cromosómico a 23"],
+            correct: 0,
+            explanation: "La segmentación consta exclusivamente de mitosis rápidas consecutivas."
+        },
+        {
+            q: "49. La compactación se relaciona con:",
+            options: ["A) Mayor adhesión e interacción entre los blastómeros", "B) Formación de espermatozoides", "C) Separación de cromosomas homólogos", "D) Formación del cuerpo lúteo"],
+            correct: 0,
+            explanation: "En la compactación, los blastómeros maximizan sus contactos intercelulares mediante moléculas como las cadherinas."
+        },
+        {
+            q: "50. Una estructura formada aproximadamente por 16-32 blastómeros recibe el nombre de:",
+            options: ["A) Cigoto", "B) Blastocisto", "C) Mórula", "D) Embrioblasto"],
+            correct: 2,
+            explanation: "Una esfera sólida de 16 a 32 células compactadas se denomina mórula."
+        },
+        {
+            q: "51. ¿Qué evento caracteriza la transición hacia el blastocisto?",
+            options: ["A) Formación de una cavidad llena de líquido", "B) Inicio de la meiosis", "C) Formación de espermatogonias", "D) Eliminación del embrioblasto"],
+            correct: 0,
+            explanation: "La entrada de líquido a través de la zona pelúcida genera una cavidad interna llamada blastocele."
+        },
+        {
+            q: "52. ¿Cuál es la composición básica del blastocisto?",
+            options: ["A) Embrioblasto, trofoblasto y blastocele", "B) Ovocito, espermatocito y blastocele", "C) Citotrofoblasto únicamente", "D) Pronúcleo masculino y femenino únicamente"],
+            correct: 0,
+            explanation: "El blastocisto consta de masa celular interna (embrioblasto), capa externa (trofoblasto) y cavidad (blastocele)."
+        },
+        {
+            q: "53. ¿Cuál estructura dará origen principalmente al embrión propiamente dicho?",
+            options: ["A) Trofoblasto", "B) Blastocele", "C) Embrioblasto", "D) Zona pelúcida"],
+            correct: 2,
+            explanation: "El embrioblasto o masa celular interna formará los tejidos propios del cuerpo del embrión."
+        },
+        {
+            q: "54. ¿Cuál es la función principal del trofoblasto durante esta etapa?",
+            options: ["A) Formar los espermatozoides", "B) Participar en la implantación y en estructuras extraembrionarias", "C) Convertirse en ovocito secundario", "D) Producir cromosomas"],
+            correct: 1,
+            explanation: "El trofoblasto media la interacción con el endometrio y formará la placenta y anexos extraembrionarios."
+        },
+        {
+            q: "55. Antes de implantarse, el blastocisto debe liberarse de:",
+            options: ["A) Sincitiotrofoblasto", "B) Zona pelúcida", "C) Embrioblasto", "D) Blastocele"],
+            correct: 1,
+            explanation: "Para poder adherirse al epitelio uterino, el blastocisto rompe y se libera de su zona pelúcida."
+        },
+        {
+            q: "56. Este proceso se denomina:",
+            options: ["A) Capacitación", "B) Eclosión", "C) Compactación", "D) Gastrulación"],
+            correct: 1,
+            explanation: "La eclosión (hatching) consiste en la salida del blastocisto de la envoltura de la zona pelúcida."
+        },
+        {
+            q: "57. La implantación ocurre aproximadamente:",
+            options: ["A) 1 día después de la fecundación", "B) 2-3 días después", "C) 6-7 días después", "D) 14 días después"],
+            correct: 2,
+            explanation: "El proceso de implantación uterina inicia usualmente entre el sexto y séptimo día postfecundación."
+        },
+        {
+            q: "58. Durante la implantación, el trofoblasto se diferencia principalmente en:",
+            options: ["A) Epiblasto e hipoblasto", "B) Citotrofoblasto y sincitiotrofoblasto", "C) Embrioblasto y blastocele", "D) Amnios y saco vitelino"],
+            correct: 1,
+            explanation: "Se divide en una capa celular interna (citotrofoblasto) y una capa sincitial invasiva externa (sincitiotrofoblasto)."
+        },
+        {
+            q: "59. ¿Cuál característica corresponde al sincitiotrofoblasto?",
+            options: ["A) Es una capa externa multinucleada con capacidad invasiva", "B) Es una capa interna formada por células perfectamente separadas", "C) Es la masa celular que formará directamente el embrión", "D) Es una estructura exclusiva del espermatozoide"],
+            correct: 0,
+            explanation: "El sincitiotrofoblasto es un sincitio multinucleado que erosiona el endometrio facilitando la nidación."
+        },
+        {
+            q: "60. ¿Cuál es la secuencia correcta durante la implantación?",
+            options: ["A) Sincitiotrofoblasto → fecundación → meiosis → blastómeros", "B) Blastocisto → eclosión → adhesión al endometrio e invasión", "C) Mórula → meiosis → eclosión → fecundación", "D) Cigoto → capacitación → blastocisto"],
+            correct: 1,
+            explanation: "El blastocisto eclosiona, se adhiere a la mucosa uterina y el sincitiotrofoblasto invade el estroma."
+        },
+        {
+            q: "61. Una mutación provoca que un factor de transcripción no pueda activar sus genes diana. ¿Cuál sería la consecuencia más directa?",
+            options: ["A) La célula podría presentar alteraciones en su programa de diferenciación", "B) Se produciría automáticamente un espermatozoide", "C) Se duplicaría todo el ADN de la célula", "D) La célula se convertiría obligatoriamente en un ovocito"],
+            correct: 0,
+            explanation: "Al fallar un factor de transcripción regulador, se descontrola la expresión génica y el destino o diferenciación celular."
+        },
+        {
+            q: "62. Una célula recibe una señal paracrina durante el desarrollo. ¿Qué significa?",
+            options: ["A) La señal viaja exclusivamente por la sangre", "B) La señal actúa sobre la misma célula que la produjo", "C) La señal actúa principalmente sobre células cercanas", "D) La señal solo puede actuar sobre gametos"],
+            correct: 2,
+            explanation: "La vía paracrina se caracteriza por actuar localmente sobre células vecinas."
+        },
+        {
+            q: "63. Si durante la meiosis I no se separaran correctamente los cromosomas homólogos, ¿qué proceso estaría directamente alterado?",
+            options: ["A) Segregación cromosómica", "B) Traducción", "C) Capacitación", "D) Implantación"],
+            correct: 0,
+            explanation: "La no disyunción afecta directamente la segregación cromosómica normal durante la división meiótica."
+        },
+        {
+            q: "64. ¿Cuál relación explica mejor por qué la regulación génica es indispensable para la diferenciación?",
+            options: ["A) Permite que todas las células expresen exactamente los mismos genes", "B) Permite que diferentes células expresen diferentes conjuntos de genes", "C) Elimina el ADN de las células especializadas", "D) Convierte células somáticas en gametos"],
+            correct: 1,
+            explanation: "La especialización tisular se logra porque cada estirpe celular activa un repertorio génico específico."
+        },
+        {
+            q: "65. Una célula del embrión expresa genes diferentes después de recibir una molécula señalizadora. ¿Cuál mecanismo conecta mejor la señal con la respuesta?",
+            options: ["A) Receptor → vía de señalización → factor de transcripción → expresión génica", "B) Meiosis → crossing-over → mitosis", "C) Fecundación → capacitación → meiosis", "D) Ovulación → espermatogénesis"],
+            correct: 0,
+            explanation: "Secuencia completa de transducción de señales que termina modificando la transcripción en el núcleo."
+        },
+        {
+            q: "66. Si un ovocito secundario todavía no ha sido fecundado, ¿en qué situación se encuentra normalmente?",
+            options: ["A) Ha completado meiosis II", "B) Está detenido en metafase II", "C) Está detenido en profase I", "D) Ya es un cigoto"],
+            correct: 1,
+            explanation: "Sin el estímulo de la fecundación, el ovocito secundario permanece bloqueado en la metafase II."
+        },
+        {
+            q: "67. ¿Cuál evento explica directamente cómo se pasa de una célula a muchas células durante la segmentación?",
+            options: ["A) Divisiones mitóticas sucesivas", "B) Divisiones meióticas sucesivas", "C) Crossing-over", "D) Traducción de proteínas"],
+            correct: 0,
+            explanation: "Las sucesivas mitosis aumentan el número de células (blastómeros) sin incrementar la masa total inicial."
+        },
+        {
+            q: "68. Si el trofoblasto no pudiera diferenciarse correctamente, ¿qué proceso estaría directamente comprometido?",
+            options: ["A) Implantación", "B) Meiosis I", "C) Formación del espermatozoide", "D) Transcripción del ADN"],
+            correct: 0,
+            explanation: "El trofoblasto es la estructura encargada de mediar la fijación e invasión placentaria durante la implantación."
+        },
+        {
+            q: "69. ¿Cuál secuencia integra correctamente la formación del nuevo organismo?",
+            options: ["A) Meiosis → gametos → fecundación → cigoto → segmentación → blastocisto → implantación", "B) Mitosis → blastocisto → gametos → fecundación → mórula", "C) Fecundación → meiosis → espermatogénesis", "D) Implantación → fecundación → segmentación → gametogénesis"],
+            correct: 0,
+            explanation: "Describe la línea cronológica exacta desde la producción de gametos hasta la nidación embrionaria."
+        },
+        {
+            q: "70. Una pregunta de examen plantea: '¿Cómo puede una célula embrionaria adquirir una identidad celular determinada?'. ¿Cuál respuesta integra mejor los temas del curso?",
+            options: ["A) Mediante señales celulares que modifican la actividad de factores de transcripción y la expresión de genes específicos", "B) Mediante la pérdida aleatoria de cromosomas", "C) Mediante la conversión de todas las células en gametos", "D) Mediante la meiosis repetida de las células somáticas"],
+            correct: 0,
+            explanation: "La identidad celular es el resultado dinámico de la señalización intercelular y el control coordinado de la expresión génica."
+        }
+    ];
+
+    let score = 0;
+    const container = document.getElementById('quiz-container');
+    const scoreDisplay = document.getElementById('current-score');
+
+    questions.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        card.id = `q-card-${index}`;
+
+        const title = document.createElement('div');
+        title.className = 'question-title';
+        title.textContent = item.q;
+        card.appendChild(title);
+
+        const ul = document.createElement('ul');
+        ul.className = 'options-list';
+
+        item.options.forEach((opt, optIndex) => {
+            const li = document.createElement('li');
+            li.className = 'option-item';
+            li.textContent = opt;
+            li.onclick = () => selectOption(index, optIndex, li);
+            ul.appendChild(li);
+        });
+
+        card.appendChild(ul);
+
+        const feedback = document.createElement('div');
+        feedback.className = 'feedback';
+        feedback.id = `feedback-${index}`;
+        card.appendChild(feedback);
+
+        container.appendChild(card);
+    });
+
+    function selectOption(qIndex, selectedOptIndex, element) {
+        const card = document.getElementById(`q-card-${qIndex}`);
+        const options = card.querySelectorAll('.option-item');
+        
+        if (options[0].classList.contains('disabled')) return;
+
+        options.forEach(opt => opt.classList.add('disabled'));
+
+        const correctIndex = questions[qIndex].correct;
+        const feedback = document.getElementById(`feedback-${qIndex}`);
+
+        if (selectedOptIndex === correctIndex) {
+            element.classList.add('correct');
+            feedback.textContent = `¡Correcto! ${questions[qIndex].explanation}`;
+            feedback.className = 'feedback show correct-feedback';
+            score++;
+            scoreDisplay.textContent = score;
+        } else {
+            element.classList.add('incorrect');
+            options[correctIndex].classList.add('correct');
+            feedback.textContent = `Incorrecto. La respuesta correcta era: "${questions[qIndex].options[correctIndex]}". Justificación: ${questions[qIndex].explanation}`;
+            feedback.className = 'feedback show incorrect-feedback';
+        }
+    }
+</script>
+
+</body>
+</html>
