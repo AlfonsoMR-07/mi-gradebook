@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Misión: Rescate de TechInnovate</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+  body { background: #120c2b; color: #f5f3ff; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; }
+  h1 { color: #c4b5fd; font-size: 1.35rem; text-align: center; }
+  .sub { color: #a5a0c8; font-size: .8rem; text-align: center; margin: 4px 0 10px; }
+  #layout { display: flex; gap: 14px; }
+  #game { position: relative; width: 900px; height: 560px; border-radius: 14px; overflow: hidden; border: 2px solid #3b2d6b; box-shadow: 0 20px 40px rgba(0,0,0,.6); }
+  canvas { display: block; }
+  #hint { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: rgba(18,12,43,.92); border: 1px solid #6d5bd0; padding: 6px 16px; border-radius: 20px; font-size: .85rem; color: #e9d5ff; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity .2s; }
+  .overlay { position: absolute; inset: 0; background: rgba(18,12,43,.9); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 10; }
+  .card { background: #241b4d; border: 1px solid #6d5bd0; border-radius: 12px; padding: 22px; width: 100%; max-width: 520px; box-shadow: 0 20px 30px rgba(0,0,0,.5); }
+  .ttl { color: #c4b5fd; font-size: 1.05rem; margin-bottom: 12px; }
+  .txt { color: #ddd6fe; font-size: .88rem; line-height: 1.55; margin-bottom: 16px; }
+  .opt { background: #2e2466; border: 1px solid #4c3d94; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; cursor: pointer; font-size: .85rem; }
+  .opt:hover { background: #3b2d7a; border-color: #8b7bd8; }
+  .fb { padding: 12px; border-radius: 8px; margin: 10px 0 4px; font-size: .84rem; line-height: 1.45; }
+  .fb.ok { background: #14532d; border: 1px solid #22c55e; color: #bbf7d0; }
+  .fb.bad { background: #5b1a2e; border: 1px solid #f43f5e; color: #fecdd3; }
+  .row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; flex-wrap: wrap; }
+  .btn { background: #10b981; color: #fff; border: none; padding: 9px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: .85rem; }
+  .btn:hover { filter: brightness(1.1); }
+  .btn.alt { background: #e11d48; }
+  .hidden { display: none !important; }
+  #side { width: 240px; height: 560px; background: #1c1640; border: 2px solid #3b2d6b; border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 12px; font-size: .8rem; overflow-y: auto; }
+  .sec { color: #c4b5fd; font-weight: bold; font-size: .92rem; border-bottom: 1px solid #3b2d6b; padding-bottom: 6px; margin-bottom: 8px; }
+  ul { list-style: none; }
+  li { margin-bottom: 7px; line-height: 1.4; color: #cbd5e1; }
+  li.done { color: #4ade80; text-decoration: line-through; }
+  li.warn { color: #fda4af; }
+  li.empty { color: #7c74a8; font-style: italic; }
+  .box { background: #120c2b; border: 1px solid #3b2d6b; border-radius: 8px; padding: 8px; color: #cbd5e1; }
+  .box b { color: #a78bfa; }
+  .box b.red { color: #fda4af; }
+  .legend { font-size: .75rem; color: #a5a0c8; line-height: 1.6; }
+  .foot { color: #7c74a8; font-size: .75rem; margin-top: 10px; text-align: center; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Misión: Rescate de TechInnovate</h1>
+  <p class="sub">Consultor Junior de Ingeniería de Software · Explora, reúne evidencias y resuelve el caso</p>
+</header>
+
+<div id="layout">
+  <div id="game">
+    <canvas id="c" width="900" height="560"></canvas>
+    <div id="hint"></div>
+
+    <div id="doc-modal" class="overlay hidden">
+      <div class="card">
+        <h3 id="doc-title" class="ttl"></h3>
+        <div id="doc-body" class="txt"></div>
+        <div class="row">
+          <button class="btn" id="doc-keep">Guardar en expediente</button>
+          <button class="btn alt" id="doc-discard">Descartar (queda en escena)</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="quiz-modal" class="overlay hidden">
+      <div class="card">
+        <h3 id="quiz-title" class="ttl"></h3>
+        <div id="quiz-body" class="txt"></div>
+        <div id="quiz-fb" class="fb hidden"></div>
+        <div class="row">
+          <button class="btn alt hidden" id="quiz-retry">Limpiar respuesta</button>
+          <button class="btn hidden" id="quiz-next">Siguiente</button>
+          <button class="btn hidden" id="quiz-close">Seguir explorando</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <aside id="side">
+    <div>
+      <div class="sec">📋 Pendientes</div>
+      <ul>
+        <li id="ck-srv">⬜ Expediente COCOMO (30 KLOC)</li>
+        <li id="ck-fin">⬜ Costos y experiencia del equipo</li>
+        <li id="ck-dev">⬜ Infraestructura SaaS vs. local</li>
+        <li id="ck-portal">🔒 Entrar a Dirección General</li>
+      </ul>
+    </div>
+    <div>
+      <div class="sec">📁 Expedientes guardados</div>
+      <ul id="inv"><li class="empty">Ninguno todavía</li></ul>
+    </div>
+    <div class="box">📍 Ubicación: <b id="loc">Pasillo central</b></div>
+    <div class="box">Diskettes irrelevantes guardados: <b id="traps" class="red">0</b></div>
+    <div class="box">Rango: <b id="rank">Consultor Junior</b></div>
+    <div class="legend">
+      📁 Carpeta = expediente clave<br>
+      💾 Diskette = archivo que quizá no necesitas<br>
+      🧑‍💻 Compañeros: trabajan y se mueven entre áreas
+    </div>
+  </aside>
+</div>
+
+<p class="foot">Controles: flechas o WASD para moverte · E para interactuar</p>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const hint = document.getElementById('hint');
+const docModal = document.getElementById('doc-modal');
+const quizModal = document.getElementById('quiz-modal');
+const quizTitle = document.getElementById('quiz-title');
+const quizBody = document.getElementById('quiz-body');
+const quizFb = document.getElementById('quiz-fb');
+const btnRetry = document.getElementById('quiz-retry');
+const btnNext = document.getElementById('quiz-next');
+const btnClose = document.getElementById('quiz-close');
+
+// ===== Mapa 13x13: "g" = piso caminable, "." = vacío =====
+const MAP = [
+  "gggg.ggg.gggg",
+  "gggg.ggg.gggg",
+  "gggg.ggg.gggg",
+  "gggg.ggg.gggg",
+  "ggggggggggggg",
+  "ggggggggggggg",
+  "ggggggggggggg",
+  "ggggggggggggg",
+  "ggggggggggggg",
+  "gggg.ggg.gggg",
+  "gggg.ggg.gggg",
+  "gggg.ggg.gggg",
+  "gggg.ggg.gggg"
+];
+
+// Áreas (x1 y y1 son exclusivos)
+const ROOMS = [
+  { n: 'Sala de Servidores', x0: 0, x1: 4,  y0: 0, y1: 4 },
+  { n: 'Archivo',            x0: 5, x1: 8,  y0: 0, y1: 4 },
+  { n: 'Finanzas',           x0: 9, x1: 13, y0: 0, y1: 4 },
+  { n: 'Desarrollo',         x0: 0, x1: 4,  y0: 9, y1: 13 },
+  { n: 'Sala de Juntas',     x0: 5, x1: 8,  y0: 9, y1: 13 },
+  { n: 'Dirección General',  x0: 9, x1: 13, y0: 9, y1: 13 }
+];
+
+const TW = 64, TH = 32, OX = 450, OY = 110, SLAB = 18;
+const KEY_COL = ['#fde68a', '#d97706', '#b45309'];
+const TRAP_COL = ['#1d4ed8', '#1e3a8a', '#172554'];
+
+// ===== Expedientes (carpetas = clave, diskettes = irrelevantes) =====
+const items = [
+  { id: 'srv', kind: 'key', x: 2.5, y: 2.5, name: 'Expediente COCOMO', title: 'Expediente: Sistema Hospitalario',
+    text: 'TechInnovate necesita un sistema de gestión hospitalaria estimado en <b>30 KLOC</b>, con interacción directa con hardware médico.', collected: false },
+  { id: 'fin', kind: 'key', x: 10.5, y: 2.5, name: 'Reporte de costos', title: 'Reporte de Costos y Equipo',
+    text: 'Los requerimientos son estables, pero el equipo tiene experiencia mixta: programadores con experiencia moderada y algunos novatos. Hay que evitar sobrecostos y estimaciones erróneas.', collected: false },
+  { id: 'dev', kind: 'key', x: 2.5, y: 10.5, name: 'Propuesta de infraestructura', title: 'Propuesta de Infraestructura',
+    text: 'El cliente duda entre servidores locales propios o una arquitectura en la nube en modalidad <b>SaaS</b> para reducir costos de mantenimiento.', collected: false },
+  { id: 'cafe', kind: 'trap', x: 6.5, y: 1.5, name: 'Menú de la cafetería', title: 'Menú de la Cafetería',
+    text: '<i>[Irrelevante]</i> Menú semanal de alimentos para empleados. No aporta datos para la estimación COCOMO ni para el análisis de costos.', collected: false },
+  { id: 'toner', kind: 'trap', x: 2.5, y: 6.5, name: 'Presupuesto de tóner', title: 'Presupuesto de Tóner',
+    text: '<i>[Irrelevante]</i> Factura de cartuchos de tinta para las impresoras de piso. No tiene relación con el modelo de estimación.', collected: false },
+  { id: 'encuesta', kind: 'trap', x: 10.5, y: 6.5, name: 'Encuesta de clima', title: 'Encuesta de Clima Laboral',
+    text: '<i>[Irrelevante]</i> Encuesta anual sobre el ambiente de oficina y las comidas de la empresa. No se usa para estimar proyectos.', collected: false },
+  { id: 'bienvenida', kind: 'trap', x: 6.5, y: 11.5, name: 'Manual de bienvenida', title: 'Manual de Bienvenida',
+    text: '<i>[Irrelevante]</i> Manual para nuevos empleados con horarios de estacionamiento y del comedor. Sin relación con el caso.', collected: false }
+];
+
+const PORTAL = { x: 11, y: 11 };
+const DESKS = [
+  { x: 1, y: 1 }, { x: 11, y: 1 }, { x: 1, y: 11 }, { x: 7.6, y: 10.6 }
+];
+const DECOR = [
+  { t: 'tree', x: 0.5, y: 0.5 }, { t: 'tree', x: 12.5, y: 0.5 },
+  { t: 'tree', x: 0.5, y: 12.5 }, { t: 'tree', x: 12.5, y: 12.5 },
+  { t: 'crystal', x: 0.5, y: 6.5 }, { t: 'crystal', x: 12.5, y: 6.5 },
+  { t: 'crystal', x: 5.5, y: 12.5 }
+];
+
+// ===== Compañeros que caminan entre áreas =====
+const npcs = [
+  { color: '#38bdf8', route: [[2.5, 2.5], [2.5, 4.5], [6.5, 4.5], [6.5, 1.5], [6.5, 4.5], [2.5, 4.5]] },
+  { color: '#facc15', route: [[10.5, 4.5], [10.5, 6.5], [3.5, 6.5], [3.5, 4.5]] },
+  { color: '#a3e635', route: [[10.5, 10.5], [10.5, 8.5], [6.5, 8.5], [6.5, 10.5], [6.5, 8.5], [10.5, 8.5]] },
+  { color: '#e2e8f0', route: [[4.5, 5.5], [8.5, 5.5], [8.5, 7.5], [4.5, 7.5]] },
+  { color: '#fb923c', route: [[0.5, 4.5], [0.5, 8.5]] }
+].map((n, k) => ({
+  color: n.color, route: n.route,
+  x: n.route[0][0], y: n.route[0][1],
+  wp: 1, pause: 20 * k, moving: false, face: 1,
+  phase: Math.random() * 6
+}));
+
+// ===== Estado =====
+let frame = 0;
+let nearestNow = null;
+const state = { modal: false, active: null, won: false, quizStep: 0, trapsKept: 0, inv: [] };
+const player = { x: 6.5, y: 6.5, face: 1, moving: false };
+const keys = {};
+const stars = Array.from({ length: 90 }, () => ({
+  x: Math.random() * 900, y: Math.random() * 560, r: Math.random() * 1.4 + 0.3, s: Math.random() * 0.03 + 0.01
+}));
+
+// ===== Proyección isométrica =====
+function P(x, y, z = 0) {
+  return { x: OX + (x - y) * TW / 2, y: OY + (x + y) * TH / 2 - z };
+}
+function isFloor(i, j) {
+  return j >= 0 && j < MAP.length && i >= 0 && i < MAP[0].length && MAP[j][i] === 'g';
+}
+function blockedByDesk(x, y) {
+  return DESKS.some(d => Math.abs(x - d.x) < 0.65 && Math.abs(y - d.y) < 0.65);
+}
+function canStand(x, y) {
+  const r = 0.28;
+  return isFloor(Math.floor(x - r), Math.floor(y - r)) && isFloor(Math.floor(x + r), Math.floor(y - r)) &&
+         isFloor(Math.floor(x - r), Math.floor(y + r)) && isFloor(Math.floor(x + r), Math.floor(y + r)) &&
+         !blockedByDesk(x, y);
+}
+function roomAt(x, y) {
+  const i = Math.floor(x), j = Math.floor(y);
+  const r = ROOMS.find(r => i >= r.x0 && i < r.x1 && j >= r.y0 && j < r.y1);
+  return r ? r.n : 'Pasillo central';
+}
+function fillPoly(pts, color) {
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let k = 1; k < pts.length; k++) ctx.lineTo(pts[k].x, pts[k].y);
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+function box(cx, cy, s, z0, z1, cols) {
+  const x0 = cx - s / 2, x1 = cx + s / 2, y0 = cy - s / 2, y1 = cy + s / 2;
+  fillPoly([P(x0, y1, z0), P(x1, y1, z0), P(x1, y1, z1), P(x0, y1, z1)], cols[1]);
+  fillPoly([P(x1, y0, z0), P(x1, y1, z0), P(x1, y1, z1), P(x1, y0, z1)], cols[2]);
+  fillPoly([P(x0, y0, z1), P(x1, y0, z1), P(x1, y1, z1), P(x0, y1, z1)], cols[0]);
+}
+
+// ===== Dibujo del escenario =====
+function drawStars() {
+  stars.forEach(s => {
+    ctx.globalAlpha = 0.4 + 0.6 * Math.abs(Math.sin(frame * s.s));
+    ctx.fillStyle = '#e9d5ff';
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+}
+function drawGrid() {
+  ctx.strokeStyle = 'rgba(167,139,250,0.08)';
+  ctx.lineWidth = 1;
+  for (let k = -14; k <= 14; k++) {
+    let a = P(k, -14), b = P(k, 14);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    a = P(-14, k); b = P(14, k);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  }
+}
+function tileColor(i, j) {
+  const alt = ((i * 3 + j * 5) % 4 === 0);
+  const hall = j >= 4 && j <= 8;
+  if (hall) return alt ? '#36dc9a' : '#2bc88a';
+  return alt ? '#2fcf93' : '#23b47d';
+}
+function drawFloor(i, j) {
+  const a = P(i, j), b = P(i + 1, j), c = P(i + 1, j + 1), d = P(i, j + 1);
+  if (!isFloor(i, j + 1)) fillPoly([d, c, { x: c.x, y: c.y + SLAB }, { x: d.x, y: d.y + SLAB }], '#7c4a2d');
+  if (!isFloor(i + 1, j)) fillPoly([b, c, { x: c.x, y: c.y + SLAB }, { x: b.x, y: b.y + SLAB }], '#5a331f');
+  fillPoly([a, b, c, d], tileColor(i, j));
+  ctx.strokeStyle = 'rgba(220,255,240,0.18)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.lineTo(d.x, d.y); ctx.closePath(); ctx.stroke();
+}
+function drawLabels() {
+  ctx.font = 'bold 10px Segoe UI, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = '#000'; ctx.shadowBlur = 4;
+  ctx.fillStyle = '#c4b5fd';
+  ROOMS.forEach(r => {
+    const p = P((r.x0 + r.x1) / 2, (r.y0 + r.y1) / 2, 80);
+    ctx.fillText(r.n.toUpperCase(), p.x, p.y);
+  });
+  ctx.shadowBlur = 0;
+  ctx.textAlign = 'left';
+}
+function drawHighlight(it) {
+  if (nearestNow !== it) return;
+  const c = P(it.x, it.y, 0);
+  ctx.fillStyle = 'rgba(250,204,21,0.25)';
+  ctx.beginPath(); ctx.ellipse(c.x, c.y, 26, 12, 0, 0, Math.PI * 2); ctx.fill();
+}
+function drawFolder(it) {
+  drawHighlight(it);
+  const lift = 4 + Math.sin(frame * 0.06 + it.x * 2) * 2;
+  const s = P(it.x, it.y, 0);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath(); ctx.ellipse(s.x, s.y, 11, 4.5, 0, 0, Math.PI * 2); ctx.fill();
+  box(it.x - 0.12, it.y - 0.12, 0.2, lift + 13, lift + 19, ['#fcd34d', '#b45309', '#92400e']); // pestaña
+  box(it.x, it.y, 0.42, lift, lift + 13, KEY_COL);                                             // cuerpo
+  fillPoly([
+    P(it.x - 0.14, it.y + 0.21, lift + 3), P(it.x + 0.14, it.y + 0.21, lift + 3),
+    P(it.x + 0.14, it.y + 0.21, lift + 10), P(it.x - 0.14, it.y + 0.21, lift + 10)
+  ], '#ffffff');                                                                               // etiqueta
+}
+function drawDiskette(it) {
+  drawHighlight(it);
+  const s = P(it.x, it.y, 0);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.beginPath(); ctx.ellipse(s.x, s.y, 11, 4.5, 0, 0, Math.PI * 2); ctx.fill();
+  box(it.x, it.y, 0.38, 0, 4, TRAP_COL);
+  fillPoly([
+    P(it.x - 0.1, it.y - 0.19, 4.05), P(it.x + 0.1, it.y - 0.19, 4.05),
+    P(it.x + 0.1, it.y - 0.08, 4.05), P(it.x - 0.1, it.y - 0.08, 4.05)
+  ], '#cbd5e1');                                                                               // obturador metálico
+  fillPoly([
+    P(it.x - 0.12, it.y + 0.0, 4.05), P(it.x + 0.12, it.y + 0.0, 4.05),
+    P(it.x + 0.12, it.y + 0.15, 4.05), P(it.x - 0.12, it.y + 0.15, 4.05)
+  ], '#f8fafc');                                                                               // etiqueta
+}
+function drawItem(it) {
+  if (it.kind === 'key') drawFolder(it);
+  else drawDiskette(it);
+}
+function drawTree(x, y) {
+  const levels = [
+    { s: 0.72, h: 16, cols: ['#fde047', '#b45309', '#ca8a04'] },
+    { s: 0.52, h: 14, cols: ['#facc15', '#92400e', '#a16207'] },
+    { s: 0.34, h: 12, cols: ['#fef08a', '#b45309', '#d97706'] }
+  ];
+  let z = 0;
+  levels.forEach(l => { box(x, y, l.s, z, z + l.h, l.cols); z += l.h; });
+}
+function drawCrystal(x, y) {
+  box(x, y, 0.8, 0, 8, ['#8b5a3c', '#5b3520', '#42261a']);
+  const c = P(x, y, 8);
+  fillPoly([{ x: c.x, y: c.y - 30 }, { x: c.x + 7, y: c.y - 16 }, { x: c.x, y: c.y - 4 }, { x: c.x - 7, y: c.y - 16 }], '#5eead4');
+  fillPoly([{ x: c.x, y: c.y - 30 }, { x: c.x + 7, y: c.y - 16 }, { x: c.x, y: c.y - 4 }], '#14b8a6');
+}
+function drawDecor(d) {
+  if (d.t === 'tree') drawTree(d.x, d.y);
+  else drawCrystal(d.x, d.y);
+}
+function drawDesk(d) {
+  box(d.x, d.y, 0.8, 0, 10, ['#78716c', '#57534e', '#44403c']);
+  box(d.x, d.y - 0.05, 0.3, 10, 22, ['#0ea5e9', '#075985', '#0c4a6e']);
+}
+function keyCount() {
+  return items.filter(i => i.kind === 'key' && i.collected).length;
+}
+function drawPortal() {
+  const c = P(PORTAL.x, PORTAL.y, 0);
+  const open = keyCount() === 3;
+  if (open) {
+    const pulse = 0.5 + 0.5 * Math.sin(frame * 0.06);
+    const g = ctx.createRadialGradient(c.x, c.y - 28, 4, c.x, c.y - 28, 50);
+    g.addColorStop(0, `rgba(167,139,250,${0.6 * pulse})`);
+    g.addColorStop(1, 'rgba(167,139,250,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(c.x, c.y - 28, 50, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.fillStyle = '#1e1447';
+  ctx.beginPath(); ctx.ellipse(c.x, c.y, 20, 8, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = open ? '#7c3aed' : '#3b2f6b';
+  ctx.beginPath();
+  ctx.moveTo(c.x - 18, c.y - 2);
+  ctx.lineTo(c.x - 18, c.y - 44);
+  ctx.arc(c.x, c.y - 44, 18, Math.PI, 0);
+  ctx.lineTo(c.x + 18, c.y - 2);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.ellipse(c.x, c.y - 38, 7, 9, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#111827';
+  ctx.beginPath(); ctx.arc(c.x, c.y - 37, 3.5, 0, Math.PI * 2); ctx.fill();
+}
+
+// Personaje estilo tripulante (usado por el jugador y los compañeros)
+function drawCrew(x, y, color, legs, moving, face, phase) {
+  const c = P(x, y, 0);
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.beginPath(); ctx.ellipse(c.x, c.y, 12, 5, 0, 0, Math.PI * 2); ctx.fill();
+  const bob = moving ? Math.abs(Math.sin(frame * 0.25 + phase)) * 3 : 0;
+  const by = c.y - bob;
+  ctx.fillStyle = legs;
+  ctx.fillRect(c.x - 7, by - 8, 5, 8);
+  ctx.fillRect(c.x + 2, by - 8, 5, 8);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(c.x - 11, by - 8);
+  ctx.lineTo(c.x - 11, by - 24);
+  ctx.arc(c.x, by - 24, 11, Math.PI, 0);
+  ctx.lineTo(c.x + 11, by - 8);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath(); ctx.ellipse(c.x + 2, by - 24, 7, 6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#1e1b4b';
+  ctx.beginPath(); ctx.arc(c.x + 2 + face * 2, by - 23, 3, 0, Math.PI * 2); ctx.fill();
+}
+
+function render() {
+  ctx.clearRect(0, 0, 900, 560);
+  const bg = ctx.createLinearGradient(0, 0, 0, 560);
+  bg.addColorStop(0, '#2b1d5e');
+  bg.addColorStop(1, '#120c2b');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, 900, 560);
+  drawStars();
+  drawGrid();
+
+  const W = MAP[0].length, H = MAP.length;
+  for (let s = 0; s <= W + H - 2; s++) {
+    for (let j = 0; j < H; j++) {
+      const i = s - j;
+      if (i >= 0 && i < W && MAP[j][i] === 'g') drawFloor(i, j);
+    }
+  }
+  drawLabels();
+
+  const list = [];
+  items.forEach(it => { if (!it.collected) list.push({ d: it.x + it.y, f: () => drawItem(it) }); });
+  DESKS.forEach(d => list.push({ d: d.x + d.y, f: () => drawDesk(d) }));
+  DECOR.forEach(d => list.push({ d: d.x + d.y, f: () => drawDecor(d) }));
+  list.push({ d: PORTAL.x + PORTAL.y, f: drawPortal });
+  npcs.forEach(n => list.push({
+    d: n.x + n.y,
+    f: () => drawCrew(n.x, n.y, n.color, '#0f172a', n.moving, n.face, n.phase)
+  }));
+  list.push({
+    d: player.x + player.y,
+    f: () => drawCrew(player.x, player.y, '#ff5d8f', '#be185d', player.moving, player.face, 0)
+  });
+  list.sort((a, b) => a.d - b.d).forEach(o => o.f());
+}
+
+// ===== Lógica =====
+function nearestItem() {
+  let best = null, bd = 1.0;
+  items.forEach(it => {
+    if (it.collected) return;
+    const d = Math.hypot(it.x - player.x, it.y - player.y);
+    if (d < bd) { bd = d; best = it; }
+  });
+  return best;
+}
+function nearPortal() {
+  return Math.hypot(PORTAL.x - player.x, PORTAL.y - player.y) < 1.2;
+}
+function update() {
+  if (state.modal || state.won) { player.moving = false; return; }
+  let wx = 0, wy = 0;
+  if (keys['arrowup'] || keys['w']) { wx -= 1; wy -= 1; }
+  if (keys['arrowdown'] || keys['s']) { wx += 1; wy += 1; }
+  if (keys['arrowleft'] || keys['a']) { wx -= 1; wy += 1; }
+  if (keys['arrowright'] || keys['d']) { wx += 1; wy -= 1; }
+  const len = Math.hypot(wx, wy);
+  player.moving = len > 0;
+  if (len > 0) {
+    const sp = 0.05;
+    const dx = wx / len * sp, dy = wy / len * sp;
+    if (canStand(player.x + dx, player.y)) player.x += dx;
+    if (canStand(player.x, player.y + dy)) player.y += dy;
+    player.face = (wx - wy) >= 0 ? 1 : -1;
+  }
+}
+function updateNPCs() {
+  npcs.forEach(n => {
+    if (n.pause > 0) { n.pause--; n.moving = false; return; }
+    const t = n.route[n.wp];
+    const dx = t[0] - n.x, dy = t[1] - n.y;
+    const d = Math.hypot(dx, dy);
+    if (d < 0.04) {
+      n.x = t[0]; n.y = t[1];
+      n.wp = (n.wp + 1) % n.route.length;
+      n.pause = 50 + Math.floor(Math.random() * 60);
+      n.moving = false;
+      return;
+    }
+    const sp = 0.025;
+    n.x += dx / d * sp;
+    n.y += dy / d * sp;
+    n.moving = true;
+    n.face = (dx - dy) >= 0 ? 1 : -1;
+  });
+}
+function updateHint() {
+  let txt = '';
+  if (!state.modal) {
+    if (nearestNow) {
+      txt = nearestNow.kind === 'key'
+        ? '[E] Revisar expediente: ' + nearestNow.name
+        : '[E] Revisar diskette: ' + nearestNow.name;
+    } else if (nearPortal()) {
+      if (state.won) txt = 'La empresa ya fue rescatada';
+      else if (keyCount() === 3) txt = '[E] Entrar a Dirección General';
+      else txt = 'Faltan expedientes clave (' + keyCount() + '/3)';
+    }
+  }
+  hint.textContent = txt;
+  hint.style.opacity = txt ? 1 : 0;
+}
+function updateSide() {
+  const labels = { srv: 'Expediente COCOMO (30 KLOC)', fin: 'Costos y experiencia del equipo', dev: 'Infraestructura SaaS vs. local' };
+  ['srv', 'fin', 'dev'].forEach(id => {
+    const el = document.getElementById('ck-' + id);
+    const done = items.find(i => i.id === id).collected;
+    el.className = done ? 'done' : '';
+    el.textContent = (done ? '✅ ' : '⬜ ') + labels[id];
+  });
+  const pe = document.getElementById('ck-portal');
+  pe.className = state.won ? 'done' : '';
+  pe.textContent = (state.won ? '✅ ' : (keyCount() === 3 ? '🔓 ' : '🔒 ')) + 'Entrar a Dirección General';
+  document.getElementById('inv').innerHTML = state.inv.length
+    ? state.inv.map(x => `<li class="${x.warn ? 'warn' : ''}">${x.warn ? '💾 ' : '📁 '}${x.title}</li>`).join('')
+    : '<li class="empty">Ninguno todavía</li>';
+  document.getElementById('traps').textContent = state.trapsKept;
+}
+
+function openDoc(it) {
+  state.modal = true;
+  state.active = it;
+  document.getElementById('doc-title').textContent = it.title;
+  document.getElementById('doc-body').innerHTML = it.text;
+  docModal.classList.remove('hidden');
+  for (const k in keys) keys[k] = false;
+}
+function decideDoc(keep) {
+  const it = state.active;
+  docModal.classList.add('hidden');
+  state.modal = false;
+  if (keep) {
+    it.collected = true;
+    if (it.kind === 'trap') state.trapsKept++;
+    state.inv.push({ title: it.title, warn: it.kind === 'trap' });
+  }
+  updateSide();
+}
+
+// ===== Cuestionario COCOMO / SaaS =====
+const QUIZ = [
+  {
+    title: 'Misión 1: Clasificación COCOMO',
+    q: 'Con base en los datos recolectados (30 KLOC, interacción con hardware médico y equipo de experiencia mixta), ¿cómo se clasifica el proyecto en COCOMO 81?',
+    opts: [['A', 'Proyecto Orgánico'], ['B', 'Proyecto Semiacoplado'], ['C', 'Proyecto Empotrado']],
+    ok: 'B',
+    okMsg: '<b>¡Excelente diagnóstico!</b> El proyecto es semiacoplado y la cotización es justa. <i>Insignia: Especialista en COCOMO + 250 XP.</i>',
+    badMsg: '<b>Alerta de sobrecosto:</b> Revisa la experiencia del equipo y las restricciones del sistema antes de clasificar. ¡Inténtalo de nuevo!'
+  },
+  {
+    title: 'Misión 2: Arquitectura',
+    q: 'Para evitar el mantenimiento local de servidores y reducir costos iniciales, ¿qué recomendación argumentas?',
+    opts: [['A', 'Comprar servidores locales costosos'], ['B', 'Utilizar un servicio en la nube en modalidad SaaS'], ['C', 'Llevar los registros en papel']],
+    ok: 'B',
+    okMsg: '<b>¡Propuesta aprobada!</b> SaaS externaliza la infraestructura y reduce costos. <i>Insignia: Consultor SaaS.</i>',
+    badMsg: '<b>Inconsistencia:</b> Esa opción aumenta los costos locales. ¡Revisa tu argumento!'
+  }
+];
+
+function startQuiz() {
+  state.modal = true;
+  state.quizStep = 0;
+  renderQuiz();
+  quizModal.classList.remove('hidden');
+}
+function renderQuiz() {
+  const q = QUIZ[state.quizStep];
+  quizTitle.textContent = q.title;
+  quizBody.innerHTML = '<p style="margin-bottom:12px">' + q.q + '</p>' +
+    q.opts.map(o => `<div class="opt" onclick="answer('${o[0]}')">${o[0]}) ${o[1]}</div>`).join('');
+  quizFb.classList.add('hidden');
+  btnRetry.classList.add('hidden');
+  btnNext.classList.add('hidden');
+}
+function answer(letter) {
+  const q = QUIZ[state.quizStep];
+  quizFb.classList.remove('hidden');
+  if (letter === q.ok) {
+    quizFb.className = 'fb ok';
+    quizFb.innerHTML = q.okMsg;
+    btnNext.textContent = state.quizStep === QUIZ.length - 1 ? 'Ver informe final' : 'Siguiente misión';
+    btnNext.classList.remove('hidden');
+    btnRetry.classList.add('hidden');
+  } else {
+    quizFb.className = 'fb bad';
+    quizFb.innerHTML = q.badMsg;
+    btnRetry.classList.remove('hidden');
+  }
+}
+function nextQuiz() {
+  if (state.quizStep < QUIZ.length - 1) {
+    state.quizStep++;
+    renderQuiz();
+  } else {
+    finish();
+  }
+}
+function finish() {
+  state.won = true;
+  quizTitle.textContent = '🏆 ¡Empresa rescatada con éxito!';
+  quizBody.innerHTML = `
+    <div style="text-align:center;padding:8px">
+      <h2 style="color:#4ade80;margin-bottom:8px">100% de objetivos cumplidos</h2>
+      <p>Filtraste la información útil, armaste el expediente y respondiste el diagnóstico de TechInnovate.</p>
+      <p style="margin-top:12px;color:#a5a0c8">Certificación: <b>Consultor Sénior de Ingeniería de Software</b></p>
+    </div>`;
+  quizFb.classList.add('hidden');
+  btnRetry.classList.add('hidden');
+  btnNext.classList.add('hidden');
+  btnClose.classList.remove('hidden');
+  document.getElementById('rank').textContent = 'Consultor Sénior';
+  updateSide();
+}
+function closeQuiz() {
+  quizModal.classList.add('hidden');
+  state.modal = false;
+  updateSide();
+}
+function interact() {
+  if (state.modal) return;
+  const it = nearestItem();
+  if (it) { openDoc(it); return; }
+  if (nearPortal() && !state.won && keyCount() === 3) startQuiz();
+}
+
+// ===== Eventos =====
+window.addEventListener('keydown', e => {
+  const k = e.key.toLowerCase();
+  if (['arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '].includes(k)) e.preventDefault();
+  keys[k] = true;
+  if (k === 'e' && !e.repeat) interact();
+});
+window.addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false; });
+
+document.getElementById('doc-keep').addEventListener('click', () => decideDoc(true));
+document.getElementById('doc-discard').addEventListener('click', () => decideDoc(false));
+btnRetry.addEventListener('click', () => { quizFb.classList.add('hidden'); btnRetry.classList.add('hidden'); });
+btnNext.addEventListener('click', nextQuiz);
+btnClose.addEventListener('click', closeQuiz);
+
+// ===== Bucle principal =====
+function loop() {
+  frame++;
+  nearestNow = nearestItem();
+  update();
+  updateNPCs();
+  render();
+  updateHint();
+  document.getElementById('loc').textContent = roomAt(player.x, player.y);
+  requestAnimationFrame(loop);
+}
+updateSide();
+loop();
+</script>
+</body>
+</html>
