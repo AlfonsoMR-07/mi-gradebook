@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Misión: Rescate de la Empresa de Software - Demo</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --accent: #3b82f6;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg-dark: #0f172a;
+            --panel-bg: #1e293b;
+            --text-light: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #60a5fa;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--panel-bg);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            border: 1px solid #334155;
+            position: relative;
+        }
+
+        /* HUD / Barra de Estado */
+        #hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0f172a;
+            padding: 12px 20px;
+            border-bottom: 1px solid #334155;
+        }
+
+        .hud-item {
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .badge-count {
+            background: var(--accent);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        /* Mapa de Oficinas */
+        #office-map {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 12px;
+            padding: 20px;
+            height: 480px;
+            background: #111827;
+            position: relative;
+        }
+
+        .room {
+            background: #1e293b;
+            border: 2px dashed #475569;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .room-title {
+            font-size: 1rem;
+            color: #38bdf8;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .doc-item {
+            background: #334155;
+            color: #f1f5f9;
+            padding: 10px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid #475569;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .doc-item:hover {
+            background: var(--accent);
+            border-color: #60a5fa;
+            transform: translateY(-2px);
+        }
+
+        .doc-item.collected {
+            background: #166534;
+            color: #86efac;
+            border-color: #22c55e;
+            cursor: default;
+        }
+
+        /* Sala de Control / Evaluación Final */
+        #assessment-room {
+            grid-column: span 2;
+            background: #1e1b4b;
+            border-color: #6366f1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-action {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .btn-action:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-action:hover:not(:disabled) {
+            background: #16a34a;
+        }
+
+        /* Modal / Popups */
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 10;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            border: 1px solid #475569;
+            border-radius: 10px;
+            padding: 25px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-title {
+            color: #60a5fa;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .modal-body {
+            line-height: 1.6;
+            font-size: 0.95rem;
+            color: #cbd5e1;
+            margin-bottom: 20px;
+        }
+
+        .quiz-option {
+            background: #334155;
+            border: 1px solid #475569;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quiz-option:hover {
+            background: #475569;
+            border-color: #94a3b8;
+        }
+
+        .feedback-box {
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .feedback-success {
+            background: #14532d;
+            border: 1px solid #22c55e;
+            color: #bbf7d0;
+        }
+
+        .feedback-error {
+            background: #7f1d1d;
+            border: 1px solid #ef4444;
+            color: #fecaca;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Misión: Rescate de la Empresa de Software</h1>
+        <p class="subtitle">Rol: Consultor Junior de Ingeniería de Software | Empresa: TechInnovate Solutions</p>
+    </header>
+
+    <div id="game-container">
+        <!-- HUD -->
+        <div id="hud">
+            <div class="hud-item">
+                📁 Evidencias encontradas: <span id="doc-counter" class="badge-count">0 / 3</span>
+            </div>
+            <div class="hud-item">
+                🏆 Rango: <span id="user-rank">Consultor Junior</span>
+            </div>
+        </div>
+
+        <!-- Mapa de las Oficinas -->
+        <div id="office-map">
+            <!-- Habitación 1 -->
+            <div class="room">
+                <div class="room-title">🖥️ 1. Sala de Servidores</div>
+                <div id="doc1" class="doc-item" onclick="readDocument(1)">
+                    📋 Expediente Técnico (Hardware)
+                </div>
+            </div>
+
+            <!-- Habitación 2 -->
+            <div class="room">
+                <div class="room-title">📊 2. Recursos Financieros</div>
+                <div id="doc2" class="doc-item" onclick="readDocument(2)">
+                    📑 Reporte de Costos y Equipo
+                </div>
+            </div>
+
+            <!-- Habitación 3 -->
+            <div class="room">
+                <div class="room-title">⚙️ 3. Área de Desarrollo</div>
+                <div id="doc3" class="doc-item" onclick="readDocument(3)">
+                    ☁️ Propuesta de Infraestructura (SaaS)
+                </div>
+            </div>
+
+            <!-- Sala Final de Dirección -->
+            <div id="assessment-room" class="room">
+                <div>
+                    <div class="room-title">🏢 4. Dirección General</div>
+                    <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 4px;">
+                        Reúne todos los documentos para armar la propuesta final.
+                    </p>
+                </div>
+                <button id="btn-start-quiz" class="btn-action" disabled onclick="openQuiz()">
+                    Armar Expediente COCOMO
+                </button>
+            </div>
+        </div>
+
+        <!-- Ventana Modal de Lectura de Documentos -->
+        <div id="modal-doc" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h3 id="modal-doc-title" class="modal-title"></h3>
+                <div id="modal-doc-body" class="modal-body"></div>
+                <button class="btn-action" onclick="closeModal('modal-doc')">Guardar evidencia y continuar</button>
+            </div>
+        </div>
+
+        <!-- Ventana Modal de Evaluación Final -->
+        <div id="modal-quiz" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h3 id="quiz-step-title" class="modal-title">Evaluación de Diagnóstico</h3>
+                <div id="quiz-body" class="modal-body">
+                    <!-- Pregunta -->
+                </div>
+                <div id="quiz-feedback" class="feedback-box hidden"></div>
+                <div style="margin-top: 20px; text-align: right;">
+                    <button id="btn-quiz-next" class="btn-action hidden" onclick="nextQuizStep()">Siguiente Misión</button>
+                    <button id="btn-quiz-retry" class="btn-action hidden" style="background: var(--danger)" onclick="resetQuizStep()">Reintentar Análiss</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado del juego
+        let collectedDocs = [false, false, false];
+        let currentQuizStep = 1;
+
+        // Datos de los documentos
+        const docData = {
+            1: {
+                title: "Expediente del Cliente: Sistema Hospitalario",
+                text: "<b>Hallazgo de la Sala de Servidores:</b><br>El cliente TechInnovate necesita un sistema de gestión hospitalaria de escala intermedia. Se estima en aproximadamente <b>30 KLOC</b> (miles de líneas de código) y requiere interacción directa con hardware médico especializado."
+            },
+            2: {
+                title: "Reporte de Viabilidad y Costos",
+                text: "<b>Hallazgo de Recursos Financieros:</b><br>El proyecto cuenta con requerimientos estables, pero el equipo de desarrollo asignado posee una experiencia mixta (programadores sénior y algunos novatos). Se requiere una clasificación precisa de estimación para evitar pérdidas financieras."
+            },
+            3: {
+                title: "Análisis de Infraestructura",
+                text: "<b>Hallazgo del Área de Desarrollo:</b><br>El cliente duda entre invertir en servidores locales o contratar un servicio en la nube en modalidad <b>SaaS (Software as a Service)</b> para reducir costos iniciales de mantenimiento local."
+            }
+        };
+
+        // Función para leer documentos
+        function readDocument(id) {
+            document.getElementById('modal-doc-title').innerText = docData[id].title;
+            document.getElementById('modal-doc-body').innerHTML = docData[id].text;
+            document.getElementById('modal-doc').classList.remove('hidden');
+
+            // Marcar recolectado
+            if (!collectedDocs[id - 1]) {
+                collectedDocs[id - 1] = true;
+                document.getElementById(`doc${id}`).classList.add('collected');
+                document.getElementById(`doc${id}`).innerText += " ✓";
+                updateCounter();
+            }
+        }
+
+        function updateCounter() {
+            const count = collectedDocs.filter(Boolean).length;
+            document.getElementById('doc-counter').innerText = `${count} / 3`;
+            
+            if (count === 3) {
+                document.getElementById('btn-start-quiz').disabled = false;
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // Cuestionario / Evaluación
+        function openQuiz() {
+            currentQuizStep = 1;
+            loadQuizStep();
+            document.getElementById('modal-quiz').classList.remove('hidden');
+        }
+
+        function loadQuizStep() {
+            const quizBody = document.getElementById('quiz-body');
+            const feedback = document.getElementById('quiz-feedback');
+            const btnNext = document.getElementById('btn-quiz-next');
+            const btnRetry = document.getElementById('btn-quiz-retry');
+
+            feedback.classList.add('hidden');
+            btnNext.classList.add('hidden');
+            btnRetry.classList.add('hidden');
+
+            if (currentQuizStep === 1) {
+                document.getElementById('quiz-step-title').innerText = "Misión 1: Clasificación Modelo COCOMO";
+                quizBody.innerHTML = `
+                    <p style="margin-bottom: 15px;">Considerando los datos recolectados (30 KLOC, interacción con hardware y equipo de experiencia mixta), ¿cómo se clasifica este proyecto dentro del Modelo COCOMO 81?</p>
+                    <div class="quiz-option" onclick="checkAnswer(1, 'A')">A) Proyecto Orgánico</div>
+                    <div class="quiz-option" onclick="checkAnswer(1, 'B')">B) Proyecto Semiacoplado</div>
+                    <div class="quiz-option" onclick="checkAnswer(1, 'C')">C) Proyecto Empotrado</div>
+                `;
+            } else if (currentQuizStep === 2) {
+                document.getElementById('quiz-step-title').innerText = "Misión 2: Selección de Arquitectura";
+                quizBody.innerHTML = `
+                    <p style="margin-bottom: 15px;">El cliente busca reducir costos iniciales de mantenimiento local y disponer de acceso multi-dispositivo. ¿Qué recomendación fundamentada debes argumentar?</p>
+                    <div class="quiz-option" onclick="checkAnswer(2, 'A')">A) Adquirir servidores propios e instalar el software localmente</div>
+                    <div class="quiz-option" onclick="checkAnswer(2, 'B')">B) Utilizar un servicio en la nube en modalidad SaaS (Software as a Service)</div>
+                    <div class="quiz-option" onclick="checkAnswer(2, 'C')">C) Cancelar la infraestructura en la nube y usar soporte en papel</div>
+                `;
+            }
+        }
+
+        function checkAnswer(step, option) {
+            const feedback = document.getElementById('quiz-feedback');
+            const btnNext = document.getElementById('btn-quiz-next');
+            const btnRetry = document.getElementById('btn-quiz-retry');
+
+            feedback.classList.remove('hidden');
+
+            if (step === 1) {
+                if (option === 'B') {
+                    feedback.className = "feedback-box feedback-success";
+                    feedback.innerHTML = "<b>¡Excelente diagnóstico, Consultor!</b><br>Has identificado correctamente que se trata de un proyecto Semiacoplado. Gracias a tu cálculo, TechInnovate ha cotizado con precisión.<br><i>Recompensa: Insignia 'Especialista en COCOMO' + 250 XP.</i>";
+                    btnNext.classList.remove('hidden');
+                } else {
+                    feedback.className = "feedback-box feedback-error";
+                    feedback.innerHTML = "<b>Alerta de sobrecosto:</b> Clasificación incorrecta. Recuerda que los proyectos semiacoplados representan un punto medio con equipos de experiencia mixta. Revisa los apuntes e inténtalo de nuevo.";
+                    btnRetry.classList.remove('hidden');
+                }
+            } else if (step === 2) {
+                if (option === 'B') {
+                    feedback.className = "feedback-box feedback-success";
+                    feedback.innerHTML = "<b>¡Propuesta aprobada por el cliente!</b><br>Has argumentado con precisión por qué la modalidad SaaS reduce costos de infraestructura y elimina el mantenimiento local de servidores.<br><i>Recompensa: Insignia 'Consultor de Soluciones SaaS'.</i>";
+                    btnNext.innerText = "Ver Informe de Impacto Final";
+                    btnNext.classList.remove('hidden');
+                } else {
+                    feedback.className = "feedback-box feedback-error";
+                    feedback.innerHTML = "<b>Inconsistencia en la solución:</b> La opción elegida incrementa los costos de infraestructura local, contradiciendo los requerimientos. ¡Ajusta tu recomendación!";
+                    btnRetry.classList.remove('hidden');
+                }
+            }
+        }
+
+        function nextQuizStep() {
+            if (currentQuizStep === 1) {
+                currentQuizStep = 2;
+                loadQuizStep();
+            } else {
+                // Final del juego
+                document.getElementById('quiz-step-title').innerText = "🏆 ¡Empresa Rescatada con Éxito!";
+                document.getElementById('user-rank').innerText = "Consultor Sénior";
+                document.getElementById('quiz-body').innerHTML = `
+                    <div style="text-align: center; padding: 10px;">
+                        <h2 style="color: #22c55e; margin-bottom: 10px;">100% de Empresas Salvadas</h2>
+                        <p>Has completado el diagnóstico integral de <b>TechInnovate Solutions</b>.</p>
+                        <p style="margin-top: 15px; color: #94a3b8; font-size: 0.9rem;">Certificación Digital: <b>Consultor Sénior de Ingeniería de Software</b></p>
+                    </div>
+                `;
+                document.getElementById('quiz-feedback').classList.add('hidden');
+                document.getElementById('btn-quiz-next').classList.add('hidden');
+            }
+        }
+
+        function resetQuizStep() {
+            loadQuizStep();
+        }
+    </script>
+</body>
+</html>

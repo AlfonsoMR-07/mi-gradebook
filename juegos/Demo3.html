@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Misión: Rescate de la Empresa de Software - Plano Oficinas</title>
+    <style>
+        :root {
+            --bg-dark: #090d16;
+            --panel-bg: #1e293b;
+            --text-light: #f8fafc;
+            --accent: #3b82f6;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            color: #60a5fa;
+            font-size: 1.4rem;
+            margin-bottom: 2px;
+        }
+
+        .instructions {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        #game-container {
+            position: relative;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* HUD Superior */
+        #hud {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            background: rgba(15, 23, 42, 0.9);
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .badge {
+            background: var(--accent);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+        }
+
+        /* Ventanas Modales */
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 10;
+        }
+
+        .modal-content {
+            background: var(--panel-bg);
+            border: 1px solid #475569;
+            border-radius: 10px;
+            padding: 25px;
+            max-width: 550px;
+            width: 100%;
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-title {
+            color: #60a5fa;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .modal-body {
+            line-height: 1.5;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            margin-bottom: 20px;
+        }
+
+        .quiz-option {
+            background: #334155;
+            border: 1px solid #475569;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .quiz-option:hover {
+            background: #475569;
+            border-color: #94a3b8;
+        }
+
+        .btn-action {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .btn-action:hover { background: #16a34a; }
+
+        .feedback-box {
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .feedback-success { background: #14532d; border: 1px solid #22c55e; color: #bbf7d0; }
+        .feedback-error { background: #7f1d1d; border: 1px solid #ef4444; color: #fecaca; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Misión: Rescate de TechInnovate</h1>
+        <p class="instructions">Usa las <b>Flechas</b> o <b>W, A, S, D</b> para moverte por el plano de oficinas. Recolecta los 3 expedientes y entra a la Dirección.</p>
+    </header>
+
+    <div id="game-container">
+        <div id="hud">
+            <div>📁 Evidencias del Caso: <span id="doc-counter" class="badge">0 / 3</span></div>
+            <div>🏆 Rol: <span id="user-role">Consultor Junior</span></div>
+        </div>
+
+        <canvas id="gameCanvas" width="850" height="520"></canvas>
+
+        <!-- Modal de Documentos -->
+        <div id="modal-doc" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h3 id="modal-doc-title" class="modal-title"></h3>
+                <div id="modal-doc-body" class="modal-body"></div>
+                <button class="btn-action" onclick="closeDocModal()">Guardar en Expediente</button>
+            </div>
+        </div>
+
+        <!-- Modal Cuestionario Final -->
+        <div id="modal-quiz" class="modal-overlay hidden">
+            <div class="modal-content">
+                <h3 id="quiz-title" class="modal-title"></h3>
+                <div id="quiz-body" class="modal-body"></div>
+                <div id="quiz-feedback" class="feedback-box hidden"></div>
+                <div style="margin-top: 15px; text-align: right;">
+                    <button id="btn-next-quiz" class="btn-action hidden" onclick="proceedQuiz()">Siguiente Misión</button>
+                    <button id="btn-retry-quiz" class="btn-action hidden" style="background: var(--danger)" onclick="retryQuiz()">Reintentar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Jugador
+        let player = {
+            x: 80,
+            y: 100,
+            width: 22,
+            height: 28,
+            speed: 3.5,
+            color: "#38bdf8"
+        };
+
+        let keys = {};
+        window.addEventListener("keydown", (e) => keys[e.key] = true);
+        window.addEventListener("keyup", (e) => keys[e.key] = false);
+
+        // Habitaciones del plano de oficinas (Estructura arquitectónica)
+        const rooms = [
+            { name: "Sala de Servidores", x: 40, y: 40, w: 360, h: 200 },
+            { name: "Recursos Financieros", x: 450, y: 40, w: 360, h: 200 },
+            { name: "Área de Desarrollo", x: 40, y: 280, w: 360, h: 200 },
+            { name: "Dirección General", x: 450, y: 280, w: 360, h: 200 }
+        ];
+
+        // Elementos interactivos (Carpetas / Expedientes)
+        let items = [
+            { id: 1, x: 200, y: 120, width: 32, height: 32, name: "Servidores", collected: false, docTitle: "Expediente: Sistema Hospitalario", docText: "El cliente TechInnovate necesita un sistema de gestión hospitalaria de escala intermedia, estimado en <b>30 KLOC</b> con requerimientos de hardware médico." },
+            { id: 2, x: 600, y: 120, width: 32, height: 32, name: "Finanzas", collected: false, docTitle: "Reporte de Costos y Equipo", docText: "El proyecto cuenta con requisitos estables, pero un equipo de desarrollo de experiencia mixta. Se debe evitar un sobrecosto." },
+            { id: 3, x: 200, y: 360, width: 32, height: 32, name: "Desarrollo", collected: false, docTitle: "Propuesta SaaS", docText: "El cliente duda entre servidores locales o contratar servicios en la nube en modalidad <b>SaaS</b> para reducir costos de mantenimiento." }
+        ];
+
+        let directorZone = { x: 550, y: 340, width: 160, height: 90 };
+
+        let collectedCount = 0;
+        let gameActive = true;
+        let quizStep = 1;
+        let activeItem = null;
+
+        function update() {
+            if (!gameActive) return;
+
+            // Movimiento libre con restricción en las paredes exteriores del plano
+            let nextX = player.x;
+            let nextY = player.y;
+
+            if (keys["ArrowUp"] || keys["w"] || keys["W"]) nextY -= player.speed;
+            if (keys["ArrowDown"] || keys["s"] || keys["S"]) nextY += player.speed;
+            if (keys["ArrowLeft"] || keys["a"] || keys["A"]) nextX -= player.speed;
+            if (keys["ArrowRight"] || keys["d"] || keys["D"]) nextX += player.speed;
+
+            // Límites del mapa general
+            if (nextX > 30 && nextX < canvas.width - 50 && nextY > 30 && nextY < canvas.height - 50) {
+                // Permitir movimiento libre en pasillos centrales y habitaciones
+                player.x = nextX;
+                player.y = nextY;
+            }
+
+            // Colisiones con evidencias
+            items.forEach(item => {
+                if (!item.collected && rectIntersect(player, item)) {
+                    openDocModal(item);
+                }
+            });
+
+            // Colisión con Dirección General
+            if (rectIntersect(player, directorZone) && collectedCount === 3) {
+                gameActive = false;
+                startQuiz();
+            }
+        }
+
+        function rectIntersect(r1, r2) {
+            return r1.x < r2.x + r2.width && r1.x + r1.width > r2.x &&
+                   r1.y < r2.y + r2.height && r1.y + r1.height > r2.y;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar suelo general de la oficina
+            ctx.fillStyle = "#0f172a";
+            ctx.fillRect(20, 20, 810, 480);
+
+            // Dibujar Habitaciones del Plano
+            rooms.forEach((room, index) => {
+                ctx.fillStyle = "#1e293b";
+                ctx.fillRect(room.x, room.y, room.w, room.h);
+                
+                ctx.strokeStyle = "#475569";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(room.x, room.y, room.w, room.h);
+
+                // Etiquetas de las salas
+                ctx.fillStyle = "#38bdf8";
+                ctx.font = "bold 12px sans-serif";
+                let icon = index === 0 ? "🖥️ " : index === 1 ? "📊 " : index === 2 ? "⚙️ " : "🏢 ";
+                ctx.fillText(icon + room.name, room.x + 15, room.y + 25);
+            });
+
+            // Dibujar elementos de oficina (Escritorios decorativos)
+            ctx.fillStyle = "#334155";
+            ctx.fillRect(180, 160, 80, 40); // Escritorio Servidores
+            ctx.fillRect(580, 160, 80, 40); // Escritorio Finanzas
+            ctx.fillRect(180, 400, 80, 40); // Escritorio Desarrollo
+            ctx.fillRect(580, 390, 90, 50); // Escritorio Dirección
+
+            // Dibujar carpetas de evidencias
+            items.forEach(item => {
+                ctx.fillStyle = item.collected ? "#166534" : "#f59e0b";
+                ctx.fillRect(item.x, item.y, item.width, item.height);
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "14px sans-serif";
+                ctx.fillText(item.collected ? "✓" : "📁", item.x + 8, item.y + 22);
+            });
+
+            // Zona interactiva de Dirección General
+            ctx.fillStyle = collectedCount === 3 ? "rgba(34, 197, 94, 0.25)" : "rgba(100, 116, 139, 0.15)";
+            ctx.fillRect(directorZone.x, directorZone.y, directorZone.width, directorZone.height);
+            ctx.fillStyle = collectedCount === 3 ? "#22c55e" : "#94a3b8";
+            ctx.font = "bold 11px sans-serif";
+            ctx.fillText(collectedCount === 3 ? "¡Reunión Ejecutiva!" : "🔒 Bloqueado (Faltan datos)", directorZone.x + 12, directorZone.y + 50);
+
+            // Dibujar Personaje (Estilo Avatar en Plano)
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            // Cabeza del personaje
+            ctx.fillStyle = "#f8fafc";
+            ctx.fillRect(player.x + 4, player.y - 8, 14, 10);
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        function openDocModal(item) {
+            activeItem = item;
+            document.getElementById("modal-doc-title").innerText = item.docTitle;
+            document.getElementById("modal-doc-body").innerHTML = item.docText;
+            document.getElementById("modal-doc").classList.remove("hidden");
+            gameActive = false;
+        }
+
+        function closeDocModal() {
+            document.getElementById("modal-doc").classList.add("hidden");
+            if (activeItem && !activeItem.collected) {
+                activeItem.collected = true;
+                collectedCount++;
+                document.getElementById("doc-counter").innerText = `${collectedCount} / 3`;
+            }
+            gameActive = true;
+            player.x += 25; // Desplazar al salir de la colisión
+        }
+
+        function startQuiz() {
+            quizStep = 1;
+            loadQuizQuestion();
+            document.getElementById("modal-quiz").classList.remove("hidden");
+        }
+
+        function loadQuizQuestion() {
+            const body = document.getElementById("quiz-body");
+            const feedback = document.getElementById("quiz-feedback");
+            feedback.classList.add("hidden");
+            document.getElementById("btn-next-quiz").classList.add("hidden");
+            document.getElementById("btn-retry-quiz").classList.add("hidden");
+
+            if (quizStep === 1) {
+                document.getElementById("quiz-title").innerText = "Misión 1: Clasificación Modelo COCOMO";
+                body.innerHTML = `
+                    <p style="margin-bottom: 12px;">Con base en los datos recolectados (30 KLOC, hardware y equipo mixto), ¿cómo se clasifica el proyecto?</p>
+                    <div class="quiz-option" onclick="checkAnswer(1, 'A')">A) Proyecto Orgánico</div>
+                    <div class="quiz-option" onclick="checkAnswer(1, 'B')">B) Proyecto Semiacoplado</div>
+                    <div class="quiz-option" onclick="checkAnswer(1, 'C')">C) Proyecto Empotrado</div>
+                `;
+            } else if (quizStep === 2) {
+                document.getElementById("quiz-title").innerText = "Misión 2: Selección de Arquitectura SaaS";
+                body.innerHTML = `
+                    <p style="margin-bottom: 12px;">Para evitar el mantenimiento local de servidores y reducir costos iniciales, ¿qué recomendación argumentas?</p>
+                    <div class="quiz-option" onclick="checkAnswer(2, 'A')">A) Adquirir servidores locales físicos caros</div>
+                    <div class="quiz-option" onclick="checkAnswer(2, 'B')">B) Utilizar un servicio en la nube en modalidad SaaS</div>
+                    <div class="quiz-option" onclick="checkAnswer(2, 'C')">C) Gestionar todo de forma manual</div>
+                `;
+            }
+        }
+
+        function checkAnswer(step, option) {
+            const feedback = document.getElementById("quiz-feedback");
+            feedback.classList.remove("hidden");
+
+            if (step === 1) {
+                if (option === 'B') {
+                    feedback.className = "feedback-box feedback-success";
+                    feedback.innerHTML = "<b>¡Excelente diagnóstico!</b> Proyecto semiacoplado correcto.<br><i>Recompensa: Insignia 'Especialista en COCOMO' + 250 XP.</i>";
+                    document.getElementById("btn-next-quiz").classList.remove("hidden");
+                } else {
+                    feedback.className = "feedback-box feedback-error";
+                    feedback.innerHTML = "<b>Alerta de sobrecosto:</b> Los proyectos semiacoplados tienen equipo de experiencia mixta. ¡Inténtalo de nuevo!";
+                    document.getElementById("btn-retry-quiz").classList.remove("hidden");
+                }
+            } else if (step === 2) {
+                if (option === 'B') {
+                    feedback.className = "feedback-box feedback-success";
+                    feedback.innerHTML = "<b>¡Propuesta aprobada!</b> El modelo SaaS reduce costos y asegura disponibilidad.<br><i>Recompensa: Insignia 'Consultor SaaS'.</i>";
+                    document.getElementById("btn-next-quiz").innerText = "Ver Informe Final";
+                    document.getElementById("btn-next-quiz").classList.remove("hidden");
+                } else {
+                    feedback.className = "feedback-box feedback-error";
+                    feedback.innerHTML = "<b>Inconsistencia:</b> La opción elegida incrementa costos locales. ¡Revisa tu argumento!";
+                    document.getElementById("btn-retry-quiz").classList.remove("hidden");
+                }
+            }
+        }
+
+        function proceedQuiz() {
+            if (quizStep === 1) {
+                quizStep = 2;
+                loadQuizQuestion();
+            } else {
+                document.getElementById("quiz-title").innerText = "🏆 ¡Empresa Rescatada con Éxito!";
+                document.getElementById("user-role").innerText = "Consultor Sénior";
+                document.getElementById("quiz-body").innerHTML = `
+                    <div style="text-align: center; padding: 10px;">
+                        <h2 style="color: #22c55e; margin-bottom: 10px;">100% de Objetivos Cumplidos</h2>
+                        <p>Has completado el plano interactivo y el análisis de ingeniería de software.</p>
+                        <p style="margin-top: 15px; color: #94a3b8; font-size: 0.85rem;">Certificación: <b>Consultor Sénior de Ingeniería de Software</b></p>
+                    </div>
+                `;
+                document.getElementById("quiz-feedback").classList.add("hidden");
+                document.getElementById("btn-next-quiz").classList.add("hidden");
+            }
+        }
+
+        function retryQuiz() {
+            loadQuizQuestion();
+        }
+
+        loop();
+    </script>
+</body>
+</html>

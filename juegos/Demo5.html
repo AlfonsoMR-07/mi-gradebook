@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Misión: Rescate de TechInnovate - Isométrico</title>
+    <style>
+        :root {
+            --bg-dark: #070913;
+            --panel-bg: #111827;
+            --text-light: #f8fafc;
+            --accent: #3b82f6;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        h1 {
+            color: #60a5fa;
+            font-size: 1.3rem;
+            margin-bottom: 2px;
+        }
+
+        .instructions {
+            color: #94a3b8;
+            font-size: 0.78rem;
+        }
+
+        #main-layout {
+            display: flex;
+            gap: 15px;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 20px 35px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+
+        #game-container {
+            position: relative;
+            width: 620px;
+            height: 480px;
+            background: #111827;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #334155;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* Panel Lateral de Pendientes */
+        #sidebar {
+            width: 250px;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #334155;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sidebar-title {
+            color: #38bdf8;
+            font-size: 0.95rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 6px;
+        }
+
+        .checklist {
+            list-style: none;
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+        }
+
+        .checklist li {
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .checklist li.completed {
+            color: #4ade80;
+            text-decoration: line-through;
+        }
+
+        .role-box {
+            background: #070913;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            border: 1px solid #1e293b;
+            text-align: center;
+        }
+
+        /* Modales */
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(7, 9, 19, 0.92);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 10;
+        }
+
+        .modal-content {
+            background: var(--panel-bg);
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 25px;
+            max-width: 520px;
+            width: 100%;
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-title {
+            color: #60a5fa;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .modal-body {
+            line-height: 1.5;
+            font-size: 0.88rem;
+            color: #cbd5e1;
+            margin-bottom: 20px;
+        }
+
+        .quiz-option {
+            background: #1e293b;
+            border: 1px solid #334155;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            transition: all 0.2s ease;
+        }
+
+        .quiz-option:hover {
+            background: #334155;
+            border-color: #64748b;
+        }
+
+        .btn-action {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .btn-action:hover { background: #16a34a; }
+
+        .feedback-box {
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+            font-size: 0.82rem;
+            line-height: 1.4;
+        }
+
+        .feedback-success { background: #14532d; border: 1px solid #22c55e; color: #bbf7d0; }
+        .feedback-error { background: #7f1d1d; border: 1px solid #ef4444; color: #fecaca; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Misión: Rescate de TechInnovate</h1>
+        <p class="instructions">Usa las flechas o <b>WASD</b>. Explora las plataformas isométricas y reúne las evidencias clave.</p>
+    </header>
+
+    <div id="main-layout">
+        <div id="game-container">
+            <canvas id="gameCanvas" width="620" height="480"></canvas>
+
+            <!-- Modal de Expedientes -->
+            <div id="modal-doc" class="modal-overlay hidden">
+                <div class="modal-content">
+                    <h3 id="modal-doc-title" class="modal-title"></h3>
+                    <div id="modal-doc-body" class="modal-body"></div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button id="btn-collect" class="btn-action" onclick="handleDocument(true)">Guardar en Expediente</button>
+                        <button class="btn-action" style="background: var(--danger)" onclick="handleDocument(false)">Descartar (Sigue en Escena)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal de Cuestionario Final -->
+            <div id="modal-quiz" class="modal-overlay hidden">
+                <div class="modal-content">
+                    <h3 id="quiz-title" class="modal-title"></h3>
+                    <div id="quiz-body" class="modal-body"></div>
+                    <div id="quiz-feedback" class="feedback-box hidden"></div>
+                    <div style="margin-top: 15px; text-align: right;">
+                        <button id="btn-next-quiz" class="btn-action hidden" onclick="proceedQuiz()">Siguiente Misión</button>
+                        <button id="btn-retry-quiz" class="btn-action hidden" style="background: var(--danger)" onclick="retryQuiz()">Reintentar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Lateral -->
+        <div id="sidebar">
+            <div>
+                <div class="sidebar-title">📋 Lista de Pendientes</div>
+                <ul class="checklist">
+                    <li id="check-1">⬜ Encontrar expediente COCOMO (30 KLOC)</li>
+                    <li id="check-2">⬜ Revisar costos y experiencia del equipo</li>
+                    <li id="check-3">⬜ Evaluar infraestructura SaaS</li>
+                    <li id="check-4">🔒 Entrar al Portal de Dirección</li>
+                </ul>
+            </div>
+            <div class="role-box">
+                <b>Rol Asignado:</b><br>Consultor Junior<br>
+                <span id="status-text" style="color: #38bdf8;">Explorando mapa isométrico...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Personaje isométrico (Estilo tripulante/avatar de referencia)
+        let player = {
+            x: 280,
+            y: 240,
+            width: 24,
+            height: 30,
+            speed: 3.2,
+            color: "#f43f5e" // Color rojizo estilo la referencia
+        };
+
+        let keys = {};
+        window.addEventListener("keydown", (e) => keys[e.key] = true);
+        window.addEventListener("keyup", (e) => keys[e.key] = false);
+
+        // Plataformas isométricas de oficina
+        let platforms = [
+            { x: 180, y: 160, w: 260, h: 160, color: "#10b981", name: "Plataforma Central" },
+            { x: 80, y: 80, w: 100, h: 90, color: "#059669", name: "Sala Servidores" },
+            { x: 440, y: 80, w: 100, h: 90, color: "#059669", name: "Finanzas" },
+            { x: 80, y: 310, w: 100, h: 90, color: "#059669", name: "Desarrollo" },
+            { x: 440, y: 310, w: 100, h: 90, color: "#047857", name: "Dirección" }
+        ];
+
+        // Elementos interactivos (Claves y Distractores que se quedan en escena si se descartan)
+        let items = [
+            { id: 1, x: 110, y: 110, width: 28, height: 28, type: 'key', name: "Servidores", collected: false, title: "Expediente: Sistema Hospitalario", text: "El cliente TechInnovate necesita un sistema de gestión hospitalaria estimado en <b>30 KLOC</b> con hardware médico." },
+            { id: 2, x: 470, y: 110, width: 28, height: 28, type: 'key', name: "Finanzas", collected: false, title: "Reporte de Costos y Equipo", text: "El proyecto cuenta con requisitos estables, pero un equipo de desarrollo de experiencia mixta. Se debe evitar sobrecosto." },
+            { id: 3, x: 110, y: 340, width: 28, height: 28, type: 'key', name: "Desarrollo", collected: false, title: "Propuesta SaaS", text: "El cliente duda entre servidores locales o contratar servicios en la nube en modalidad <b>SaaS</b>." },
+            // Distractores que permanecen en escena al ser rechazados
+            { id: 4, x: 280, y: 220, width: 26, height: 26, type: 'trap', name: "Cafetería", collected: false, title: "Menú de la Cafetería", text: "<i>[Documento irrelevante]</i> Menú semanal de alimentos. No aporta datos técnicos." },
+            { id: 5, x: 340, y: 220, width: 26, height: 26, type: 'trap', name: "Tóner", collected: false, title: "Presupuesto de Tóner", text: "<i>[Documento irrelevante]</i> Factura de compra de cartuchos de tinta para impresoras." }
+        ];
+
+        let portalDirection = { x: 460, y: 330, width: 60, height: 50 };
+
+        let collectedKeyCount = 0;
+        let gameActive = true;
+        let quizStep = 1;
+        let activeItem = null;
+
+        function update() {
+            if (!gameActive) return;
+
+            let nextX = player.x;
+            let nextY = player.y;
+
+            if (keys["ArrowUp"] || keys["w"] || keys["W"]) nextY -= player.speed;
+            if (keys["ArrowDown"] || keys["s"] || keys["S"]) nextY += player.speed;
+            if (keys["ArrowLeft"] || keys["a"] || keys["A"]) nextX -= player.speed;
+            if (keys["ArrowRight"] || keys["d"] || keys["D"]) nextX += player.speed;
+
+            // Limitar al área del canvas
+            if (nextX > 50 && nextX < canvas.width - 70 && nextY > 50 && nextY < canvas.height - 70) {
+                player.x = nextX;
+                player.y = nextY;
+            }
+
+            // Colisiones con elementos (solo si no han sido recolectados)
+            items.forEach(item => {
+                if (!item.collected && rectIntersect(player, item)) {
+                    openDocModal(item);
+                }
+            });
+
+            // Colisión con Portal de Dirección General
+            if (rectIntersect(player, portalDirection) && collectedKeyCount === 3) {
+                gameActive = false;
+                startQuiz();
+            }
+        }
+
+        function rectIntersect(r1, r2) {
+            return r1.x < r2.x + r2.width && r1.x + r1.width > r2.x &&
+                   r1.y < r2.y + r2.height && r1.y + r1.height > r2.y;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Fondo espacial / isométrico oscuro
+            ctx.fillStyle = "#070913";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Dibujar plataformas isométricas
+            platforms.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.w, p.h);
+                // Efecto de borde 3D en plataforma
+                ctx.strokeStyle = "#065f46";
+                ctx.lineWidth = 3;
+                ctx.strokeRect(p.x, p.y, p.w, p.h);
+            });
+
+            // Portal de Dirección General (estilo el portal de la imagen de referencia)
+            ctx.fillStyle = collectedKeyCount === 3 ? "#8b5cf6" : "#334155";
+            ctx.fillRect(portalDirection.x, portalDirection.y, portalDirection.width, portalDirection.height);
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 10px sans-serif";
+            ctx.fillText(collectedKeyCount === 3 ? "🌀 PORTAL" : "🔒 BLOQ", portalDirection.x + 8, portalDirection.y + 30);
+
+            // Dibujar elementos (si no han sido recolectados, se quedan en la escena aunque se descarten)
+            items.forEach(item => {
+                if (!item.collected) {
+                    ctx.fillStyle = item.type === 'key' ? "#f59e0b" : "#94a3b8";
+                    ctx.fillRect(item.x, item.y, item.width, item.height);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "12px sans-serif";
+                    ctx.fillText(item.type === 'key' ? "📁" : "📄", item.x + 6, item.y + 20);
+                }
+            });
+
+            // Dibujar Personaje (Estilo Avatar Isométrico / Tripulante)
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            // Visor del personaje estilo Among Us / referencia
+            ctx.fillStyle = "#38bdf8";
+            ctx.fillRect(player.x + 12, player.y + 6, 10, 8);
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        function openDocModal(item) {
+            activeItem = item;
+            document.getElementById("modal-doc-title").innerText = item.title;
+            document.getElementById("modal-doc-body").innerHTML = item.text;
+            document.getElementById("modal-doc").classList.remove("hidden");
+            gameActive = false;
+        }
+
+        function handleDocument(isKeep) {
+            document.getElementById("modal-doc").classList.add("hidden");
+            if (activeItem) {
+                if (isKeep) {
+                    activeItem.collected = true; // Desaparece solo si se guarda en el expediente clave
+                    if (activeItem.type === 'key') {
+                        collectedKeyCount++;
+                        updateChecklist();
+                    }
+                } else {
+                    // Si se descarta, activeItem.collected sigue en false, por lo que SE QUEDA EN ESCENA
+                }
+            }
+            gameActive = true;
+            player.x += 20; // Separar para evitar bucle
+        }
+
+        function updateChecklist() {
+            if (collectedKeyCount >= 1) {
+                document.getElementById("check-1").className = "completed";
+                document.getElementById("check-1").innerHTML = "✅ Encontrar expediente COCOMO (30 KLOC)";
+            }
+            if (collectedKeyCount >= 2) {
+                document.getElementById("check-2").className = "completed";
+                document.getElementById("check-2").innerHTML = "✅ Revisar costos y experiencia del equipo";
+            }
+            if (collectedKeyCount >= 3) {
+                document.getElementById("check-3").className = "completed";
+                document.getElementById("check-3").innerHTML = "✅ Evaluar infraestructura SaaS";
+                document.getElementById("check-4").className = "completed";
+                document.getElementById("check-4").innerHTML = "✅ ¡Entrar al Portal de Dirección!";
+                document.getElementById("status-text").innerText = "¡Portal Abierto!";
+                document.getElementById("status-text").style.color = "#22c55e";
+            }
+        }
+
+        function startQuiz() {
+            quizStep = 1;
+            loadQuizQuestion();
+            document.getElementById("modal-quiz").classList.remove("hidden");
+        }
+
+        function loadQuizQuestion() {
+            const body = document.getElementById("quiz-body");
+            const feedback = document.getElementById("quiz-feedback");
+            feedback.classList.add("hidden");
+            document.getElementById("btn-next-quiz").classList.add("hidden");
+            document.getElementById("btn-retry-quiz").classList.add("hidden");
+
+            if (quizStep === 1) {
+                document.getElementById("quiz-title").innerText = "Misión 1: Clasificación Modelo COCOMO";
+                body.innerHTML = `
+                    <p style="margin-bottom: 12px;">Con base en los datos recolectados (30 KLOC, hardware y equipo mixto), ¿cómo se clasifica el proyecto[cite: 2]?</p>
+                    <div class="quiz-option" onclick="checkAnswer(1, 'A')">A) Proyecto Orgánico</div>
+                    <div class="quiz-option" onclick="checkAnswer(1, 'B')">B) Proyecto Semiacoplado</div>
+                    <div class="quiz-option" onclick="checkAnswer(1, 'C')">C) Proyecto Empotrado</div>
+                `;
+            } else if (quizStep === 2) {
+                document.getElementById("quiz-title").innerText = "Misión 2: Selección de Arquitectura SaaS";
+                body.innerHTML = `
+                    <p style="margin-bottom: 12px;">Para evitar el mantenimiento local de servidores y reducir costos iniciales, ¿qué recomendación argumentas[cite: 2]?</p>
+                    <div class="quiz-option" onclick="checkAnswer(2, 'A')">A) Comprar servidores locales costosos</div>
+                    <div class="quiz-option" onclick="checkAnswer(2, 'B')">B) Utilizar un servicio en la nube en modalidad SaaS</div>
+                    <div class="quiz-option" onclick="checkAnswer(2, 'C')">C) Llevar los registros en papel</div>
+                `;
+            }
+        }
+
+        function checkAnswer(step, option) {
+            const feedback = document.getElementById("quiz-feedback");
+            feedback.classList.remove("hidden");
+
+            if (step === 1) {
+                if (option === 'B') {
+                    feedback.className = "feedback-box feedback-success";
+                    feedback.innerHTML = "<b>¡Excelente diagnóstico!</b> Proyecto semiacoplado correcto[cite: 2].<br><i>Recompensa: Insignia 'Especialista en COCOMO' + 250 XP[cite: 1, 2].</i>";
+                    document.getElementById("btn-next-quiz").classList.remove("hidden");
+                } else {
+                    feedback.className = "feedback-box feedback-error";
+                    feedback.innerHTML = "<b>Alerta de sobrecosto:</b> Los proyectos semiacoplados tienen equipo de experiencia mixta[cite: 2]. ¡Inténtalo de nuevo!";
+                    document.getElementById("btn-retry-quiz").classList.remove("hidden");
+                }
+            } else if (step === 2) {
+                if (option === 'B') {
+                    feedback.className = "feedback-box feedback-success";
+                    feedback.innerHTML = "<b>¡Propuesta aprobada!</b> El modelo SaaS reduce costos y asegura disponibilidad[cite: 2].<br><i>Recompensa: Insignia 'Consultor SaaS'.</i>";
+                    document.getElementById("btn-next-quiz").innerText = "Ver Informe Final";
+                    document.getElementById("btn-next-quiz").classList.remove("hidden");
+                } else {
+                    feedback.className = "feedback-box feedback-error";
+                    feedback.innerHTML = "<b>Inconsistencia:</b> La opción elegida incrementa costos locales[cite: 2]. ¡Revisa tu argumento!";
+                    document.getElementById("btn-retry-quiz").classList.remove("hidden");
+                }
+            }
+        }
+
+        function proceedQuiz() {
+            if (quizStep === 1) {
+                quizStep = 2;
+                loadQuizQuestion();
+            } else {
+                document.getElementById("quiz-title").innerText = "🏆 ¡Empresa Rescatada con Éxito!";
+                document.getElementById("quiz-body").innerHTML = `
+                    <div style="text-align: center; padding: 10px;">
+                        <h2 style="color: #22c55e; margin-bottom: 10px;">100% de Objetivos Cumplidos</h2>
+                        <p>Has completado la simulación isométrica filtrando correctamente los expedientes[cite: 2].</p>
+                        <p style="margin-top: 15px; color: #94a3b8; font-size: 0.82rem;">Certificación: <b>Consultor Sénior de Ingeniería de Software</b>[cite: 1, 2]</p>
+                    </div>
+                `;
+                document.getElementById("quiz-feedback").classList.add("hidden");
+                document.getElementById("btn-next-quiz").classList.add("hidden");
+            }
+        }
+
+        function retryQuiz() {
+            loadQuizQuestion();
+        }
+
+        loop();
+    </script>
+</body>
+</html>
