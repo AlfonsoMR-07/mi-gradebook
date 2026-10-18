@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen de Práctica: Anatomía (Vértebras, Cráneo y Craniometría)</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; line-height: 1.5; padding-bottom: 40px; }
+        header { background-color: #1e3a8a; color: white; padding: 20px 16px; position: sticky; top: 0; z-index: 50; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header-content { max-width: 900px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
+        .tag { background-color: #1d4ed8; color: #bfdbfe; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; }
+        h1 { font-size: 1.5rem; font-weight: 700; margin-top: 4px; }
+        p.subtitle { color: #dbeafe; font-size: 0.875rem; }
+        .stats { display: flex; align-items: center; gap: 16px; background-color: rgba(30, 58, 138, 0.8); padding: 8px 16px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.5); }
+        .stat-box { text-align: center; }
+        .stat-label { display: block; font-size: 11px; color: #bfdbfe; text-transform: uppercase; }
+        .stat-val { font-size: 1.25rem; font-weight: 700; font-family: monospace; }
+        .divider { width: 1px; height: 32px; background-color: #3b82f6; }
+        
+        main { max-width: 900px; margin: 24px auto; padding: 0 16px; display: flex; flex-direction: column; gap: 24px; }
+        .filter-card { background: white; border-radius: 16px; padding: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .filter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+        .filter-title { font-weight: 600; font-size: 0.875rem; color: #334155; }
+        .reset-btn { padding: 8px 16px; background-color: #f1f5f9; color: #334155; font-weight: 500; font-size: 0.875rem; border-radius: 12px; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s; }
+        .reset-btn:hover { background-color: #e2e8f0; }
+        
+        .filter-grid { display: flex; gap: 8px; flex-wrap: wrap; }
+        .filter-btn { padding: 8px 16px; border-radius: 10px; font-size: 0.85rem; font-weight: 500; border: 1px solid #cbd5e1; background-color: #f8fafc; color: #475569; cursor: pointer; text-align: center; transition: all 0.2s; }
+        .filter-btn:hover { background-color: #f1f5f9; }
+        .filter-btn.active { background-color: #1d4ed8; color: white; border-color: #1d4ed8; font-weight: 600; }
+        
+        .questions-list { display: flex; flex-direction: column; gap: 20px; }
+        .question-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05); transition: all 0.2s; display: flex; flex-direction: column; gap: 16px; }
+        .question-card.correct { border-color: #6ee7b7; background-color: #f0fdf4; }
+        .question-card.incorrect { border-color: #fca5a5; background-color: #fff1f2; }
+        
+        .q-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .q-section { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+        .q-id { font-size: 12px; color: #94a3b8; font-weight: 500; }
+        .q-text { font-size: 1.05rem; font-weight: 600; color: #1e293b; }
+        
+        .q-image-container { text-align: center; margin: 10px 0; background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; overflow: hidden; padding: 10px; display: flex; justify-content: center; align-items: center; }
+        .q-image { max-width: 100%; max-height: 380px; object-fit: contain; border-radius: 8px; }
+
+        .options-list { display: flex; flex-direction: column; gap: 10px; }
+        .option-btn { width: 100%; text-align: left; padding: 12px 16px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; color: #334155; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s; }
+        .option-btn:hover:not(:disabled) { background-color: #f8fafc; border-color: #cbd5e1; }
+        .option-letter { width: 28px; height: 28px; border-radius: 8px; background-color: #f1f5f9; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; flex-shrink: 0; }
+        
+        .option-btn.opt-correct { border-color: #10b981; background-color: #ecfdf5; color: #065f46; font-weight: 600; }
+        .option-btn.opt-incorrect { border-color: #f43f5e; background-color: #fff1f2; color: #9f1239; font-weight: 600; }
+        .option-btn.opt-disabled { opacity: 0.6; }
+        
+        .badge-status { margin-left: auto; font-size: 0.75rem; font-weight: 700; }
+        .badge-correct { color: #059669; }
+        .badge-incorrect { color: #e11d48; }
+        
+        .feedback-box { padding: 14px 16px; border-radius: 12px; font-size: 0.875rem; border: 1px solid; margin-top: 4px; }
+        .feedback-box.correct { background-color: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+        .feedback-box.incorrect { background-color: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+        .feedback-title { font-weight: 700; margin-bottom: 4px; }
+        
+        .summary-card { background: linear-gradient(135deg, #1e3a8a, #1d4ed8); color: white; border-radius: 20px; padding: 32px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 16px; }
+        .summary-card.hidden { display: none; }
+        .trophy { font-size: 3rem; background: rgba(255,255,255,0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .final-score { font-size: 2rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 8px 24px; border-radius: 16px; backdrop-filter: blur(4px); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div>
+                <span class="tag">Examen de Práctica</span>
+                <h1>Anatomía: Vértebras, Cráneo y Craniometría</h1>
+                <p class="subtitle">Evaluación interactiva de opción múltiple con soporte visual oficial</p>
+            </div>
+            <div class="stats">
+                <div class="stat-box">
+                    <span class="stat-label">Tiempo</span>
+                    <span id="timer" class="stat-val">00:00</span>
+                </div>
+                <div class="divider"></div>
+                <div class="stat-box">
+                    <span class="stat-label">Puntaje</span>
+                    <span id="score-display" class="stat-val">0 / 38</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="filter-card">
+            <div class="filter-header">
+                <span class="filter-title">🔍 Filtrar por Sección:</span>
+                <button onclick="resetQuiz()" class="reset-btn">🔄 Reiniciar Examen</button>
+            </div>
+            <div class="filter-grid" id="filter-container">
+                <button onclick="setFilter('all')" id="filter-all" class="filter-btn active">Todas (38)</button>
+                <button onclick="setFilter('sec1')" id="filter-sec1" class="filter-btn">Sección I: Con Imágenes (1-12)</button>
+                <button onclick="setFilter('sec2')" id="filter-sec2" class="filter-btn">Sección II: Teóricas (13-38)</button>
+            </div>
+        </div>
+
+        <div id="questions-container" class="questions-list"></div>
+
+        <div id="summary-card" class="summary-card hidden">
+            <div class="trophy">🏆</div>
+            <h2>¡Examen Finalizado!</h2>
+            <p id="summary-text" style="color: #dbeafe; max-width: 500px;">Has completado el repaso de anatomía.</p>
+            <div class="final-score" id="final-score">0 / 38 aciertos</div>
+            <button onclick="resetQuiz()" class="reset-btn" style="background: white; color: #1e3a8a; font-weight: 700; padding: 12px 24px; font-size: 1rem;">
+                Reiniciar Examen
+            </button>
+        </div>
+    </main>
+
+    <script>
+        const questionsData = [
+            {
+                id: 1,
+                section: 'sec1',
+                sectionName: 'SECCIÓN I: Identificación Visual de Vértebras',
+                question: 'En la imagen, ¿qué estructura ósea está representada de manera general?',
+                image: 'img/1.png',
+                options: [
+                    { letter: 'A', text: 'Una vértebra típica' },
+                    { letter: 'B', text: 'El hueso temporal' },
+                    { letter: 'C', text: 'El hueso esfenoides' },
+                    { letter: 'D', text: 'El hueso frontal' }
+                ],
+                correct: 'A',
+                explanation: 'La imagen muestra una vista general de los segmentos vertebrales y estructuras asociadas[cite: 2].'
+            },
+            {
+                id: 2,
+                section: 'sec1',
+                sectionName: 'SECCIÓN I: Identificación Visual de Vértebras',
+                question: '¿A qué región pertenecen las vértebras que se observan?',
+                image: 'img/2.png',
+                options: [
+                    { letter: 'A', text: 'Lumbar' },
+                    { letter: 'B', text: 'Cervical' },
+                    { letter: 'C', text: 'Sacra' },
+                    { letter: 'D', text: 'Coccígea' }
+                ],
+                correct: 'B',
+                explanation: 'Se aprecian los forámenes transversos y la morfología característica de las vértebras cervicales[cite: 2].'
+            },
+            {
+                id: 3,
+                section: 'sec1',
+                sectionName: 'SECCIÓN I: Identificación Visual de Vértebras',
+                question: 'La imagen corresponde a una vértebra cervical. ¿Qué rasgo se identifica en el esquema?',
+                image: 'img/3.png',
+                options: [
+                    { letter: 'A', text: 'Carillas para las costillas' },
+                    { letter: 'B', text: 'Foramen transverso' },
+                    { letter: 'C', text: 'Promontorio sacro' },
+                    { letter: 'D', text: 'Cuerpo fusionado' }
+                ],
+                correct: 'B',
+                explanation: 'El foramen transverso es el rasgo distintivo señalado en la cuarta vértebra cervical[cite: 2].'
+            },
+            {
+                id: 4,
+                section: 'sec1',
+                sectionName: 'SECCIÓN I: Identificación Visual de Vértebras',
+                question: '¿Qué característica del atlas se observa en la imagen?',
+                image: 'img/4.png',
+                options: [
+                    { letter: 'A', text: 'Cuerpo vertebral voluminoso' },
+                    { letter: 'B', text: 'Apófisis espinosa larga' },
+                    { letter: 'C', text: 'Forma de anillo y ausencia de cuerpo típico' },
+                    { letter: 'D', text: 'Carillas costales' }
+                ],
+                correct: 'C',
+                explanation: 'El atlas (C1) presenta una estructura en forma de anillo sin un cuerpo vertebral convencional[cite: 2].'
+            },
+            {
+                id: 5,
+                section: 'sec1',
+                sectionName: 'SECCIÓN I: Identificación Visual de Vértebras',
+                question: '¿Qué estructura señalada en la vértebra cervical permite el paso de vasos vertebrales?',
+                image: 'img/5.png',
+                options: [
+                    { letter: 'A', text: 'Foramen transverso' },
+                    { letter: 'B', text: 'Foramen vertebral' },
+                    { letter: 'C', text: 'Conducto sacro' },
+                    { letter: 'D', text: 'Agujero obturador' }
+                ],
+                correct: 'A',
+                explanation: 'El foramen transverso permite el paso de los vasos vertebrales[cite: 2].'
+            },
+            {
+                id: 6,
+                section: 'sec1',
+                sectionName: 'SECCIÓN I: Identificación Visual de Vértebras',
+                question: '¿Qué tipo de apófisis espinosa es típica de las vértebras cervicales medias?',
+                image: 'img/6.png',
+                options: [
+                    { letter: 'A', text: 'Larga e inclinada inferiormente' },
+                    { letter: 'B', text: 'Corta y frecuentemente bífida' },
+                    { letter: 'C', text: 'Ausente en todas' },
+                    { letter: 'D', text: 'Fusionada con el sacro' }
+                ],
+                correct: 'B',
+                explanation: 'Las vértebras cervicales medias presentan por lo general apófisis espinosas cortas y bífidas[cite: 2].'
+            },
+            {
+                id: 7,
+                section: 'sec1',
+                sectionName: 'SECCIÓN I: Identificación Visual de Vértebras',
+                question: '¿Qué región vertebral presenta carillas articulares para las costillas?',
+                image: 'img/7.png',
+                options: [
+                    { letter: 'A', text: 'Cervical' },
+                    { letter: 'B', text: 'Lumbar' },
+                    { letter: 'C', text: 'Torácica o dorsal' },
+                    { letter: 'D', text: 'Coccígea' }
+                ],
+                correct: 'C',
+                explanation: 'Las fositas costales superior e inferior son características de las vértebras torácicas[cite: 2].'
+            },
+            {
+                id: 8,
+                section: 'sec1',
+                sectionName: 'SECCIÓN I: Identificación Visual de Vértebras',
+                question: '¿Qué rasgo ayuda a reconocer una vértebra lumbar?',
+                image: 'img/8.png',
+                options: [
+                    { letter: 'A', text: 'Cuerpo pequeño y forámenes transversos' },
+                    { letter: 'B', text: 'Cuerpo grande y robusto' },
+                    { letter: 'C', text: 'Carillas costales' },
+                    { letter: 'D', text: 'Ausencia de cuerpo y arco' }
+                ],
+                correct: 'B',
+                explanation: 'Las vértebras lumbares poseen cuerpos grandes y robustos para soportar el peso corporal[cite: 2].'
+            },
+            {
+                id: 9,
+                section: 'sec1',
+                sectionName: 'SECCIÓN I: Identificación Visual de Vértebras',
+                question: '¿Qué estructura se observa en la región sacra?',
+                image: 'img/9.png',
+                options: [
+                    { letter: 'A', text: 'Forámenes transversos cervicales' },
+                    { letter: 'B', text: 'Carillas costales' },
+                    { letter: 'C', text: 'Fusión de vértebras' },
+                    { letter: 'D', text: 'Apófisis odontoides' }
+                ],
+                correct: 'C',
+                explanation: 'La región sacra se caracteriza por la fusión de varias vértebras[cite: 2].'
+            },
+            {
+                id: 10,
+                section: 'sec1',
+                sectionName: 'SECCIÓN I: Identificación Visual de Vértebras',
+                question: '¿Cuál de estas opciones corresponde a una característica del axis (C2)?',
+                image: 'img/10.png',
+                options: [
+                    { letter: 'A', text: 'Tiene apófisis odontoides' },
+                    { letter: 'B', text: 'Carece de cuerpo' },
+                    { letter: 'C', text: 'Se articula directamente con las costillas' },
+                    { letter: 'D', text: 'Está fusionado al sacro' }
+                ],
+                correct: 'A',
+                explanation: 'El axis se distingue por su apófisis odontoides o diente[cite: 2].'
+            },
+            {
+                id: 11,
+                section: 'sec1',
+                sectionName: 'SECCIÓN I: Identificación Visual de Vértebras',
+                question: '¿Qué diferencia general distingue a las vértebras torácicas?',
+                image: 'img/11.png',
+                options: [
+                    { letter: 'A', text: 'Agujeros transversos' },
+                    { letter: 'B', text: 'Carillas costales' },
+                    { letter: 'C', text: 'Ausencia de foramen vertebral' },
+                    { letter: 'D', text: 'Fusión completa' }
+                ],
+                correct: 'B',
+                explanation: 'Las carillas costales permiten la articulación con las costillas[cite: 2].'
+            },
+            {
+                id: 12,
+                section: 'sec1',
+                sectionName: 'SECCIÓN I: Identificación Visual de Vértebras',
+                question: '¿Qué región de la columna se encuentra inferior a las vértebras lumbares?',
+                image: 'img/12.png',
+                options: [
+                    { letter: 'A', text: 'Cervical' },
+                    { letter: 'B', text: 'Torácica' },
+                    { letter: 'C', text: 'Sacra' },
+                    { letter: 'D', text: 'Atlas' }
+                ],
+                correct: 'C',
+                explanation: 'Inferior a las lumbares se encuentra la región sacra[cite: 2].'
+            },
+
+            // SECCIÓN II: Preguntas teóricas (13 a 38)
+            {
+                id: 13,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Cuáles son los siete elementos básicos descritos para una vértebra típica?',
+                options: [
+                    { letter: 'A', text: 'Cuerpo, arco, apófisis espinosa, transversas, articulares, láminas y pedículos' },
+                    { letter: 'B', text: 'Cuerpo, costillas, esternón, clavícula, escápula, sacro y cóccix' },
+                    { letter: 'C', text: 'Diáfisis, epífisis, metáfisis y periostio' },
+                    { letter: 'D', text: 'Frontal, occipital, parietal y temporal' }
+                ],
+                correct: 'A',
+                explanation: 'Estos son los siete componentes estructurales fundamentales de una vértebra típica[cite: 2].'
+            },
+            {
+                id: 14,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué estructura forma la porción anterior y soporta gran parte del peso?',
+                options: [
+                    { letter: 'A', text: 'Lámina' },
+                    { letter: 'B', text: 'Cuerpo vertebral' },
+                    { letter: 'C', text: 'Apófisis espinosa' },
+                    { letter: 'D', text: 'Apófisis transversa' }
+                ],
+                correct: 'B',
+                explanation: 'El cuerpo vertebral soporta el peso principal de la columna[cite: 2].'
+            },
+            {
+                id: 15,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué estructura forma el límite posterior del foramen vertebral?',
+                options: [
+                    { letter: 'A', text: 'Cuerpo vertebral' },
+                    { letter: 'B', text: 'Disco intervertebral' },
+                    { letter: 'C', text: 'Láminas del arco vertebral' },
+                    { letter: 'D', text: 'Apófisis odontoides' }
+                ],
+                correct: 'C',
+                explanation: 'Las láminas del arco vertebral delimitan la parte posterior del foramen[cite: 2].'
+            },
+            {
+                id: 16,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué región suele tener cuerpos vertebrales más grandes por soportar mayor carga?',
+                options: [
+                    { letter: 'A', text: 'Cervical' },
+                    { letter: 'B', text: 'Torácica' },
+                    { letter: 'C', text: 'Lumbar' },
+                    { letter: 'D', text: 'Coccígea' }
+                ],
+                correct: 'C',
+                explanation: 'La región lumbar tiene los cuerpos más voluminosos[cite: 2].'
+            },
+            {
+                id: 17,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Cuál es el rasgo característico de las vértebras cervicales?',
+                options: [
+                    { letter: 'A', text: 'Forámenes transversos' },
+                    { letter: 'B', text: 'Carillas costales obligatorias' },
+                    { letter: 'C', text: 'Fusión completa' },
+                    { letter: 'D', text: 'Cuerpos siempre más grandes que los lumbares' }
+                ],
+                correct: 'A',
+                explanation: 'Los forámenes transversos son exclusivos de las vértebras cervicales[cite: 2].'
+            },
+            {
+                id: 18,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué vértebra se conoce como atlas?',
+                options: [
+                    { letter: 'A', text: 'C1' },
+                    { letter: 'B', text: 'C2' },
+                    { letter: 'C', text: 'C7' },
+                    { letter: 'D', text: 'T1' }
+                ],
+                correct: 'A',
+                explanation: 'C1 es el atlas[cite: 2].'
+            },
+            {
+                id: 19,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué vértebra presenta la apófisis odontoides o diente?',
+                options: [
+                    { letter: 'A', text: 'Atlas' },
+                    { letter: 'B', text: 'Axis' },
+                    { letter: 'C', text: 'C7' },
+                    { letter: 'D', text: 'T12' }
+                ],
+                correct: 'B',
+                explanation: 'C2 o axis posee la apófisis odontoides[cite: 2].'
+            },
+            {
+                id: 20,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Cuál es el rasgo más característico de las vértebras torácicas?',
+                options: [
+                    { letter: 'A', text: 'Forámenes transversos' },
+                    { letter: 'B', text: 'Carillas para articular con costillas' },
+                    { letter: 'C', text: 'Ausencia de cuerpo' },
+                    { letter: 'D', text: 'Fusión con el sacro' }
+                ],
+                correct: 'B',
+                explanation: 'Las carillas costales son el rasgo distintivo torácico[cite: 2].'
+            },
+            {
+                id: 21,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué hueso forma la frente y parte del techo de las órbitas?',
+                options: [
+                    { letter: 'A', text: 'Occipital' },
+                    { letter: 'B', text: 'Frontal' },
+                    { letter: 'C', text: 'Temporal' },
+                    { letter: 'D', text: 'Parietal' }
+                ],
+                correct: 'B',
+                explanation: 'El hueso frontal forma la frente[cite: 2].'
+            },
+            {
+                id: 22,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué hueso contiene la lámina cribosa y la crista galli?',
+                options: [
+                    { letter: 'A', text: 'Etmoides' },
+                    { letter: 'B', text: 'Esfenoides' },
+                    { letter: 'C', text: 'Vómer' },
+                    { letter: 'D', text: 'Maxilar' }
+                ],
+                correct: 'A',
+                explanation: 'El etmoides posee la lámina cribosa[cite: 2].'
+            },
+            {
+                id: 23,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué hueso se describe como central en la base del cráneo y con forma semejante a una mariposa?',
+                options: [
+                    { letter: 'A', text: 'Parietal' },
+                    { letter: 'B', text: 'Temporal' },
+                    { letter: 'C', text: 'Esfenoides' },
+                    { letter: 'D', text: 'Nasal' }
+                ],
+                correct: 'C',
+                explanation: 'El esfenoides tiene forma de mariposa[cite: 2].'
+            },
+            {
+                id: 24,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué hueso presenta el foramen magno?',
+                options: [
+                    { letter: 'A', text: 'Frontal' },
+                    { letter: 'B', text: 'Occipital' },
+                    { letter: 'C', text: 'Etmoides' },
+                    { letter: 'D', text: 'Cigomático' }
+                ],
+                correct: 'B',
+                explanation: 'El foramen magno se localiza en el occipital[cite: 2].'
+            },
+            {
+                id: 25,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué huesos forman la mayor parte de la bóveda craneal superior y lateral?',
+                options: [
+                    { letter: 'A', text: 'Parietales' },
+                    { letter: 'B', text: 'Nasales' },
+                    { letter: 'C', text: 'Lagrimales' },
+                    { letter: 'D', text: 'Palatinos' }
+                ],
+                correct: 'A',
+                explanation: 'Los parietales forman la bóveda superior y lateral[cite: 2].'
+            },
+            {
+                id: 26,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué hueso alberga estructuras relacionadas con la audición y el equilibrio?',
+                options: [
+                    { letter: 'A', text: 'Frontal' },
+                    { letter: 'B', text: 'Temporal' },
+                    { letter: 'C', text: 'Vómer' },
+                    { letter: 'D', text: 'Maxilar' }
+                ],
+                correct: 'B',
+                explanation: 'El temporal alberga el oído[cite: 2].'
+            },
+            {
+                id: 27,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué estructura del esfenoides aloja la hipófisis?',
+                options: [
+                    { letter: 'A', text: 'Silla turca' },
+                    { letter: 'B', text: 'Lámina cribosa' },
+                    { letter: 'C', text: 'Foramen magno' },
+                    { letter: 'D', text: 'Apófisis mastoides' }
+                ],
+                correct: 'A',
+                explanation: 'La silla turca aloja la hipófisis[cite: 2].'
+            },
+            {
+                id: 28,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué orificio transmite principalmente el nervio óptico?',
+                options: [
+                    { letter: 'A', text: 'Foramen oval' },
+                    { letter: 'B', text: 'Conducto óptico' },
+                    { letter: 'C', text: 'Foramen espinoso' },
+                    { letter: 'D', text: 'Foramen yugular' }
+                ],
+                correct: 'B',
+                explanation: 'El conducto óptico transmite el nervio óptico[cite: 2].'
+            },
+            {
+                id: 29,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué hueso contribuye a formar el tabique nasal óseo junto con el vómer?',
+                options: [
+                    { letter: 'A', text: 'Etmoides' },
+                    { letter: 'B', text: 'Temporal' },
+                    { letter: 'C', text: 'Parietal' },
+                    { letter: 'D', text: 'Cigomático' }
+                ],
+                correct: 'A',
+                explanation: 'El etmoides forma parte del tabique nasal[cite: 2].'
+            },
+            {
+                id: 30,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Cuál es el punto craneométrico situado en la unión de las suturas coronal y sagital?',
+                options: [
+                    { letter: 'A', text: 'Lambda' },
+                    { letter: 'B', text: 'Bregma' },
+                    { letter: 'C', text: 'Inion' },
+                    { letter: 'D', text: 'Basion' }
+                ],
+                correct: 'B',
+                explanation: 'Bregma es la unión de coronal y sagital[cite: 2].'
+            },
+            {
+                id: 31,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Cuál es el punto craneométrico en la unión de las suturas sagital y lambdoidea?',
+                options: [
+                    { letter: 'A', text: 'Glabela' },
+                    { letter: 'B', text: 'Nasion' },
+                    { letter: 'C', text: 'Lambda' },
+                    { letter: 'D', text: 'Gnathion' }
+                ],
+                correct: 'C',
+                explanation: 'Lambda es la unión posterior de sagital y lambdoidea[cite: 2].'
+            },
+            {
+                id: 32,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué punto se localiza en la prominencia frontal media entre las cejas?',
+                options: [
+                    { letter: 'A', text: 'Glabela' },
+                    { letter: 'B', text: 'Opisthion' },
+                    { letter: 'C', text: 'Basion' },
+                    { letter: 'D', text: 'Asterion' }
+                ],
+                correct: 'A',
+                explanation: 'Glabela se ubica entre las cejas[cite: 2].'
+            },
+            {
+                id: 33,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué punto se localiza en el borde anterior del foramen magno?',
+                options: [
+                    { letter: 'A', text: 'Opisthion' },
+                    { letter: 'B', text: 'Basion' },
+                    { letter: 'C', text: 'Inion' },
+                    { letter: 'D', text: 'Lambda' }
+                ],
+                correct: 'B',
+                explanation: 'Basion está en el borde anterior del foramen magno[cite: 2].'
+            },
+            {
+                id: 34,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué punto se localiza en el borde posterior del foramen magno?',
+                options: [
+                    { letter: 'A', text: 'Basion' },
+                    { letter: 'B', text: 'Nasion' },
+                    { letter: 'C', text: 'Opisthion' },
+                    { letter: 'D', text: 'Prosthion' }
+                ],
+                correct: 'C',
+                explanation: 'Opisthion está en el borde posterior del foramen magno[cite: 2].'
+            },
+            {
+                id: 35,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Qué punto corresponde a la prominencia occipital externa?',
+                options: [
+                    { letter: 'A', text: 'Inion' },
+                    { letter: 'B', text: 'Bregma' },
+                    { letter: 'C', text: 'Acanthion' },
+                    { letter: 'D', text: 'Gnathion' }
+                ],
+                correct: 'A',
+                explanation: 'Inion corresponde a la protuberancia occipital externa[cite: 2].'
+            },
+            {
+                id: 36,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: '¿Cómo se calcula el índice cefálico?',
+                options: [
+                    { letter: 'A', text: 'Longitud/anchura × 100' },
+                    { letter: 'B', text: 'Anchura craneal/longitud craneal × 100' },
+                    { letter: 'C', text: 'Altura/anchura × 10' },
+                    { letter: 'D', text: 'Anchura + longitud × 100' }
+                ],
+                correct: 'B',
+                explanation: 'Se calcula dividiendo la anchura entre la longitud y multiplicando por 100[cite: 2].'
+            },
+            {
+                id: 37,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: 'Un índice cefálico bajo suele describirse como:',
+                options: [
+                    { letter: 'A', text: 'Braquicéfalo' },
+                    { letter: 'B', text: 'Mesocéfalo' },
+                    { letter: 'C', text: 'Dolicocéfalo' },
+                    { letter: 'D', text: 'Platicéfalo' }
+                ],
+                correct: 'C',
+                explanation: 'Índice bajo corresponde a dolicocéfalo[cite: 2].'
+            },
+            {
+                id: 38,
+                section: 'sec2',
+                sectionName: 'SECCIÓN II: Vértebras, Cráneo y Craniometría',
+                question: 'Un índice cefálico alto suele describirse como:',
+                options: [
+                    { letter: 'A', text: 'Dolicocéfalo' },
+                    { letter: 'B', text: 'Braquicéfalo' },
+                    { letter: 'C', text: 'Mesocéfalo' },
+                    { letter: 'D', text: 'Acrocéfalo' }
+                ],
+                correct: 'B',
+                explanation: 'Índice alto corresponde a braquicéfalo[cite: 2].'
+            }
+        ];
+
+        let currentFilter = 'all';
+        let userAnswers = {}; 
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let quizActive = true;
+
+        window.onload = function() {
+            startTimer();
+            renderQuestions();
+        };
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!quizActive) return;
+                timerSeconds++;
+                const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+                const secs = (timerSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const activeBtn = document.getElementById(`filter-${filter}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            renderQuestions();
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            const filtered = currentFilter === 'all' 
+                ? questionsData 
+                : questionsData.filter(q => q.section === currentFilter);
+
+            filtered.forEach((q, index) => {
+                const isAnswered = userAnswers[q.id] !== undefined;
+                const selectedOption = userAnswers[q.id];
+                const isCorrect = selectedOption === q.correct;
+
+                const card = document.createElement('div');
+                card.className = `question-card ${isAnswered ? (isCorrect ? 'correct' : 'incorrect') : ''}`;
+
+                let imageHtml = '';
+                if (q.image) {
+                    imageHtml = `
+                        <div class="q-image-container">
+                            <img src="${q.image}" alt="Esquema anatómico de referencia para la pregunta ${q.id}" class="q-image" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'400\\' height=\\'150\\'><rect width=\\'100%\\' height=\\'100%\\' fill=\\'%23f1f5f9\\'/><text x=\\'50%\\' y=\\'50%\\' dominant-baseline=\\'middle\\' text-anchor=\\'middle\\' fill=\\'%2364748b\\' font-size=\\'14\\'>Coloca la imagen ${q.image} en la carpeta img/</text></svg>';">
+                        </div>
+                    `;
+                }
+
+                let optionsHtml = '';
+                q.options.forEach(opt => {
+                    let btnClass = "option-btn";
+                    let badgeHtml = "";
+
+                    if (isAnswered) {
+                        if (opt.letter === q.correct) {
+                            btnClass += " opt-correct";
+                            badgeHtml = '<span class="badge-status badge-correct">✓ Correcta</span>';
+                        } else if (opt.letter === selectedOption) {
+                            btnClass += " opt-incorrect";
+                            badgeHtml = '<span class="badge-status badge-incorrect">✗ Tu respuesta</span>';
+                        } else {
+                            btnClass += " opt-disabled";
+                        }
+                    }
+
+                    optionsHtml += `
+                        <button onclick="selectOption(${q.id}, '${opt.letter}')" ${isAnswered ? 'disabled' : ''} class="${btnClass}">
+                            <span class="option-letter">${opt.letter}</span>
+                            <span>${opt.text}</span>
+                            ${badgeHtml}
+                        </button>
+                    `;
+                });
+
+                let feedbackHtml = '';
+                if (isAnswered) {
+                    feedbackHtml = `
+                        <div class="feedback-box ${isCorrect ? 'correct' : 'incorrect'}">
+                            <div class="feedback-title">${isCorrect ? '¡Excelente! Respuesta Correcta' : 'Respuesta Incorrecta'}</div>
+                            <div><strong>Explicación:</strong> ${q.explanation}</div>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="q-meta">
+                        <span class="q-section">${q.sectionName}</span>
+                        <span class="q-id">Pregunta ${index + 1} de ${filtered.length} (ID: ${q.id})</span>
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    ${imageHtml}
+                    <div class="options-list">${optionsHtml}</div>
+                    ${feedbackHtml}
+                `;
+
+                container.appendChild(card);
+            });
+
+            updateScoreUI();
+        }
+
+        function selectOption(questionId, letter) {
+            if (userAnswers[questionId] !== undefined) return;
+            userAnswers[questionId] = letter;
+            renderQuestions();
+        }
+
+        function updateScoreUI() {
+            const totalAnswered = Object.keys(userAnswers).length;
+            let correctCount = 0;
+            
+            for (const id in userAnswers) {
+                const q = questionsData.find(item => item.id == id);
+                if (q && userAnswers[id] === q.correct) {
+                    correctCount++;
+                }
+            }
+
+            document.getElementById('score-display').innerText = `${correctCount} / ${questionsData.length}`;
+            
+            if (totalAnswered === questionsData.length && quizActive) {
+                quizActive = false;
+                clearInterval(timerInterval);
+                const summaryCard = document.getElementById('summary-card');
+                const finalScore = document.getElementById('final-score');
+                const summaryText = document.getElementById('summary-text');
+                
+                finalScore.innerText = `${correctCount} / ${questionsData.length} aciertos`;
+                if (correctCount === questionsData.length) {
+                    summaryText.innerText = "¡Impresionante! Tienes un dominio absoluto de la anatomía ósea de la columna y el cráneo.";
+                } else if (correctCount >= 30) {
+                    summaryText.innerText = "¡Excelente desempeño! Demuestras bases muy sólidas en anatomía.";
+                } else {
+                    summaryText.innerText = "Buen esfuerzo. Te recomendamos revisar los puntos con desaciertos para afianzar tus conocimientos.";
+                }
+                summaryCard.classList.remove('hidden');
+                summaryCard.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function resetQuiz() {
+            userAnswers = {};
+            timerSeconds = 0;
+            quizActive = true;
+            document.getElementById('summary-card').classList.add('hidden');
+            startTimer();
+            renderQuestions();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
