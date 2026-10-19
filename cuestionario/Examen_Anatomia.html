@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen Interactivo: Anatomía Humana - Vértebras y Cráneo</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; line-height: 1.5; padding-bottom: 40px; }
+        header { background-color: #0f172a; color: white; padding: 20px 16px; position: sticky; top: 0; z-index: 50; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header-content { max-width: 900px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
+        .tag { background-color: #0284c7; color: #e0f2fe; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; }
+        h1 { font-size: 1.5rem; font-weight: 700; margin-top: 4px; }
+        p.subtitle { color: #cbd5e1; font-size: 0.875rem; }
+        .stats { display: flex; align-items: center; gap: 16px; background-color: rgba(30, 41, 59, 0.9); padding: 8px 16px; border-radius: 12px; border: 1px solid rgba(51, 65, 85, 1); }
+        .stat-box { text-align: center; }
+        .stat-label { display: block; font-size: 11px; color: #94a3b8; text-transform: uppercase; }
+        .stat-val { font-size: 1.25rem; font-weight: 700; font-family: monospace; color: #f8fafc; }
+        .divider { width: 1px; height: 32px; background-color: #334155; }
+        
+        main { max-width: 900px; margin: 24px auto; padding: 0 16px; display: flex; flex-direction: column; gap: 24px; }
+        .filter-card { background: white; border-radius: 16px; padding: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .filter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+        .filter-title { font-weight: 600; font-size: 0.875rem; color: #334155; }
+        .reset-btn { padding: 8px 16px; background-color: #f1f5f9; color: #334155; font-weight: 500; font-size: 0.875rem; border-radius: 12px; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s; }
+        .reset-btn:hover { background-color: #e2e8f0; }
+        
+        .filter-grid { display: flex; gap: 6px; flex-wrap: wrap; }
+        .filter-btn { padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 500; border: 1px solid #cbd5e1; background-color: #f8fafc; color: #475569; cursor: pointer; transition: all 0.2s; }
+        .filter-btn:hover { background-color: #f1f5f9; }
+        .filter-btn.active { background-color: #0284c7; color: white; border-color: #0284c7; font-weight: 600; }
+        
+        .questions-list { display: flex; flex-direction: column; gap: 20px; }
+        .question-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05); transition: all 0.2s; display: flex; flex-direction: column; gap: 16px; }
+        .question-card.correct { border-color: #6ee7b7; background-color: #f0fdf4; }
+        .question-card.incorrect { border-color: #fca5a5; background-color: #fff1f2; }
+        
+        .q-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .q-section { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background-color: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        .q-id { font-size: 12px; color: #94a3b8; font-weight: 500; }
+        .q-text { font-size: 1.05rem; font-weight: 600; color: #1e293b; }
+        
+        .options-list { display: flex; flex-direction: column; gap: 10px; }
+        .option-btn { width: 100%; text-align: left; padding: 12px 16px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; color: #334155; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s; }
+        .option-btn:hover:not(:disabled) { background-color: #f8fafc; border-color: #cbd5e1; }
+        .option-letter { width: 28px; height: 28px; border-radius: 8px; background-color: #f1f5f9; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; flex-shrink: 0; }
+        
+        .option-btn.opt-correct { border-color: #10b981; background-color: #ecfdf5; color: #065f46; font-weight: 600; }
+        .option-btn.opt-incorrect { border-color: #f43f5e; background-color: #fff1f2; color: #9f1239; font-weight: 600; }
+        .option-btn.opt-disabled { opacity: 0.6; }
+        
+        .feedback-box { padding: 14px 16px; border-radius: 12px; font-size: 0.875rem; border: 1px solid; margin-top: 4px; }
+        .feedback-box.correct { background-color: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+        .feedback-box.incorrect { background-color: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+        .feedback-title { font-weight: 700; margin-bottom: 4px; }
+        
+        .summary-card { background: linear-gradient(135deg, #0f172a, #0369a1); color: white; border-radius: 20px; padding: 32px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 16px; }
+        .summary-card.hidden { display: none; }
+        .trophy { font-size: 3rem; background: rgba(255,255,255,0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .final-score { font-size: 2rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 8px 24px; border-radius: 16px; backdrop-filter: blur(4px); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div>
+                <span class="tag">Evaluación Oficial</span>
+                <h1>Anatomía Humana: Vértebras y Cráneo</h1>
+                <p class="subtitle">Banco interactivo de preguntas (150 reactivos)</p>
+            </div>
+            <div class="stats">
+                <div class="stat-box">
+                    <span class="stat-label">Tiempo</span>
+                    <span id="timer" class="stat-val">00:00</span>
+                </div>
+                <div class="divider"></div>
+                <div class="stat-box">
+                    <span class="stat-label">Puntaje</span>
+                    <span id="score-display" class="stat-val">0 / 150</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="filter-card">
+            <div class="filter-header">
+                <span class="filter-title">🔍 Filtrar por Bloque Temático:</span>
+                <button onclick="resetQuiz()" class="reset-btn">🔄 Reiniciar Examen</button>
+            </div>
+            <div class="filter-grid" id="filter-container">
+                <button onclick="setFilter('all')" id="filter-all" class="filter-btn active">Todos (150)</button>
+                <button onclick="setFilter('b1')" id="filter-b1" class="filter-btn">Bloque I: Vértebras</button>
+                <button onclick="setFilter('b2')" id="filter-b2" class="filter-btn">Bloque II: Cráneo</button>
+                <button onclick="setFilter('b3')" id="filter-b3" class="filter-btn">Bloque III: Craniometría</button>
+                <button onclick="setFilter('b4')" id="filter-b4" class="filter-btn">Bloque IV: Simulacro Visual</button>
+            </div>
+        </div>
+
+        <div id="questions-container" class="questions-list"></div>
+
+        <div id="summary-card" class="summary-card hidden">
+            <div class="trophy">🏆</div>
+            <h2>¡Examen Finalizado!</h2>
+            <p id="summary-text" style="color: #cbd5e1; max-width: 500px;">Has completado el banco de preguntas seleccionado.</p>
+            <div class="final-score" id="final-score">0 / 150 aciertos</div>
+            <button onclick="resetQuiz()" class="reset-btn" style="background: white; color: #0f172a; font-weight: 700; padding: 12px 24px; font-size: 1rem;">
+                Reiniciar Examen
+            </button>
+        </div>
+    </main>
+
+    <script>
+        const questionsData = [
+            // BLOQUE I: Vértebras (1 al 33)
+            { id: 1, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'En una imagen de una vértebra típica, la flecha señala la porción ósea situada anteriormente, con forma aproximadamente cilíndrica. ¿Qué estructura es?', options: [{letter:'A', text:'Lámina vertebral'}, {letter:'B', text:'Cuerpo vertebral'}, {letter:'C', text:'Pedículo'}, {letter:'D', text:'Apófisis espinosa'}], correct: 'B' },
+            { id: 2, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'La flecha señala el espacio situado entre la cara posterior del cuerpo vertebral y la apófisis espinosa. ¿Qué estructura es?', options: [{letter:'A', text:'Agujero transverso'}, {letter:'B', text:'Agujero de conjunción'}, {letter:'C', text:'Agujero vertebral'}, {letter:'D', text:'Conducto vertebral intervertebral'}], correct: 'C' },
+            { id: 3, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'En una vista posterior, ¿qué estructura impar y media se proyecta hacia atrás?', options: [{letter:'A', text:'Apófisis espinosa'}, {letter:'B', text:'Apófisis transversa'}, {letter:'C', text:'Pedículo'}, {letter:'D', text:'Lámina'}], correct: 'A' },
+            { id: 4, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'La flecha señala una de las dos prolongaciones óseas que se dirigen transversalmente hacia fuera. ¿Qué estructura es?', options: [{letter:'A', text:'Apófisis articular superior'}, {letter:'B', text:'Apófisis espinosa'}, {letter:'C', text:'Cuerpo vertebral'}, {letter:'D', text:'Apófisis transversa'}], correct: 'D' },
+            { id: 5, block: 'b1', blockName: 'Bloque I - Vértebras', question: '¿Qué estructuras vertebrales presentan cuatro eminencias destinadas a articular las vértebras entre sí?', options: [{letter:'A', text:'Pedículos'}, {letter:'B', text:'Apófisis articulares'}, {letter:'C', text:'Láminas'}, {letter:'D', text:'Apófisis transversas'}], correct: 'B' },
+            { id: 6, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'En una imagen posterior, la flecha señala una estructura aplanada y cuadrilátera que forma parte de la pared posterolateral del agujero raquídeo. ¿Cuál es?', options: [{letter:'A', text:'Cuerpo vertebral'}, {letter:'B', text:'Pedículo'}, {letter:'C', text:'Lámina vertebral'}, {letter:'D', text:'Apófisis transversa'}], correct: 'C' },
+            { id: 7, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'La flecha señala las porciones óseas delgadas que unen la parte posterior y lateral del cuerpo vertebral con la base de las apófisis. ¿Cuáles son?', options: [{letter:'A', text:'Pedículos'}, {letter:'B', text:'Láminas'}, {letter:'C', text:'Apófisis espinosas'}, {letter:'D', text:'Apófisis articulares'}], correct: 'A' },
+            { id: 8, block: 'b1', blockName: 'Bloque I - Vértebras', question: '¿Qué estructura se forma al superponerse las escotaduras de los pedículos de vértebras vecinas y permite la salida de los nervios raquídeos?', options: [{letter:'A', text:'Agujero vertebral'}, {letter:'B', text:'Agujero transverso'}, {letter:'C', text:'Conducto central'}, {letter:'D', text:'Agujero de conjunción'}], correct: 'D' },
+            { id: 9, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'En una vista superior, ¿qué estructura está delimitada anteriormente por el cuerpo vertebral y posteriormente por el arco vertebral?', options: [{letter:'A', text:'Agujero de conjunción'}, {letter:'B', text:'Agujero vertebral'}, {letter:'C', text:'Agujero transverso'}, {letter:'D', text:'Conducto carotídeo'}], correct: 'B' },
+            { id: 10, block: 'b1', blockName: 'Bloque I - Vértebras', question: '¿Cuál es la característica descrita para las caras superior e inferior del cuerpo vertebral?', options: [{letter:'A', text:'Son fuertemente convexas y rugosas.'}, {letter:'B', text:'Presentan una gran apófisis central.'}, {letter:'C', text:'Son planas y horizontales, con una zona central perforada rodeada por tejido compacto.'}, {letter:'D', text:'Son cóncavas y presentan un agujero transverso.'}], correct: 'C' },
+            { id: 11, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'La flecha señala un agujero en la base de una apófisis transversa. La vértebra tiene además una apófisis espinosa corta y frecuentemente bifurcada. ¿A qué región pertenece?', options: [{letter:'A', text:'Cervical'}, {letter:'B', text:'Dorsal'}, {letter:'C', text:'Lumbar'}, {letter:'D', text:'Sacra'}], correct: 'A' },
+            { id: 12, block: 'b1', blockName: 'Bloque I - Vértebras', question: '¿Qué región vertebral presenta un cuerpo con semicarillas articulares para la cabeza de las costillas?', options: [{letter:'A', text:'Cervical'}, {letter:'B', text:'Lumbar'}, {letter:'C', text:'Coxígea'}, {letter:'D', text:'Dorsal'}], correct: 'D' },
+            { id: 13, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'Una vértebra tiene un cuerpo voluminoso, diámetro transversal mayor que el anteroposterior y apófisis transversas costiformes. ¿Cuál es?', options: [{letter:'A', text:'Cervical'}, {letter:'B', text:'Lumbar'}, {letter:'C', text:'Dorsal'}, {letter:'D', text:'Atlas'}], correct: 'B' },
+            { id: 14, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'En una imagen lateral, la flecha señala una apófisis espinosa muy larga, prismática, triangular y fuertemente inclinada hacia atrás. ¿Qué región estás observando?', options: [{letter:'A', text:'Cervical'}, {letter:'B', text:'Lumbar'}, {letter:'C', text:'Dorsal'}, {letter:'D', text:'Atlas'}], correct: 'C' },
+            { id: 15, block: 'b1', blockName: 'Bloque I - Vértebras', question: '¿En qué región es característico un agujero vertebral triangular de base anterior, junto con apófisis espinosas cortas y bifurcadas?', options: [{letter:'A', text:'Cervical'}, {letter:'B', text:'Dorsal'}, {letter:'C', text:'Lumbar'}, {letter:'D', text:'Coxígea'}], correct: 'A' },
+            { id: 16, block: 'b1', blockName: 'Bloque I - Vértebras', question: '¿Cuál es la forma característica del agujero vertebral de las vértebras dorsales según la presentación?', options: [{letter:'A', text:'Triangular de base anterior'}, {letter:'B', text:'Cuadrangular'}, {letter:'C', text:'Triangular de lados casi iguales'}, {letter:'D', text:'Relativamente pequeño e irregularmente circular'}], correct: 'D' },
+            { id: 17, block: 'b1', blockName: 'Bloque I - Vértebras', question: '¿Qué región presenta láminas más anchas que altas?', options: [{letter:'A', text:'Lumbar'}, {letter:'B', text:'Cervical'}, {letter:'C', text:'Dorsal'}, {letter:'D', text:'Sacra'}], correct: 'B' },
+            { id: 18, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'La flecha señala una carilla articular en la cara anterior de una apófisis transversa, destinada a la tuberosidad de una costilla. ¿En qué región se encuentra?', options: [{letter:'A', text:'Cervical'}, {letter:'B', text:'Lumbar'}, {letter:'C', text:'Dorsal'}, {letter:'D', text:'Coxígea'}], correct: 'C' },
+            { id: 19, block: 'b1', blockName: 'Bloque I - Vértebras', question: '¿Qué región tiene apófisis articulares superiores en forma de canales, dirigidas hacia atrás y adentro, con un tubérculo mamilar?', options: [{letter:'A', text:'Lumbar'}, {letter:'B', text:'Cervical'}, {letter:'C', text:'Dorsal'}, {letter:'D', text:'Atlas'}], correct: 'A' },
+            { id: 20, block: 'b1', blockName: 'Bloque I - Vértebras', question: '¿En qué región las apófisis transversas nacen detrás del pedículo y presentan una carilla para la tuberosidad costal?', options: [{letter:'A', text:'Cervical'}, {letter:'B', text:'Lumbar'}, {letter:'C', text:'Sacra'}, {letter:'D', text:'Dorsal'}], correct: 'D' },
+            { id: 21, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'La flecha señala los ganchos o apófisis semilunares de la parte superior del cuerpo vertebral. ¿A qué región corresponden?', options: [{letter:'A', text:'Lumbar'}, {letter:'B', text:'Cervical'}, {letter:'C', text:'Dorsal'}, {letter:'D', text:'Coxígea'}], correct: 'B' },
+            { id: 22, block: 'b1', blockName: 'Bloque I - Vértebras', question: '¿Qué característica de los pedículos describe la presentación para las vértebras lumbares?', options: [{letter:'A', text:'La escotadura superior es mucho más profunda.'}, {letter:'B', text:'Ambas escotaduras tienen exactamente la misma profundidad.'}, {letter:'C', text:'Las escotaduras inferiores son tres o cuatro veces mayores que las superiores.'}, {letter:'D', text:'No presentan escotaduras.'}], correct: 'C' },
+            { id: 23, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'En una vértebra, las apófisis articulares superiores miran atrás y arriba, mientras las inferiores miran delante y abajo. ¿Qué región es?', options: [{letter:'A', text:'Cervical'}, {letter:'B', text:'Dorsal'}, {letter:'C', text:'Lumbar'}, {letter:'D', text:'Atlas'}], correct: 'A' },
+            { id: 24, block: 'b1', blockName: 'Bloque I - Vértebras', question: '¿Qué región presenta un cuerpo vertebral con diámetro transversal mayor que el anteroposterior?', options: [{letter:'A', text:'Cervical'}, {letter:'B', text:'Dorsal'}, {letter:'C', text:'Atlas'}, {letter:'D', text:'Lumbar'}], correct: 'D' },
+            { id: 25, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'La flecha señala la primera vértebra cervical, formada por masas laterales unidas por dos arcos. ¿Cuál es?', options: [{letter:'A', text:'Axis'}, {letter:'B', text:'Atlas'}, {letter:'C', text:'C7'}, {letter:'D', text:'T1'}], correct: 'B' },
+            { id: 26, block: 'b1', blockName: 'Bloque I - Vértebras', question: '¿Qué estructura está ausente en el atlas?', options: [{letter:'A', text:'Masas laterales'}, {letter:'B', text:'Arco anterior'}, {letter:'C', text:'Cuerpo vertebral típico'}, {letter:'D', text:'Arco posterior'}], correct: 'C' },
+            { id: 27, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'En una vista superior del atlas, la flecha señala las superficies articulares elipsoidales que se articulan con los cóndilos del occipital. ¿Qué estructura es?', options: [{letter:'A', text:'Cavidades glenoideas de las masas laterales'}, {letter:'B', text:'Tubérculos posteriores'}, {letter:'C', text:'Apófisis transversas'}, {letter:'D', text:'Carillas inferiores para el axis'}], correct: 'A' },
+            { id: 28, block: 'b1', blockName: 'Bloque I - Vértebras', question: '¿Qué estructura se observa en la parte anterior del arco anterior del atlas?', options: [{letter:'A', text:'Tubérculo posterior'}, {letter:'B', text:'Apófisis odontoides'}, {letter:'C', text:'Canal de la arteria vertebral'}, {letter:'D', text:'Tubérculo anterior'}], correct: 'D' },
+            { id: 29, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'La flecha señala una carilla oval situada en la cara posterior del arco anterior del atlas. ¿Con qué estructura se articula?', options: [{letter:'A', text:'Cóndilo occipital'}, {letter:'B', text:'Apófisis odontoides del axis'}, {letter:'C', text:'Cuerpo de C3'}, {letter:'D', text:'Apófisis espinosa de C7'}], correct: 'B' },
+            { id: 30, block: 'b1', blockName: 'Bloque I - Vértebras', question: 'En la línea media posterior del atlas, ¿qué estructura sustituye morfológicamente a la apófisis espinosa típica?', options: [{letter:'A', text:'Tubérculo anterior'}, {letter:'B', text:'Cavidad glenoidea'}, {letter:'C', text:'Tubérculo posterior'}, {letter:'D', text:'Apófisis odontoides'}], correct: 'C' },
+            { id: 31, block: 'b1', blockName: 'Bloque I - Vértebras', question: '¿Qué estructura pasa por un canal situado en la cara superior de la extremidad externa del arco posterior del atlas?', options: [{letter:'A', text:'Arteria vertebral'}, {letter:'B', text:'Arteria carótida externa'}, {letter:'C', text:'Nervio óptico'}, {letter:'D', text:'Vena yugular interna'}], correct: 'A' },
+            { id: 32, block: 'b1', blockName: 'Bloque I - Vértebras', question: '¿Qué estructura se inserta en la cara interna rugosa de las masas laterales del atlas?', options: [{letter:'A', text:'Ligamento longitudinal anterior'}, {letter:'B', text:'Ligamento amarillo'}, {letter:'C', text:'Ligamento nucal'}, {letter:'D', text:'Ligamento transverso'}], correct: 'D' },
+            { id: 33, block: 'b1', blockName: 'Bloque I - Vértebras', question: '¿Cuál es la relación articular de la cara inferior de las masas laterales del atlas?', options: [{letter:'A', text:'Se articula con el occipital.'}, {letter:'B', text:'Presenta una carilla plana o algo cóncava para el axis.'}, {letter:'C', text:'Se articula con las costillas.'}, {letter:'D', text:'Se articula con el esfenoides.'}], correct: 'B' },
+
+            // BLOQUE II: Cráneo descriptivo (34 al 100)
+            { id: 34, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Cuál es la función principal del cráneo descrita en la presentación?', options: [{letter:'A', text:'Producir células sanguíneas exclusivamente.'}, {letter:'B', text:'Permitir el movimiento de las costillas.'}, {letter:'C', text:'Alojar y proteger el encéfalo.'}, {letter:'D', text:'Formar la cavidad abdominal.'}], correct: 'C' },
+            { id: 35, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'Según la presentación, ¿cuántos huesos forman el cráneo estudiado y cómo se clasifican?', options: [{letter:'A', text:'Ocho huesos: cuatro pares y cuatro impares.'}, {letter:'B', text:'Ocho huesos: seis pares y dos impares.'}, {letter:'C', text:'Siete huesos: tres pares y cuatro impares.'}, {letter:'D', text:'Diez huesos: cinco pares.'}], correct: 'A' },
+            { id: 36, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Cuál de los siguientes grupos contiene únicamente huesos impares de la lista presentada?', options: [{letter:'A', text:'Parietal, temporal, frontal y occipital.'}, {letter:'B', text:'Parietal, esfenoides, etmoides y temporal.'}, {letter:'C', text:'Temporal, frontal, etmoides y parietal.'}, {letter:'D', text:'Frontal, etmoides, esfenoides y occipital.'}], correct: 'D' },
+            { id: 37, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'La flecha señala el hueso que ocupa la parte más anterior del cráneo. ¿Cuál es?', options: [{letter:'A', text:'Occipital'}, {letter:'B', text:'Frontal'}, {letter:'C', text:'Parietal'}, {letter:'D', text:'Temporal'}], correct: 'B' },
+            { id: 38, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Cuántas caras principales describe la presentación para el hueso frontal?', options: [{letter:'A', text:'Dos'}, {letter:'B', text:'Cuatro'}, {letter:'C', text:'Tres'}, {letter:'D', text:'Seis'}], correct: 'C' },
+            { id: 39, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Cómo se caracteriza la cara anterior del frontal?', options: [{letter:'A', text:'Convexa y lisa'}, {letter:'B', text:'Cóncava y rugosa'}, {letter:'C', text:'Plana y perforada'}, {letter:'D', text:'Triangular y profundamente excavada'}], correct: 'A' },
+            { id: 40, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'La flecha señala el punto medio situado por encima de la raíz de la nariz, en la región frontal. ¿Qué estructura es?', options: [{letter:'A', text:'Nasion'}, {letter:'B', text:'Bregma'}, {letter:'C', text:'Acanthion'}, {letter:'D', text:'Glabela'}], correct: 'D' },
+            { id: 41, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura del frontal se encuentra por debajo de las eminencias frontales laterales?', options: [{letter:'A', text:'Cresta occipital'}, {letter:'B', text:'Arcos superciliares'}, {letter:'C', text:'Apófisis mastoides'}, {letter:'D', text:'Líneas temporales inferiores'}], correct: 'B' },
+            { id: 42, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'En una vista inferior del frontal, la flecha señala una escotadura ancha y rectangular de la línea media. ¿Cuál es?', options: [{letter:'A', text:'Escotadura yugular'}, {letter:'B', text:'Escotadura supraorbitaria'}, {letter:'C', text:'Escotadura etmoidal'}, {letter:'D', text:'Escotadura sigmoidea'}], correct: 'C' },
+            { id: 43, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura del frontal se encuentra por delante de la escotadura etmoidal y se articula con los huesos propios de la nariz?', options: [{letter:'A', text:'Espina nasal del frontal'}, {letter:'B', text:'Cresta frontal'}, {letter:'C', text:'Apófisis clinoides'}, {letter:'D', text:'Protuberancia occipital externa'}], correct: 'A' },
+            { id: 44, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'La flecha señala una depresión de la fosa orbitaria del frontal destinada a alojar la glándula lagrimal. ¿Cuál es?', options: [{letter:'A', text:'Fosita troclear'}, {letter:'B', text:'Fosa parietal'}, {letter:'C', text:'Fosita navicular'}, {letter:'D', text:'Fosita lagrimal'}], correct: 'D' },
+            { id: 45, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura de la cara posterior del frontal sirve de inserción para la hoz del cerebro?', options: [{letter:'A', text:'Glabela'}, {letter:'B', text:'Cresta frontal'}, {letter:'C', text:'Espina nasal'}, {letter:'D', text:'Arco superciliar'}], correct: 'B' },
+            { id: 46, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué borde del frontal se articula con los dos huesos parietales?', options: [{letter:'A', text:'Anterior'}, {letter:'B', text:'Posterior'}, {letter:'C', text:'Superior'}, {letter:'D', text:'Inferior'}], correct: 'C' },
+            { id: 47, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'La flecha señala una interrupción del arco orbitario del frontal por donde pasan estructuras supraorbitarias. ¿Qué accidente anatómico es?', options: [{letter:'A', text:'Escotadura o agujero supraorbitario'}, {letter:'B', text:'Agujero condíleo anterior'}, {letter:'C', text:'Agujero oval'}, {letter:'D', text:'Agujero etmoidal posterior'}], correct: 'A' },
+            { id: 48, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Cuántos senos frontales describe la presentación?', options: [{letter:'A', text:'Uno, sin tabique'}, {letter:'B', text:'Tres cavidades'}, {letter:'C', text:'Cuatro cavidades'}, {letter:'D', text:'Dos cavidades separadas por un tabique medio'}], correct: 'D' },
+            { id: 49, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Dónde se encuentra el etmoides?', options: [{letter:'A', text:'Detrás del occipital.'}, {letter:'B', text:'Por delante del esfenoides, encajado en la escotadura etmoidal del frontal.'}, {letter:'C', text:'Debajo de la mandíbula.'}, {letter:'D', text:'En el interior del hueso parietal.'}], correct: 'B' },
+            { id: 50, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Cuáles son las tres partes principales del etmoides?', options: [{letter:'A', text:'Cuerpo, alas y apófisis pterigoides.'}, {letter:'B', text:'Escama, peñasco y porción timpánica.'}, {letter:'C', text:'Lámina vertical, lámina horizontal y masas laterales.'}, {letter:'D', text:'Dos arcos y dos masas laterales.'}], correct: 'C' },
+            { id: 51, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'En una vista superior del etmoides, la flecha señala una apófisis vertical triangular que sirve de inserción para la hoz del cerebro. ¿Cuál es?', options: [{letter:'A', text:'Apófisis crista galli'}, {letter:'B', text:'Apófisis odontoides'}, {letter:'C', text:'Apófisis mastoides'}, {letter:'D', text:'Apófisis estiloides'}], correct: 'A' },
+            { id: 52, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura del etmoides separa anatómicamente las dos fosas nasales?', options: [{letter:'A', text:'Lámina cribosa'}, {letter:'B', text:'Cornete medio'}, {letter:'C', text:'Lámina horizontal'}, {letter:'D', text:'Lámina perpendicular'}], correct: 'D' },
+            { id: 53, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'La flecha señala la lámina horizontal del etmoides, perforada por múltiples orificios para el paso de filetes olfatorios. ¿Cómo se conoce esta estructura?', options: [{letter:'A', text:'Lámina cuadrilátera'}, {letter:'B', text:'Lámina cribosa'}, {letter:'C', text:'Lámina perpendicular'}, {letter:'D', text:'Lámina basilar'}], correct: 'B' },
+            { id: 54, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura del etmoides forma parte de la pared interna de la órbita?', options: [{letter:'A', text:'Cara interna de la masa lateral'}, {letter:'B', text:'Cara inferior del cuerpo del esfenoides'}, {letter:'C', text:'Cara externa de la masa lateral'}, {letter:'D', text:'Apófisis crista galli'}], correct: 'C' },
+            { id: 55, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructuras se desprenden de la cara interna de las masas laterales del etmoides?', options: [{letter:'A', text:'Cornetes superior y medio'}, {letter:'B', text:'Cornetes medio e inferior'}, {letter:'C', text:'Apófisis estiloides y mastoides'}, {letter:'D', text:'Alas mayores y menores'}], correct: 'A' },
+            { id: 56, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Dónde se encuentra el meato superior en relación con los cornetes etmoidales?', options: [{letter:'A', text:'Por debajo y por dentro del cornete medio.'}, {letter:'B', text:'Por debajo del cornete inferior.'}, {letter:'C', text:'Por delante del hueso frontal.'}, {letter:'D', text:'Por encima y por fuera del cornete superior.'}], correct: 'D' },
+            { id: 57, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'Según la presentación, ¿dónde drena el grupo anterior de células etmoidales?', options: [{letter:'A', text:'Meato inferior'}, {letter:'B', text:'Meato medio'}, {letter:'C', text:'Meato superior'}, {letter:'D', text:'Conducto auditivo externo'}], correct: 'B' },
+            { id: 58, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Dónde drena el grupo posterior de células etmoidales?', options: [{letter:'A', text:'Meato inferior'}, {letter:'B', text:'Meato medio'}, {letter:'C', text:'Meato superior'}, {letter:'D', text:'Seno frontal directamente, sin pasar por un meato'}], correct: 'C' },
+            { id: 59, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'La flecha señala una laminilla ósea larga y delgada que se dirige hacia atrás y abajo, en la cara inferior de la masa lateral del etmoides. ¿Cuál es?', options: [{letter:'A', text:'Apófisis unciforme'}, {letter:'B', text:'Apófisis clinoides'}, {letter:'C', text:'Apófisis estiloides'}, {letter:'D', text:'Apófisis mastoides'}], correct: 'A' },
+            { id: 60, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Dónde se ubica el esfenoides?', options: [{letter:'A', text:'En la parte más posterior de la bóveda craneal.'}, {letter:'B', text:'En la región anterior de la mandíbula.'}, {letter:'C', text:'Exclusivamente en la pared lateral de la órbita.'}, {letter:'D', text:'En la parte anterior y media de la base del cráneo, entre los huesos circundantes.'}], correct: 'D' },
+            { id: 61, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Cuáles son las cuatro partes principales del esfenoides?', options: [{letter:'A', text:'Cuerpo, lámina cribosa, masas laterales y cornetes.'}, {letter:'B', text:'Cuerpo, alas menores, alas mayores y apófisis pterigoides.'}, {letter:'C', text:'Cuerpo, escama, peñasco y apófisis mastoides.'}, {letter:'D', text:'Cuerpo, cóndilos, arcos y láminas.'}], correct: 'B' },
+            { id: 62, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'La flecha señala una excavación profunda de la cara superior del cuerpo del esfenoides. ¿Cuál es?', options: [{letter:'A', text:'Fosa pterigoidea'}, {letter:'B', text:'Fosa mandibular'}, {letter:'C', text:'Silla turca o fosa pituitaria'}, {letter:'D', text:'Fosa navicular'}], correct: 'C' },
+            { id: 63, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura ósea limita la silla turca y se describe en número de cuatro eminencias?', options: [{letter:'A', text:'Apófisis clinoides'}, {letter:'B', text:'Apófisis unciformes'}, {letter:'C', text:'Apófisis mastoides'}, {letter:'D', text:'Apófisis estiloides'}], correct: 'A' },
+            { id: 64, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'La flecha señala un orificio en la base de un ala menor del esfenoides. Según la presentación, ¿qué estructuras pasan por él?', options: [{letter:'A', text:'Nervio facial y arteria meníngea media'}, {letter:'B', text:'Nervio hipogloso y vena yugular'}, {letter:'C', text:'Nervio olfatorio y arteria etmoidal'}, {letter:'D', text:'Nervio óptico y arteria oftálmica'}], correct: 'D' },
+            { id: 65, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura se encuentra en la cara inferior del cuerpo del esfenoides, en la línea media, y termina anteriormente en el rostrum?', options: [{letter:'A', text:'Cresta occipital interna'}, {letter:'B', text:'Cresta inferior del esfenoides'}, {letter:'C', text:'Cresta frontal'}, {letter:'D', text:'Cresta esfenotemporal'}], correct: 'B' },
+            { id: 66, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura del esfenoides forma parte de la pared externa de la órbita?', options: [{letter:'A', text:'Cara posterior del cuerpo'}, {letter:'B', text:'Cara interna de la apófisis pterigoides'}, {letter:'C', text:'Cara anterior del ala mayor'}, {letter:'D', text:'Cara inferior del ala menor'}], correct: 'C' },
+            { id: 67, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'En la cara externa del ala mayor, ¿qué cresta divide una región superior correspondiente a la fosa temporal y otra inferior correspondiente a la fosa cigomática?', options: [{letter:'A', text:'Cresta esfenotemporal'}, {letter:'B', text:'Cresta frontal'}, {letter:'C', text:'Cresta occipital externa'}, {letter:'D', text:'Cresta del cornete medio'}], correct: 'A' },
+            { id: 68, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'La flecha señala una abertura situada en el borde interno del ala mayor, detrás de la hendidura esfenoidal y antes del agujero oval. ¿Cuál es?', options: [{letter:'A', text:'Agujero redondo menor'}, {letter:'B', text:'Agujero de Vesalio'}, {letter:'C', text:'Agujero óptico'}, {letter:'D', text:'Agujero redondo mayor'}], correct: 'D' },
+            { id: 69, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'Siguiendo el orden descrito en la presentación a lo largo del borde interno del ala mayor, ¿qué abertura aparece después del agujero redondo mayor?', options: [{letter:'A', text:'Agujero óptico'}, {letter:'B', text:'Agujero oval'}, {letter:'C', text:'Agujero condíleo anterior'}, {letter:'D', text:'Conducto carotídeo'}], correct: 'B' },
+            { id: 70, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué abertura también recibe el nombre de agujero esfenoespinoso?', options: [{letter:'A', text:'Agujero oval'}, {letter:'B', text:'Agujero redondo mayor'}, {letter:'C', text:'Agujero redondo menor'}, {letter:'D', text:'Agujero óptico'}], correct: 'C' },
+            { id: 71, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'La flecha señala una pequeña abertura inconstante situada cerca del agujero oval. ¿Cómo se denomina?', options: [{letter:'A', text:'Agujero de Vesalio'}, {letter:'B', text:'Agujero magno'}, {letter:'C', text:'Agujero ciego'}, {letter:'D', text:'Agujero mastoideo'}], correct: 'A' },
+            { id: 72, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura atraviesa la base de las apófisis pterigoides según la presentación?', options: [{letter:'A', text:'Conducto óptico'}, {letter:'B', text:'Conducto carotídeo'}, {letter:'C', text:'Conducto auditivo interno'}, {letter:'D', text:'Conducto vidiano'}], correct: 'D' },
+            { id: 73, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'La flecha señala el gancho situado en el extremo del ala interna de una apófisis pterigoides. ¿A qué estructura pertenece?', options: [{letter:'A', text:'Ala mayor del esfenoides'}, {letter:'B', text:'Ala interna de la apófisis pterigoides'}, {letter:'C', text:'Ala menor del esfenoides'}, {letter:'D', text:'Apófisis clinoides posterior'}], correct: 'B' },
+            { id: 74, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura se encuentra en la cara posterior de la apófisis pterigoides?', options: [{letter:'A', text:'Silla turca'}, {letter:'B', text:'Conducto óptico'}, {letter:'C', text:'Fosa pterigoidea'}, {letter:'D', text:'Canal basilar'}], correct: 'C' },
+            { id: 75, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'Según la presentación, ¿dónde desembocan los senos esfenoidales?', options: [{letter:'A', text:'En el meato superior de las fosas nasales.'}, {letter:'B', text:'En el meato inferior.'}, {letter:'C', text:'En el conducto auditivo externo.'}, {letter:'D', text:'En el agujero magno.'}], correct: 'A' },
+            { id: 76, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿En qué región del cráneo se encuentra el occipital?', options: [{letter:'A', text:'Parte anterior y superior.'}, {letter:'B', text:'Pared medial de la órbita.'}, {letter:'C', text:'Región lateral de la cara.'}, {letter:'D', text:'Parte posterior e inferior.'}], correct: 'D' },
+            { id: 77, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'En una imagen inferior del cráneo, la flecha señala el gran orificio central del occipital. ¿Cuál es?', options: [{letter:'A', text:'Agujero oval'}, {letter:'B', text:'Agujero occipital o foramen magno'}, {letter:'C', text:'Agujero óptico'}, {letter:'D', text:'Agujero yugular'}], correct: 'B' },
+            { id: 78, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructuras se encuentran a los lados del foramen magno y se articulan con las cavidades glenoideas del atlas?', options: [{letter:'A', text:'Apófisis mastoides'}, {letter:'B', text:'Apófisis pterigoides'}, {letter:'C', text:'Cóndilos del occipital'}, {letter:'D', text:'Apófisis clinoides'}], correct: 'C' },
+            { id: 79, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'La flecha señala una pequeña prominencia en la superficie basilar del occipital para la aponeurosis de la faringe. ¿Cuál es?', options: [{letter:'A', text:'Tubérculo faríngeo'}, {letter:'B', text:'Protuberancia occipital externa'}, {letter:'C', text:'Tubérculo anterior del atlas'}, {letter:'D', text:'Eminencia parietal'}], correct: 'A' },
+            { id: 80, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura se encuentra por detrás del foramen magno, en la línea media externa del occipital?', options: [{letter:'A', text:'Silla turca'}, {letter:'B', text:'Cresta frontal'}, {letter:'C', text:'Espina nasal'}, {letter:'D', text:'Protuberancia occipital externa'}], correct: 'D' },
+            { id: 81, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'La flecha señala una cresta media situada por debajo de la protuberancia occipital externa. ¿Cuál es?', options: [{letter:'A', text:'Cresta occipital interna'}, {letter:'B', text:'Cresta occipital externa'}, {letter:'C', text:'Cresta esfenotemporal'}, {letter:'D', text:'Cresta frontal'}], correct: 'B' },
+            { id: 82, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura del occipital se encuentra por delante de los cóndilos y da paso al nervio hipogloso mayor?', options: [{letter:'A', text:'Agujero condíleo posterior'}, {letter:'B', text:'Agujero magno'}, {letter:'C', text:'Fosita y agujero condíleo anterior'}, {letter:'D', text:'Conducto auditivo interno'}], correct: 'C' },
+            { id: 83, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura de la cara anterosuperior del occipital aloja el bulbo y la protuberancia?', options: [{letter:'A', text:'Canal basilar'}, {letter:'B', text:'Canal óptico'}, {letter:'C', text:'Canal cavernoso'}, {letter:'D', text:'Canal etmoidal'}], correct: 'A' },
+            { id: 84, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'En la cara anterosuperior del occipital, ¿cuántas fosas se describen detrás del foramen magno?', options: [{letter:'A', text:'Dos, ambas cerebelosas.'}, {letter:'B', text:'Dos, ambas cerebrales.'}, {letter:'C', text:'Seis.'}, {letter:'D', text:'Cuatro: dos cerebrales y dos cerebelosas.'}], correct: 'D' },
+            { id: 85, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura se encuentra en el punto de reunión de las cuatro fosas occipitales internas?', options: [{letter:'A', text:'Glabela'}, {letter:'B', text:'Protuberancia occipital interna'}, {letter:'C', text:'Eminencia parietal'}, {letter:'D', text:'Tubérculo faríngeo'}], correct: 'B' },
+            { id: 86, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué borde del occipital se articula con los huesos parietales?', options: [{letter:'A', text:'Borde inferior o temporal'}, {letter:'B', text:'Borde yugular'}, {letter:'C', text:'Borde superior o parietal'}, {letter:'D', text:'Borde basilar'}], correct: 'C' },
+            { id: 87, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Con qué hueso se articula el ángulo inferior del occipital?', options: [{letter:'A', text:'Cuerpo del esfenoides'}, {letter:'B', text:'Maxilar superior'}, {letter:'C', text:'Hueso nasal'}, {letter:'D', text:'Etmoides exclusivamente'}], correct: 'A' },
+            { id: 88, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Dónde se localiza el hueso parietal?', options: [{letter:'A', text:'Delante del frontal y debajo de la mandíbula.'}, {letter:'B', text:'Dentro de la cavidad nasal.'}, {letter:'C', text:'Debajo del maxilar superior.'}, {letter:'D', text:'Encima del temporal, detrás del frontal y delante del occipital.'}], correct: 'D' },
+            { id: 89, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'La flecha señala una prominencia redondeada en la parte media de la cara externa del parietal. ¿Cuál es?', options: [{letter:'A', text:'Glabela'}, {letter:'B', text:'Eminencia parietal'}, {letter:'C', text:'Protuberancia occipital externa'}, {letter:'D', text:'Apófisis mastoides'}], correct: 'B' },
+            { id: 90, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructuras del parietal se describen como dos líneas curvas de concavidad inferior situadas por debajo de la eminencia parietal?', options: [{letter:'A', text:'Líneas occipitales'}, {letter:'B', text:'Crestas esfenoidales'}, {letter:'C', text:'Líneas temporales'}, {letter:'D', text:'Arcos superciliares'}], correct: 'C' },
+            { id: 91, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'En la cara interna del parietal, la flecha señala canales ramificados parecidos al tallo de una hoja de higuera. ¿Qué representan?', options: [{letter:'A', text:'Impresiones de la arteria y las venas meníngeas medias'}, {letter:'B', text:'Impresiones de las arterias coronarias'}, {letter:'C', text:'Surcos de los nervios olfatorios'}, {letter:'D', text:'Canales de los senos frontales'}], correct: 'A' },
+            { id: 92, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué ángulo del parietal se relaciona con el ala mayor del esfenoides y presenta el canal de la meníngea media?', options: [{letter:'A', text:'Anterosuperior'}, {letter:'B', text:'Posterosuperior'}, {letter:'C', text:'Posteroinferior'}, {letter:'D', text:'Anteroinferior'}], correct: 'D' },
+            { id: 93, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Cuáles son las tres porciones que se describen para el temporal adulto?', options: [{letter:'A', text:'Cuerpo, alas y apófisis pterigoides.'}, {letter:'B', text:'Escamosa, mastoidea y petrosa.'}, {letter:'C', text:'Anterior, media y posterior.'}, {letter:'D', text:'Vertical, horizontal y lateral.'}], correct: 'B' },
+            { id: 94, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'La flecha señala una prominencia ósea inferior de la porción mastoidea del temporal. ¿Cuál es?', options: [{letter:'A', text:'Apófisis estiloides'}, {letter:'B', text:'Cóndilo occipital'}, {letter:'C', text:'Apófisis mastoides'}, {letter:'D', text:'Apófisis odontoides'}], correct: 'C' },
+            { id: 95, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura se encuentra en la porción petrosa del temporal y constituye la abertura del conducto auditivo interno en su cara posterosuperior?', options: [{letter:'A', text:'Orificio del conducto auditivo interno'}, {letter:'B', text:'Agujero óptico'}, {letter:'C', text:'Agujero oval'}, {letter:'D', text:'Agujero condíleo anterior'}], correct: 'A' },
+            { id: 96, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura del temporal se proyecta hacia delante desde la porción escamosa y se articula con el hueso malar?', options: [{letter:'A', text:'Apófisis estiloides'}, {letter:'B', text:'Apófisis mastoides'}, {letter:'C', text:'Apófisis clinoides'}, {letter:'D', text:'Apófisis cigomática'}], correct: 'D' },
+            { id: 97, block: 'b2', blockName: 'Bloque II - Cráneo', question: 'La flecha señala una proyección del temporal, delgada y puntiaguda, situada inferiormente. ¿Cuál es?', options: [{letter:'A', text:'Apófisis unciforme'}, {letter:'B', text:'Apófisis estiloides'}, {letter:'C', text:'Apófisis odontoides'}, {letter:'D', text:'Apófisis coronoides'}], correct: 'B' },
+            { id: 98, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura del temporal se relaciona con el paso de la arteria carótida interna?', options: [{letter:'A', text:'Conducto auditivo externo'}, {letter:'B', text:'Agujero estilomastoideo'}, {letter:'C', text:'Conducto carotídeo'}, {letter:'D', text:'Fosa mandibular'}], correct: 'C' },
+            { id: 99, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué estructura se describe en la cara anterosuperior de la porción petrosa del temporal y se relaciona con el conducto semicircular superior?', options: [{letter:'A', text:'Eminencia arcuata'}, {letter:'B', text:'Fosita lagrimal'}, {letter:'C', text:'Protuberancia occipital interna'}, {letter:'D', text:'Eminencia frontal lateral'}], correct: 'A' },
+            { id: 100, block: 'b2', blockName: 'Bloque II - Cráneo', question: '¿Qué hueso se articula con el temporal en la región del arco cigomático?', options: [{letter:'A', text:'Etmoides'}, {letter:'B', text:'Occipital exclusivamente'}, {letter:'C', text:'Vómer'}, {letter:'D', text:'Malar o cigomático'}], correct: 'D' },
+
+            // BLOQUE III: Craniometría (101 al 126)
+            { id: 101, block: 'b3', blockName: 'Bloque III - Craniometría', question: '¿Qué estudia la craniometría?', options: [{letter:'A', text:'La medición de las vértebras cervicales.'}, {letter:'B', text:'La medición del cráneo mediante puntos y dimensiones específicas.'}, {letter:'C', text:'Exclusivamente el volumen del encéfalo.'}, {letter:'D', text:'Únicamente la articulación temporomandibular.'}], correct: 'B' },
+            { id: 102, block: 'b3', blockName: 'Bloque III - Craniometría', question: 'La flecha señala el punto medio del mentón, en el borde inferior de la mandíbula. ¿Cuál es?', options: [{letter:'A', text:'Prosthion'}, {letter:'B', text:'Nasion'}, {letter:'C', text:'Gnathion'}, {letter:'D', text:'Basion'}], correct: 'C' },
+            { id: 103, block: 'b3', blockName: 'Bloque III - Craniometría', question: '¿Qué punto craneométrico corresponde al punto más bajo del maxilar superior, entre los incisivos centrales?', options: [{letter:'A', text:'Prosthion'}, {letter:'B', text:'Gnathion'}, {letter:'C', text:'Acanthion'}, {letter:'D', text:'Inion'}], correct: 'A' },
+            { id: 104, block: 'b3', blockName: 'Bloque III - Craniometría', question: 'La flecha señala la espina nasal anterior. ¿Qué punto craneométrico es?', options: [{letter:'A', text:'Nasion'}, {letter:'B', text:'Bregma'}, {letter:'C', text:'Lambda'}, {letter:'D', text:'Acanthion'}], correct: 'D' },
+            { id: 105, block: 'b3', blockName: 'Bloque III - Craniometría', question: '¿Qué punto corresponde a la unión de los huesos nasal y frontal?', options: [{letter:'A', text:'Glabela'}, {letter:'B', text:'Nasion'}, {letter:'C', text:'Prosthion'}, {letter:'D', text:'Porion'}], correct: 'B' },
+            { id: 106, block: 'b3', blockName: 'Bloque III - Craniometría', question: 'La flecha señala el punto medio a nivel de los arcos superciliares. ¿Cuál es?', options: [{letter:'A', text:'Bregma'}, {letter:'B', text:'Acanthion'}, {letter:'C', text:'Glabela'}, {letter:'D', text:'Gnathion'}], correct: 'C' },
+            { id: 107, block: 'b3', blockName: 'Bloque III - Craniometría', question: '¿Qué punto craneométrico se encuentra en la unión de las suturas coronal y sagital?', options: [{letter:'A', text:'Bregma'}, {letter:'B', text:'Lambda'}, {letter:'C', text:'Asterion'}, {letter:'D', text:'Pterion'}], correct: 'A' },
+            { id: 108, block: 'b3', blockName: 'Bloque III - Craniometría', question: 'La flecha señala la unión de las suturas sagital y lambdoidea. ¿Qué punto es?', options: [{letter:'A', text:'Bregma'}, {letter:'B', text:'Nasion'}, {letter:'C', text:'Inion'}, {letter:'D', text:'Lambda'}], correct: 'D' },
+            { id: 109, block: 'b3', blockName: 'Bloque III - Craniometría', question: '¿Cuál es el punto más posteriormente proyectado del hueso occipital?', options: [{letter:'A', text:'Opisthion'}, {letter:'B', text:'Opisthocranion'}, {letter:'C', text:'Basion'}, {letter:'D', text:'Porion'}], correct: 'B' },
+            { id: 110, block: 'b3', blockName: 'Bloque III - Craniometría', question: 'La flecha señala la punta de la protuberancia occipital externa. ¿Cuál es?', options: [{letter:'A', text:'Opisthocranion'}, {letter:'B', text:'Opisthion'}, {letter:'C', text:'Inion'}, {letter:'D', text:'Lambda'}], correct: 'C' },
+            { id: 111, block: 'b3', blockName: 'Bloque III - Craniometría', question: '¿Qué punto se localiza en el centro del borde posterior del foramen magno?', options: [{letter:'A', text:'Opisthion'}, {letter:'B', text:'Basion'}, {letter:'C', text:'Inion'}, {letter:'D', text:'Gnathion'}], correct: 'A' },
+            { id: 112, block: 'b3', blockName: 'Bloque III - Craniometría', question: '¿Qué punto se localiza en el centro del borde anterior del foramen magno?', options: [{letter:'A', text:'Opisthion'}, {letter:'B', text:'Opisthocranion'}, {letter:'C', text:'Lambda'}, {letter:'D', text:'Basion'}], correct: 'D' },
+            { id: 113, block: 'b3', blockName: 'Bloque III - Craniometría', question: 'En una vista lateral del cráneo, la flecha señala la región de unión del frontal, parietal, ala mayor del esfenoides y porción escamosa del temporal. ¿Cuál es?', options: [{letter:'A', text:'Asterion'}, {letter:'B', text:'Pterion'}, {letter:'C', text:'Dacryon'}, {letter:'D', text:'Bregma'}], correct: 'B' },
+            { id: 114, block: 'b3', blockName: 'Bloque III - Craniometría', question: '¿Qué punto craneométrico corresponde a la unión de las suturas lacrimomaxilar y frontomaxilar?', options: [{letter:'A', text:'Porion'}, {letter:'B', text:'Gonion'}, {letter:'C', text:'Dacryon'}, {letter:'D', text:'Pterion'}], correct: 'C' },
+            { id: 115, block: 'b3', blockName: 'Bloque III - Craniometría', question: 'La flecha señala el lado externo del ángulo de la mandíbula. ¿Qué punto es?', options: [{letter:'A', text:'Gonion'}, {letter:'B', text:'Gnathion'}, {letter:'C', text:'Prosthion'}, {letter:'D', text:'Nasion'}], correct: 'A' },
+            { id: 116, block: 'b3', blockName: 'Bloque III - Craniometría', question: '¿Qué punto se localiza en la raíz posterior del arco cigomático, por encima de la mitad del borde superior del meato auditivo externo?', options: [{letter:'A', text:'Asterion'}, {letter:'B', text:'Dacryon'}, {letter:'C', text:'Pterion'}, {letter:'D', text:'Porion'}], correct: 'D' },
+            { id: 117, block: 'b3', blockName: 'Bloque III - Craniometría', question: '¿Qué punto craneométrico corresponde a la región donde se unen el occipital, el parietal y el temporal?', options: [{letter:'A', text:'Bregma'}, {letter:'B', text:'Asterion'}, {letter:'C', text:'Pterion'}, {letter:'D', text:'Lambda'}], correct: 'B' },
+            { id: 118, block: 'b3', blockName: 'Bloque III - Craniometría', question: '¿Entre qué dos puntos se mide la longitud craneal máxima según la presentación?', options: [{letter:'A', text:'Basion y bregma'}, {letter:'B', text:'Gonion y porion'}, {letter:'C', text:'Centro de la glabela y opisthocranion'}, {letter:'D', text:'Nasion y prosthion'}], correct: 'C' },
+            { id: 119, block: 'b3', blockName: 'Bloque III - Craniometría', question: '¿Cómo se define la anchura craneal máxima?', options: [{letter:'A', text:'La mayor anchura del cráneo medida en ángulo recto al plano medio.'}, {letter:'B', text:'La distancia entre el basion y el bregma.'}, {letter:'C', text:'La distancia entre la glabela y el opisthocranion.'}, {letter:'D', text:'La distancia entre los dos cóndilos occipitales.'}], correct: 'A' },
+            { id: 120, block: 'b3', blockName: 'Bloque III - Craniometría', question: '¿Entre qué puntos se mide la altura craneal descrita en la presentación?', options: [{letter:'A', text:'Glabela y opisthocranion'}, {letter:'B', text:'Nasion y lambda'}, {letter:'C', text:'Gonion y porion'}, {letter:'D', text:'Basion y bregma'}], correct: 'D' },
+            { id: 121, block: 'b3', blockName: 'Bloque III - Craniometría', question: '¿Cuál es la fórmula del índice cefálico?', options: [{letter:'A', text:'Longitud craneal / anchura craneal × 100'}, {letter:'B', text:'Anchura craneal / longitud craneal × 100'}, {letter:'C', text:'Altura craneal / anchura craneal × 100'}, {letter:'D', text:'Anchura craneal / altura craneal × 100'}], correct: 'B' },
+            { id: 122, block: 'b3', blockName: 'Bloque III - Craniometría', question: 'Un cráneo tiene una anchura máxima equivalente al 72% de su longitud máxima. Según los criterios de la presentación, ¿cómo se clasifica?', options: [{letter:'A', text:'Braquicéfalo'}, {letter:'B', text:'Mesaticéfalo'}, {letter:'C', text:'Dolicocéfalo'}, {letter:'D', text:'No puede clasificarse'}], correct: 'C' },
+            { id: 123, block: 'b3', blockName: 'Bloque III - Craniometría', question: 'Un cráneo tiene una anchura máxima equivalente al 83% de su longitud máxima. ¿Cuál es su clasificación?', options: [{letter:'A', text:'Braquicéfalo'}, {letter:'B', text:'Dolicocéfalo'}, {letter:'C', text:'Mesaticéfalo'}, {letter:'D', text:'Ninguna de las anteriores'}], correct: 'A' },
+            { id: 124, block: 'b3', blockName: 'Bloque III - Craniometría', question: 'Un cráneo tiene una anchura máxima equivalente al 78% de su longitud máxima. ¿Cuál es su clasificación?', options: [{letter:'A', text:'Braquicéfalo'}, {letter:'B', text:'Dolicocéfalo'}, {letter:'C', text:'No clasificable'}, {letter:'D', text:'Mesaticéfalo'}], correct: 'D' },
+            { id: 125, block: 'b3', blockName: 'Bloque III - Craniometría', question: 'Si la longitud craneal máxima es de 200 mm y la anchura máxima es de 150 mm, ¿cuál es el índice cefálico?', options: [{letter:'A', text:'60%'}, {letter:'B', text:'75%'}, {letter:'C', text:'80%'}, {letter:'D', text:'133%'}], correct: 'B' },
+            { id: 126, block: 'b3', blockName: 'Bloque III - Craniometría', question: 'Si la longitud craneal máxima es de 190 mm y la anchura máxima es de 160 mm, ¿cuál es el índice cefálico aproximado?', options: [{letter:'A', text:'72,5%'}, {letter:'B', text:'75%'}, {letter:'C', text:'84,2%'}, {letter:'D', text:'118,8%'}], correct: 'C' },
+
+            // BLOQUE IV: Simulacro visual (127 al 150)
+            { id: 127, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'En la imagen superior de una vértebra, la flecha señala una abertura grande, aproximadamente triangular, situada en el centro del arco óseo. ¿Qué es?', options: [{letter:'A', text:'Agujero vertebral'}, {letter:'B', text:'Agujero de conjunción'}, {letter:'C', text:'Agujero transverso'}, {letter:'D', text:'Conducto carotídeo'}], correct: 'A' },
+            { id: 128, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'En una vértebra cervical, la flecha apunta a un orificio circular dentro de una apófisis transversa. ¿Cuál es?', options: [{letter:'A', text:'Agujero vertebral'}, {letter:'B', text:'Agujero de conjunción'}, {letter:'C', text:'Agujero magno'}, {letter:'D', text:'Agujero transverso'}], correct: 'D' },
+            { id: 129, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'La flecha señala una prolongación posterior corta y bífida de una vértebra. ¿Cuál es la identificación más probable?', options: [{letter:'A', text:'Apófisis espinosa cervical típica'}, {letter:'B', text:'Apófisis espinosa dorsal'}, {letter:'C', text:'Apófisis transversa lumbar'}, {letter:'D', text:'Arco anterior del atlas'}], correct: 'A' },
+            { id: 130, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'La flecha señala una proyección larga e inclinada hacia abajo y atrás en una vértebra torácica. ¿Cuál es?', options: [{letter:'A', text:'Pedículo'}, {letter:'B', text:'Lámina'}, {letter:'C', text:'Apófisis espinosa dorsal'}, {letter:'D', text:'Tubérculo anterior del atlas'}], correct: 'C' },
+            { id: 131, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'La flecha señala la gran masa anterior de una vértebra lumbar. ¿Cuál es?', options: [{letter:'A', text:'Lámina'}, {letter:'B', text:'Cuerpo vertebral'}, {letter:'C', text:'Apófisis espinosa'}, {letter:'D', text:'Apófisis transversa'}], correct: 'B' },
+            { id: 132, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'En el atlas, la flecha señala una gran superficie articular ovalada en una masa lateral, visible desde arriba. ¿Cuál es?', options: [{letter:'A', text:'Tubérculo posterior'}, {letter:'B', text:'Carilla para la odontoides'}, {letter:'C', text:'Canal de la arteria vertebral'}, {letter:'D', text:'Cavidad glenoidea superior'}], correct: 'D' },
+            { id: 133, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'En una imagen del atlas, la flecha señala el arco situado por delante del agujero vertebral. ¿Cuál es?', options: [{letter:'A', text:'Arco anterior'}, {letter:'B', text:'Arco posterior'}, {letter:'C', text:'Lámina del axis'}, {letter:'D', text:'Apófisis espinosa'}], correct: 'A' },
+            { id: 134, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'En una vista posterior del atlas, la flecha señala la prominencia central del arco posterior. ¿Cuál es?', options: [{letter:'A', text:'Tubérculo anterior'}, {letter:'B', text:'Apófisis odontoides'}, {letter:'C', text:'Tubérculo posterior'}, {letter:'D', text:'Cuerpo vertebral'}], correct: 'C' },
+            { id: 135, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'La flecha señala una pequeña escotadura que, junto con la de una vértebra adyacente, forma una abertura lateral por donde sale un nervio raquídeo. ¿Qué estructura es?', options: [{letter:'A', text:'Agujero transverso'}, {letter:'B', text:'Escotadura vertebral del pedículo'}, {letter:'C', text:'Agujero magno'}, {letter:'D', text:'Lámina vertebral'}], correct: 'B' },
+            { id: 136, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: '¿Cuál de las siguientes combinaciones permite identificar con mayor seguridad una vértebra dorsal?', options: [{letter:'A', text:'Agujero transverso y apófisis espinosa bífida.'}, {letter:'B', text:'Cuerpo voluminoso y apófisis transversas costiformes.'}, {letter:'C', text:'Ausencia de cuerpo y dos arcos.'}, {letter:'D', text:'Semicarillas costales en el cuerpo y apófisis espinosa larga e inclinada.'}], correct: 'D' },
+            { id: 137, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'En una vista inferior del cráneo, la flecha señala el gran agujero del hueso occipital. ¿Cuál es?', options: [{letter:'A', text:'Foramen magno'}, {letter:'B', text:'Agujero oval'}, {letter:'C', text:'Agujero redondo mayor'}, {letter:'D', text:'Agujero óptico'}], correct: 'A' },
+            { id: 138, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'La flecha señala una gran depresión en la cara superior del cuerpo del esfenoides, situada entre las apófisis clinoides. ¿Cuál es?', options: [{letter:'A', text:'Fosa pterigoidea'}, {letter:'B', text:'Fosa parietal'}, {letter:'C', text:'Silla turca'}, {letter:'D', text:'Fosita lagrimal'}], correct: 'C' },
+            { id: 139, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'En una vista superior de la cavidad nasal, la flecha señala una lámina ósea media que forma parte del tabique nasal y pertenece al etmoides. ¿Cuál es?', options: [{letter:'A', text:'Lámina cribosa'}, {letter:'B', text:'Lámina perpendicular'}, {letter:'C', text:'Ala mayor'}, {letter:'D', text:'Apófisis unciforme'}], correct: 'B' },
+            { id: 140, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'En la región superior de la cavidad nasal, la flecha señala una lámina perforada por numerosos orificios olfatorios. ¿Cuál es?', options: [{letter:'A', text:'Lámina perpendicular'}, {letter:'B', text:'Lámina cuadrilátera del esfenoides'}, {letter:'C', text:'Lámina pterigoidea'}, {letter:'D', text:'Lámina cribosa'}], correct: 'D' },
+            { id: 141, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'En una vista lateral del cráneo, la flecha señala la prominencia situada detrás e inferior al conducto auditivo externo. ¿Cuál es?', options: [{letter:'A', text:'Apófisis mastoides'}, {letter:'B', text:'Apófisis estiloides'}, {letter:'C', text:'Apófisis pterigoides'}, {letter:'D', text:'Apófisis clinoides'}], correct: 'A' },
+            { id: 142, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'La flecha señala una prolongación delgada y puntiaguda que desciende desde el temporal. ¿Cuál es?', options: [{letter:'A', text:'Apófisis mastoides'}, {letter:'B', text:'Apófisis cigomática'}, {letter:'C', text:'Apófisis estiloides'}, {letter:'D', text:'Apófisis unciforme'}], correct: 'C' },
+            { id: 143, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'En una vista lateral del cráneo, la flecha señala el punto donde confluyen cuatro huesos: frontal, parietal, ala mayor del esfenoides y temporal. ¿Cuál es?', options: [{letter:'A', text:'Asterion'}, {letter:'B', text:'Pterion'}, {letter:'C', text:'Lambda'}, {letter:'D', text:'Bregma'}], correct: 'B' },
+            { id: 144, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'La flecha señala la unión entre la sutura coronal y la sagital, en la región superior del cráneo. ¿Cuál es?', options: [{letter:'A', text:'Lambda'}, {letter:'B', text:'Inion'}, {letter:'C', text:'Nasion'}, {letter:'D', text:'Bregma'}], correct: 'D' },
+            { id: 145, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'En una vista posterior del cráneo, la flecha señala la unión de las suturas sagital y lambdoidea. ¿Cuál es?', options: [{letter:'A', text:'Lambda'}, {letter:'B', text:'Bregma'}, {letter:'C', text:'Pterion'}, {letter:'D', text:'Dacryon'}], correct: 'A' },
+            { id: 146, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'La flecha señala una abertura de la base del cráneo situada en el ala mayor del esfenoides, detrás del agujero redondo mayor y antes del redondo menor en el orden de la presentación. ¿Cuál es?', options: [{letter:'A', text:'Agujero óptico'}, {letter:'B', text:'Agujero de Vesalio'}, {letter:'C', text:'Agujero oval'}, {letter:'D', text:'Agujero condíleo anterior'}], correct: 'C' },
+            { id: 147, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'La flecha señala la superficie articular ovalada del occipital que se relaciona con el atlas. ¿Cuál es?', options: [{letter:'A', text:'Apófisis mastoides'}, {letter:'B', text:'Cóndilo del occipital'}, {letter:'C', text:'Ala menor del esfenoides'}, {letter:'D', text:'Eminencia parietal'}], correct: 'B' },
+            { id: 148, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'En la cara externa del parietal, la flecha señala una prominencia redondeada cerca de la parte media del hueso. ¿Cuál es?', options: [{letter:'A', text:'Glabela'}, {letter:'B', text:'Protuberancia occipital externa'}, {letter:'C', text:'Eminencia frontal lateral'}, {letter:'D', text:'Eminencia parietal'}], correct: 'D' },
+            { id: 149, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'En la cara posterior del frontal, la flecha señala una cresta media vertical relacionada con la inserción de la hoz del cerebro. ¿Cuál es?', options: [{letter:'A', text:'Cresta frontal'}, {letter:'B', text:'Cresta occipital externa'}, {letter:'C', text:'Cresta esfenotemporal'}, {letter:'D', text:'Línea temporal superior'}], correct: 'A' },
+            { id: 150, block: 'b4', blockName: 'Bloque IV - Simulacro Visual', question: 'En la cara externa del occipital, la flecha señala una prominencia media situada por encima de la cresta occipital externa. ¿Cuál es?', options: [{letter:'A', text:'Protuberancia occipital interna'}, {letter:'B', text:'Eminencia parietal'}, {letter:'C', text:'Protuberancia occipital externa'}, {letter:'D', text:'Glabela'}], correct: 'C' }
+        ];
+
+        let currentFilter = 'all';
+        let userAnswers = {};
+        let score = 0;
+        let timerInterval = null;
+        let secondsElapsed = 0;
+        let quizActive = true;
+
+        function initQuiz() {
+            startTimer();
+            renderQuestions();
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (!quizActive) return;
+                secondsElapsed++;
+                const mins = Math.floor(secondsElapsed / 60).toString().padStart(2, '0');
+                const secs = (secondsElapsed % 60).toString().padStart(2, '0');
+                document.getElementById('timer').textContent = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function setFilter(block) {
+            currentFilter = block;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`filter-${block}`).classList.add('active');
+            renderQuestions();
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            const filtered = currentFilter === 'all' 
+                ? questionsData 
+                : questionsData.filter(q => q.block === currentFilter);
+
+            filtered.forEach((q) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.id = `q-card-${q.id}`;
+
+                if (userAnswers[q.id]) {
+                    card.classList.add(userAnswers[q.id].isCorrect ? 'correct' : 'incorrect');
+                }
+
+                const meta = document.createElement('div');
+                meta.className = 'q-meta';
+                meta.innerHTML = `
+                    <span class="q-section">${q.blockName}</span>
+                    <span class="q-id">Pregunta ${q.id} de 150</span>
+                `;
+                card.appendChild(meta);
+
+                const text = document.createElement('div');
+                text.className = 'q-text';
+                text.textContent = q.question;
+                card.appendChild(text);
+
+                const optionsList = document.createElement('div');
+                optionsList.className = 'options-list';
+
+                q.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.id = `q${q.id}-opt-${opt.letter}`;
+                    
+                    const isAnswered = userAnswers[q.id] !== undefined;
+                    if (isAnswered) {
+                        btn.disabled = true;
+                        btn.classList.add('opt-disabled');
+                        if (opt.letter === q.correct) {
+                            btn.classList.add('opt-correct');
+                        } else if (opt.letter === userAnswers[q.id].selected) {
+                            btn.classList.add('opt-incorrect');
+                        }
+                    }
+
+                    btn.innerHTML = `
+                        <span class="option-letter">${opt.letter}</span>
+                        <span>${opt.text}</span>
+                    `;
+
+                    if (!isAnswered) {
+                        btn.onclick = () => handleAnswer(q.id, opt.letter);
+                    }
+
+                    optionsList.appendChild(btn);
+                });
+
+                card.appendChild(optionsList);
+
+                if (userAnswers[q.id]) {
+                    const feedback = document.createElement('div');
+                    const isCorr = userAnswers[q.id].isCorrect;
+                    feedback.className = `feedback-box ${isCorr ? 'correct' : 'incorrect'}`;
+                    feedback.innerHTML = `
+                        <div class="feedback-title">${isCorr ? '✅ ¡Respuesta Correcta!' : '❌ Respuesta Incorrecta'}</div>
+                        <div>La opción correcta es la letra <strong>${q.correct}</strong>.</div>
+                    `;
+                    card.appendChild(feedback);
+                }
+
+                container.appendChild(card);
+            });
+        }
+
+        function handleAnswer(questionId, selectedLetter) {
+            if (userAnswers[questionId] !== undefined) return;
+
+            const question = questionsData.find(q => q.id === questionId);
+            const isCorrect = selectedLetter === question.correct;
+
+            userAnswers[questionId] = { selected: selectedLetter, isCorrect };
+
+            if (isCorrect) {
+                score++;
+                updateScoreDisplay();
+            }
+
+            renderQuestions();
+            checkCompletion();
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('score-display').textContent = `${score} / 150`;
+        }
+
+        function checkCompletion() {
+            if (Object.keys(userAnswers).length === questionsData.length) {
+                quizActive = false;
+                const summaryCard = document.getElementById('summary-card');
+                const finalScore = document.getElementById('final-score');
+                const summaryText = document.getElementById('summary-text');
+                
+                finalScore.textContent = `${score} / 150 aciertos`;
+                summaryText.textContent = `Has completado todo el banco de preguntas de anatomía con un puntaje final de ${score}.`;
+                summaryCard.classList.remove('hidden');
+                summaryCard.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function resetQuiz() {
+            userAnswers = {};
+            score = 0;
+            secondsElapsed = 0;
+            quizActive = true;
+            updateScoreDisplay();
+            document.getElementById('summary-card').classList.add('hidden');
+            renderQuestions();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>
