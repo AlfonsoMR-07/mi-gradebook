@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen Interactivo: Biología Celular y Molecular - Versión 2</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; line-height: 1.5; padding-bottom: 40px; }
+        header { background-color: #0f172a; color: white; padding: 20px 16px; position: sticky; top: 0; z-index: 50; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header-content { max-width: 900px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
+        .tag { background-color: #2563eb; color: #bfdbfe; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; }
+        h1 { font-size: 1.5rem; font-weight: 700; margin-top: 4px; }
+        p.subtitle { color: #cbd5e1; font-size: 0.875rem; }
+        .stats { display: flex; align-items: center; gap: 16px; background-color: rgba(30, 41, 59, 0.9); padding: 8px 16px; border-radius: 12px; border: 1px solid rgba(51, 65, 85, 1); }
+        .stat-box { text-align: center; }
+        .stat-label { display: block; font-size: 11px; color: #94a3b8; text-transform: uppercase; }
+        .stat-val { font-size: 1.25rem; font-weight: 700; font-family: monospace; color: #f8fafc; }
+        .divider { width: 1px; height: 32px; background-color: #334155; }
+        
+        main { max-width: 900px; margin: 24px auto; padding: 0 16px; display: flex; flex-direction: column; gap: 24px; }
+        .filter-card { background: white; border-radius: 16px; padding: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .filter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+        .filter-title { font-weight: 600; font-size: 0.875rem; color: #334155; }
+        .reset-btn { padding: 8px 16px; background-color: #f1f5f9; color: #334155; font-weight: 500; font-size: 0.875rem; border-radius: 12px; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s; }
+        .reset-btn:hover { background-color: #e2e8f0; }
+        
+        .filter-grid { display: flex; gap: 6px; flex-wrap: wrap; }
+        .filter-btn { padding: 6px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: 500; border: 1px solid #cbd5e1; background-color: #f8fafc; color: #475569; cursor: pointer; transition: all 0.2s; }
+        .filter-btn:hover { background-color: #f1f5f9; }
+        .filter-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; font-weight: 600; }
+        
+        .questions-list { display: flex; flex-direction: column; gap: 20px; }
+        .question-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05); transition: all 0.2s; display: flex; flex-direction: column; gap: 16px; }
+        .question-card.correct { border-color: #6ee7b7; background-color: #f0fdf4; }
+        .question-card.incorrect { border-color: #fca5a5; background-color: #fff1f2; }
+        
+        .q-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .q-section { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+        .q-id { font-size: 12px; color: #94a3b8; font-weight: 500; }
+        .q-text { font-size: 1.05rem; font-weight: 600; color: #1e293b; }
+        
+        .options-list { display: flex; flex-direction: column; gap: 10px; }
+        .option-btn { width: 100%; text-align: left; padding: 12px 16px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; color: #334155; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s; }
+        .option-btn:hover:not(:disabled) { background-color: #f8fafc; border-color: #cbd5e1; }
+        .option-letter { width: 28px; height: 28px; border-radius: 8px; background-color: #f1f5f9; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; flex-shrink: 0; }
+        
+        .option-btn.opt-correct { border-color: #10b981; background-color: #ecfdf5; color: #065f46; font-weight: 600; }
+        .option-btn.opt-incorrect { border-color: #f43f5e; background-color: #fff1f2; color: #9f1239; font-weight: 600; }
+        .option-btn.opt-disabled { opacity: 0.6; }
+        
+        .badge-status { margin-left: auto; font-size: 0.75rem; font-weight: 700; }
+        .badge-correct { color: #059669; }
+        .badge-incorrect { color: #e11d48; }
+        
+        .feedback-box { padding: 14px 16px; border-radius: 12px; font-size: 0.875rem; border: 1px solid; margin-top: 4px; }
+        .feedback-box.correct { background-color: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+        .feedback-box.incorrect { background-color: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+        .feedback-title { font-weight: 700; margin-bottom: 4px; }
+        
+        .summary-card { background: linear-gradient(135deg, #0f172a, #1e3a8a); color: white; border-radius: 20px; padding: 32px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 16px; }
+        .summary-card.hidden { display: none; }
+        .trophy { font-size: 3rem; background: rgba(255,255,255,0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .final-score { font-size: 2rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 8px 24px; border-radius: 16px; backdrop-filter: blur(4px); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div>
+                <span class="tag">Banco Oficial USEP - v2</span>
+                <h1>Biología Celular y Molecular (2do Parcial)</h1>
+                <p class="subtitle">Evaluación interactiva basada en los equipos de trabajo</p>
+            </div>
+            <div class="stats">
+                <div class="stat-box">
+                    <span class="stat-label">Tiempo</span>
+                    <span id="timer" class="stat-val">00:00</span>
+                </div>
+                <div class="divider"></div>
+                <div class="stat-box">
+                    <span class="stat-label">Puntaje</span>
+                    <span id="score-display" class="stat-val">0 / 117</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="filter-card">
+            <div class="filter-header">
+                <span class="filter-title">🔍 Filtrar por Equipo:</span>
+                <button onclick="resetQuiz()" class="reset-btn">🔄 Reiniciar Examen</button>
+            </div>
+            <div class="filter-grid" id="filter-container">
+                <button onclick="setFilter('all')" id="filter-all" class="filter-btn active">Todos (117)</button>
+                <button onclick="setFilter('eq1')" id="filter-eq1" class="filter-btn">Equipo 1</button>
+                <button onclick="setFilter('eq2')" id="filter-eq2" class="filter-btn">Equipo 2</button>
+                <button onclick="setFilter('eq3')" id="filter-eq3" class="filter-btn">Equipo 3</button>
+                <button onclick="setFilter('eq4')" id="filter-eq4" class="filter-btn">Equipo 4</button>
+                <button onclick="setFilter('eq5')" id="filter-eq5" class="filter-btn">Equipo 5</button>
+                <button onclick="setFilter('eq6')" id="filter-eq6" class="filter-btn">Equipo 6</button>
+                <button onclick="setFilter('eq7')" id="filter-eq7" class="filter-btn">Equipo 7</button>
+                <button onclick="setFilter('eq8')" id="filter-eq8" class="filter-btn">Equipo 8</button>
+                <button onclick="setFilter('eq9')" id="filter-eq9" class="filter-btn">Equipo 9</button>
+            </div>
+        </div>
+
+        <div id="questions-container" class="questions-list"></div>
+
+        <div id="summary-card" class="summary-card hidden">
+            <div class="trophy">🏆</div>
+            <h2>¡Examen Finalizado!</h2>
+            <p id="summary-text" style="color: #cbd5e1; max-width: 500px;">Has completado el banco completo de preguntas.</p>
+            <div class="final-score" id="final-score">0 / 117 aciertos</div>
+            <button onclick="resetQuiz()" class="reset-btn" style="background: white; color: #0f172a; font-weight: 700; padding: 12px 24px; font-size: 1rem;">
+                Reiniciar Examen
+            </button>
+        </div>
+    </main>
+
+    <script>
+        const questionsData = [
+            // EQUIPO 1
+            {
+                id: 1, team: 'eq1', teamName: 'Equipo 1 - Citoesqueleto',
+                question: 'Una célula sometida a cambios constantes de forma necesita reorganizar sus estructuras internas sin perder la distribución adecuada de sus orgánulos. ¿Qué propiedad del citoesqueleto permite responder a estas necesidades?',
+                options: [
+                    { letter: 'A', text: 'La estabilidad permanente de sus filamentos, que impide cualquier modificación estructural.' },
+                    { letter: 'B', text: 'La capacidad de sus componentes para ensamblarse y desensamblarse de manera regulada, adaptando la arquitectura celular.' },
+                    { letter: 'C', text: 'La sustitución de sus proteínas estructurales por lípidos de membrana durante los cambios de forma.' },
+                    { letter: 'D', text: 'La formación de una cubierta continua que separa el citoplasma de los compartimentos membranosos.' }
+                ],
+                correct: 'B', explanation: 'El dinamismo del citoesqueleto permite el ensamblaje y desensamblaje regulado de sus filamentos para adaptar la arquitectura celular[cite: 42].'
+            },
+            {
+                id: 2, team: 'eq1', teamName: 'Equipo 1 - Microtúbulos',
+                question: 'Durante el funcionamiento de un cilio móvil, una alteración impide que los dobletes de microtúbulos se deslicen entre sí de manera coordinada. ¿Qué proteína sería la más directamente relacionada con este defecto?',
+                options: [
+                    { letter: 'A', text: 'Cinesina, debido a su función en la formación de filamentos intermedios.' },
+                    { letter: 'B', text: 'Queratina, debido a su capacidad para estabilizar el axonema mediante enlaces cruzados.' },
+                    { letter: 'C', text: 'Dineína axonemal, debido a su actividad motora dependiente de ATP sobre los microtúbulos.' },
+                    { letter: 'D', text: 'Fimbrina, debido a su función en la organización de los microfilamentos de actina.' }
+                ],
+                correct: 'C', explanation: 'La dineína axonemal es la proteína motora que genera el deslizamiento de los microtúbulos en cilios y flagelos empleando ATP[cite: 42].'
+            },
+            {
+                id: 3, team: 'eq1', teamName: 'Equipo 1 - Filamentos intermedios, actina y miosina',
+                question: 'Durante la división de una célula animal, se observa que el núcleo se divide correctamente, pero la célula no consigue separar por completo su citoplasma. ¿Qué alteración explicaría mejor este resultado?',
+                options: [
+                    { letter: 'A', text: 'Una disminución en la interacción entre actina y miosina II en el anillo contráctil.' },
+                    { letter: 'B', text: 'Una pérdida de queratina que impide la duplicación de los cromosomas.' },
+                    { letter: 'C', text: 'Una reducción de los neurofilamentos que bloquea la síntesis de ATP.' },
+                    { letter: 'D', text: 'Una alteración de la tubulina que impide directamente la formación de los puentes cruzados musculares.' }
+                ],
+                correct: 'A', explanation: 'La citocinesis depende de la contracción del anillo periférico compuesto por actina y miosina II[cite: 42].'
+            },
+            {
+                id: 4, team: 'eq1', teamName: 'Equipo 1 - Contracción muscular',
+                question: 'En una fibra muscular esquelética, el retículo sarcoplásmico libera calcio y posteriormente debe recuperar el estado de reposo. ¿Qué mecanismo permite principalmente que disminuya la concentración de calcio en el citoplasma?',
+                options: [
+                    { letter: 'A', text: 'La unión irreversible del calcio a la actina, que bloquea permanentemente sus sitios de interacción.' },
+                    { letter: 'B', text: 'La difusión del calcio hacia el exterior de la fibra a través de los canales de sodio.' },
+                    { letter: 'C', text: 'La degradación de la troponina, que elimina el calcio libre del citoplasma.' },
+                    { letter: 'D', text: 'El transporte activo del calcio de regreso al retículo sarcoplásmico mediante bombas SERCA, con gasto de ATP.' }
+                ],
+                correct: 'D', explanation: 'Las bombas SERCA devueven el calcio al interior del retículo sarcoplásmico mediante transporte activo impulsado por ATP[cite: 42].'
+            },
+            {
+                id: 5, team: 'eq1', teamName: 'Equipo 1 - Motilidad y espacio extracelular',
+                question: 'Durante la invasión de un tejido, ciertas células tumorales desarrollan estructuras especializadas que concentran enzimas capaces de degradar componentes de la matriz extracelular. ¿Cómo se denominan estas estructuras?',
+                options: [
+                    { letter: 'A', text: 'Filopodios, cuya función principal es generar cilios mediante el deslizamiento de microtúbulos.' },
+                    { letter: 'B', text: 'Invadopodios, que participan en la degradación localizada de la matriz extracelular.' },
+                    { letter: 'C', text: 'Microvellosidades, especializadas en la digestión extracelular mediante contracción de miosina II.' },
+                    { letter: 'D', text: 'Desmosomas, que degradan la matriz para permitir el desplazamiento de células vecinas.' }
+                ],
+                correct: 'B', explanation: 'Los invadopodios son protrusiones ricas en actina que concentran proteasas para degradar la matriz extracelular[cite: 42].'
+            },
+            {
+                id: 6, team: 'eq1', teamName: 'Equipo 1 - Matriz extracelular (MEC)',
+                question: 'En un tejido cartilaginoso, la pérdida de ciertos componentes de la matriz provoca una disminución de su capacidad para resistir la compresión. ¿Qué componente sería especialmente importante investigar por su capacidad para retener agua y formar estructuras hidratadas?',
+                options: [
+                    { letter: 'A', text: 'Elastina, debido a que forma una red especializada en absorber grandes cantidades de agua.' },
+                    { letter: 'B', text: 'Fibronectina, debido a que constituye el principal componente contráctil del cartílago.' },
+                    { letter: 'C', text: 'Proteoglicanos con glucosaminoglucanos, debido a su carga negativa y capacidad para retener agua.' },
+                    { letter: 'D', text: 'Queratina, debido a que constituye la red extracelular que distribuye las fuerzas compresivas.' }
+                ],
+                correct: 'C', explanation: 'Los proteoglicanos con GAGs poseen alta densidad de cargas negativas que atraen agua y forman geles hidratados resistentes a la compresión[cite: 42].'
+            },
+            {
+                id: 7, team: 'eq1', teamName: 'Equipo 1 - Interacciones célula-MEC',
+                question: 'Una célula detecta un cambio en la rigidez del sustrato y modifica la expresión de genes relacionados con su diferenciación. ¿Qué mecanismo permite relacionar las propiedades físicas de la matriz con una respuesta celular?',
+                options: [
+                    { letter: 'A', text: 'La degradación de todas las integrinas para impedir la transmisión de señales al citoplasma.' },
+                    { letter: 'B', text: 'La conversión directa de las proteínas de la matriz en ARN mensajero dentro del núcleo.' },
+                    { letter: 'C', text: 'La difusión pasiva de los componentes de la matriz a través de la membrana plasmática.' },
+                    { letter: 'D', text: 'La transmisión de señales mecánicas mediante complejos de adhesión y proteínas señalizadoras conectadas con el citoesqueleto.' }
+                ],
+                correct: 'D', explanation: 'La mecanotransducción transmite la información física y de rigidez del sustrato al interior a través de complejos de adhesión y citoesqueleto[cite: 42].'
+            },
+            {
+                id: 8, team: 'eq1', teamName: 'Equipo 1 - Interacciones célula-célula',
+                question: 'En un tejido embrionario, las células deben reconocerse y mantener una adhesión selectiva durante su organización. Una alteración afecta a proteínas de adhesión dependientes de calcio que enlazan células vecinas y se conectan con el citoesqueleto de actina. ¿Qué proteínas están más probablemente afectadas?',
+                options: [
+                    { letter: 'A', text: 'Cadherinas, que participan en la adhesión intercelular y en la organización de los tejidos.' },
+                    { letter: 'B', text: 'Integrinas, que conectan principalmente los componentes de la matriz extracelular con el citoesqueleto.' },
+                    { letter: 'C', text: 'Conexinas, que forman canales de comunicación entre células adyacentes.' },
+                    { letter: 'D', text: 'Tubulinas, que forman los filamentos de adhesión de la membrana plasmática.' }
+                ],
+                correct: 'A', explanation: 'Las cadherinas son moléculas de adhesión homofílica dependientes de Ca²⁺ que se conectan con la actina[cite: 42].'
+            },
+            {
+                id: 9, team: 'eq1', teamName: 'Equipo 1 - Uniones especializadas',
+                question: 'En un tejido cardíaco, una alteración impide el paso coordinado de iones entre cardiomiocitos vecinos, aunque las células continúan en contacto físico. ¿Qué estructura celular está más directamente relacionada con este problema?',
+                options: [
+                    { letter: 'A', text: 'Uniones estrechas, que restringen el paso de sustancias por el espacio entre células.' },
+                    { letter: 'B', text: 'Desmosomas, que proporcionan resistencia mecánica frente a las fuerzas de contracción.' },
+                    { letter: 'C', text: 'Uniones comunicantes, formadas por canales que permiten el paso de iones y pequeñas moléculas entre células adyacentes.' },
+                    { letter: 'D', text: 'Hemidesmosomas, que fijan las células a la lámina basal mediante conexiones con filamentos intermedios.' }
+                ],
+                correct: 'C', explanation: 'Las uniones comunicantes o gap junctions permiten el acoplamiento iónico directo entre células vecinas[cite: 42].'
+            },
+            {
+                id: 10, team: 'eq1', teamName: 'Equipo 1 - Sistema de endomembranas',
+                question: 'Una célula presenta una alteración en los lisosomas que impide mantener su pH interno ácido. ¿Cuál sería la consecuencia más probable?',
+                options: [
+                    { letter: 'A', text: 'Aumento de la síntesis de ATP en los lisosomas.' },
+                    { letter: 'B', text: 'Disminución de la actividad de las enzimas hidrolíticas y de la degradación de sustancias.' },
+                    { letter: 'C', text: 'Interrupción de la replicación del ADN nuclear.' },
+                    { letter: 'D', text: 'Aumento de la producción de proteínas en el citosol.' }
+                ],
+                correct: 'B', explanation: 'Las hidrolasas ácidas de los lisosomas necesitan un entorno ácido óptimo para degradar biomoléculas[cite: 42].'
+            },
+            {
+                id: 11, team: 'eq1', teamName: 'Equipo 1 - Mitocondria',
+                question: 'Una mutación impide que los complejos de la cadena respiratoria bombeen protones adecuadamente hacia el espacio intermembranoso. ¿Qué proceso se afectará directamente?',
+                options: [
+                    { letter: 'A', text: 'La síntesis de ARN ribosomal en el nucléolo.' },
+                    { letter: 'B', text: 'La formación de vesículas en el aparato de Golgi.' },
+                    { letter: 'C', text: 'La generación del gradiente electroquímico necesario para la síntesis de ATP.' },
+                    { letter: 'D', text: 'La duplicación de los centríolos durante la interfase.' }
+                ],
+                correct: 'C', explanation: 'El bombeo de protones establece el gradiente electroquímico indispensable para que opere la ATP sintasa[cite: 42].'
+            },
+            {
+                id: 12, team: 'eq1', teamName: 'Equipo 1 - Núcleo celular',
+                question: 'Una célula necesita expresar un gen específico, pero sus factores de transcripción no pueden unirse a las secuencias reguladoras del ADN. ¿Qué proceso se verá afectado directamente?',
+                options: [
+                    { letter: 'A', text: 'La iniciación de la transcripción del gen correspondiente.' },
+                    { letter: 'B', text: 'La traducción de proteínas en los ribosomas mitocondriales.' },
+                    { letter: 'C', text: 'La degradación de sustancias dentro de los lisosomas.' },
+                    { letter: 'D', text: 'El transporte de lípidos hacia la membrana plasmática.' }
+                ],
+                correct: 'A', explanation: 'La unión de factores de transcripción a secuencias reguladoras es el requisito previo para iniciar la transcripción[cite: 42].'
+            },
+            {
+                id: 13, team: 'eq1', teamName: 'Equipo 1 - Modelo de Watson y Crick',
+                question: 'En el modelo de Watson y Crick, ¿qué característica permite que las dos cadenas de ADN permanezcan unidas y mantengan la estructura de doble hélice?',
+                options: [
+                    { letter: 'A', text: 'Los enlaces peptídicos entre las bases nitrogenadas.' },
+                    { letter: 'B', text: 'Los enlaces fosfodiéster entre las bases complementarias.' },
+                    { letter: 'C', text: 'Los puentes de hidrógeno entre las bases nitrogenadas complementarias.' },
+                    { letter: 'D', text: 'Los enlaces covalentes entre adenina y guanina.' }
+                ],
+                correct: 'C', explanation: 'Los puentes de hidrógeno específicos entre bases complementarias estabilizan y unen las cadenas de la doble hélice[cite: 42].'
+            },
+
+            // EQUIPO 2
+            {
+                id: 14, team: 'eq2', teamName: 'Equipo 2 - Citoesqueleto',
+                question: '¿Cuál de las siguientes afirmaciones describe de manera correcta la organización general y función del citoesqueleto en la célula eucariota?',
+                options: [
+                    { letter: 'A', text: 'Es una estructura rígida e inmutable compuesta únicamente por proteínas de soporte mecánico sin dinamismo.' },
+                    { letter: 'B', text: 'Está constituido por tres tipos de filamentos proteicos (microfilamentos, filamentos intermedios y microtúbulos) que otorgan forma, soporte mecánico y permiten el transporte interno y movimiento celular.' },
+                    { letter: 'C', text: 'Es una red proteica presente exclusivamente dentro del núcleo celular para sostener el ADN y dirigir la transcripción.' },
+                    { letter: 'D', text: 'Se compone principalmente de fosfolípidos y carbohidratos que delimitan los compartimentos membranosos del citoplasma.' }
+                ],
+                correct: 'B', explanation: 'El citoesqueleto integra tres grandes redes filamentosas que dan soporte, forma y vías de transporte[cite: 42].'
+            },
+            {
+                id: 15, team: 'eq2', teamName: 'Equipo 2 - Microtúbulos',
+                question: '¿Cuál de las siguientes funciones es realizada específicamente por los microtúbulos en las células eucariotas?',
+                options: [
+                    { letter: 'A', text: 'Formación de la lámina nuclear que da soporte a la envoltura nuclear.' },
+                    { letter: 'B', text: 'Movimiento celular mediante la formación de pseudópodos y la contracción muscular.' },
+                    { letter: 'C', text: 'Separación de los cromosomas durante la mitosis a través del huso mitótico.' },
+                    { letter: 'D', text: 'Anclaje de los orgánulos a través de Filamentos Intermedios de queratina.' }
+                ],
+                correct: 'C', explanation: 'Los microtúbulos forman el huso mitótico que distribuye los cromosomas durante la división celular[cite: 42].'
+            },
+            {
+                id: 16, team: 'eq2', teamName: 'Equipo 2 - Citoesqueleto (Actina/Miosina)',
+                question: '¿Cuál de los siguientes componentes del citoesqueleto es el principal responsable de la contracción muscular en conjunto con la miosina?',
+                options: [
+                    { letter: 'A', text: 'Microtúbulos' },
+                    { letter: 'B', text: 'Filamentos intermedios' },
+                    { letter: 'C', text: 'Microfilamentos de actina' },
+                    { letter: 'D', text: 'Lámina nuclear' }
+                ],
+                correct: 'C', explanation: 'Los filamentos de actina actúan junto con la miosina para constituir la maquinaria contráctil[cite: 42].'
+            },
+            {
+                id: 17, team: 'eq2', teamName: 'Equipo 2 - Contracción muscular',
+                question: '¿Qué produce la liberación de Fosfato Inorgánico (Pi) en el ciclo contráctil?',
+                options: [
+                    { letter: 'A', text: 'Se produce el golpe contráctil / golpe de poder' },
+                    { letter: 'B', text: 'Se produce el golpe esquelético' },
+                    { letter: 'C', text: 'Se produce un choque muscular' },
+                    { letter: 'D', text: 'Se producen moléculas de ATP' }
+                ],
+                correct: 'A', explanation: 'La liberación de fosfato inorgánico desencadena directamente el golpe de fuerza en la miosina[cite: 42].'
+            },
+            {
+                id: 18, team: 'eq2', teamName: 'Equipo 2 - Motilidad celular',
+                question: '¿Qué son los lamelipodios y cuál es su función?',
+                options: [
+                    { letter: 'A', text: 'Orgánulos que producen ATP' },
+                    { letter: 'B', text: 'Prolongaciones celulares que ayudan al desplazamiento' },
+                    { letter: 'C', text: 'Proteínas de adhesión celular' },
+                    { letter: 'D', text: 'Vesículas de transporte intracelular' }
+                ],
+                correct: 'B', explanation: 'Los lamelipodios son expansiones laminares que facilitan la protrusión en la migración celular[cite: 42].'
+            },
+            {
+                id: 19, team: 'eq2', teamName: 'Equipo 2 - Matriz extracelular',
+                question: '¿Cuál es la proteína más abundante de la matriz extracelular animal que proporciona principalmente resistencia a la tracción a tejidos como los tendones y la dermis?',
+                options: [
+                    { letter: 'A', text: 'Elastina' },
+                    { letter: 'B', text: 'Colágeno' },
+                    { letter: 'C', text: 'Fibronectina' },
+                    { letter: 'D', text: 'Laminina' }
+                ],
+                correct: 'B', explanation: 'El colágeno es la proteína fibrilar más abundante que aporta alta resistencia a la tracción[cite: 42].'
+            },
+            {
+                id: 20, team: 'eq2', teamName: 'Equipo 2 - Interacciones célula-MEC',
+                question: '¿Qué familia de glicoproteínas transmembrana es la principal mediadora de la fijación de las células a los componentes de la matriz extracelular (como la fibronectina)?',
+                options: [
+                    { letter: 'A', text: 'Cadherinas' },
+                    { letter: 'B', text: 'Selectinas' },
+                    { letter: 'C', text: 'Integrinas' },
+                    { letter: 'D', text: 'Conexinas' }
+                ],
+                correct: 'C', explanation: 'Las integrinas son los principales receptores transmembrana que unen la célula con la MEC[cite: 42].'
+            },
+            {
+                id: 21, team: 'eq2', teamName: 'Equipo 2 - Interacciones célula-célula',
+                question: '¿Qué tipo de moléculas de adhesión celular (CAMs) son dependientes de iones de calcio (Ca²⁺) y participan principalmente en uniones homofílicas célula-célula?',
+                options: [
+                    { letter: 'A', text: 'Integrinas' },
+                    { letter: 'B', text: 'Cadherinas' },
+                    { letter: 'C', text: 'Selectinas' },
+                    { letter: 'D', text: 'Inmunoglobulinas' }
+                ],
+                correct: 'B', explanation: 'Las cadherinas requieren Ca²⁺ para mediar la unión intercelular de tipo homofílico[cite: 42].'
+            },
+            {
+                id: 22, team: 'eq2', teamName: 'Equipo 2 - Uniones especializadas',
+                question: '¿Qué tipo de unión intercelular sella el espacio entre células epiteliales adyacentes para impedir el paso libre de sustancias a través del espacio paracelular?',
+                options: [
+                    { letter: 'A', text: 'Desmosomas' },
+                    { letter: 'B', text: 'Uniones en hendidura (gap junctions)' },
+                    { letter: 'C', text: 'Uniones estrechas (o apretadas)' },
+                    { letter: 'D', text: 'Hemidesmosoma' }
+                ],
+                correct: 'C', explanation: 'Las uniones estrechas o zónulas ocludentes bloquean el tránsito por la vía paracelular[cite: 42].'
+            },
+            {
+                id: 23, team: 'eq2', teamName: 'Equipo 2 - Sistema de endomembranas',
+                question: '¿Cuál de los siguientes orgánulos forma parte del sistema de endomembranas y es el principal sitio de síntesis de lípidos, además de participar en la detoxificación?',
+                options: [
+                    { letter: 'A', text: 'Aparato de Golgi' },
+                    { letter: 'B', text: 'Lisosoma' },
+                    { letter: 'C', text: 'Retículo endoplasmático liso (REL)' },
+                    { letter: 'D', text: 'Mitocondria' }
+                ],
+                correct: 'C', explanation: 'El REL sintetiza lípidos de membrana, esteroides y realiza procesos de detoxificación[cite: 42].'
+            },
+            {
+                id: 24, team: 'eq2', teamName: 'Equipo 2 - Mitocondria',
+                question: 'Durante la fisión mitocondrial, ¿cuál es el papel específico de la proteína Drp1 tras el contacto con el retículo endoplásmico?',
+                options: [
+                    { letter: 'A', text: 'Se ensambla en hélices alrededor de la mitocondria y, mediante la hidrólisis de GTP, la divide en dos organelos más pequeños.' },
+                    { letter: 'B', text: 'Degrada la membrana externa para liberar las enzimas del ciclo de Krebs.' },
+                    { letter: 'C', text: 'Forma poros gigantes que permiten el libre paso de moléculas.' },
+                    { letter: 'D', text: 'Actúa como un transportador antiporte para intercambiar ATP.' }
+                ],
+                correct: 'A', explanation: 'Drp1 forma espirales que estrangulan y dividen la mitocondria mediante la hidrólisis de GTP[cite: 42].'
+            },
+            {
+                id: 25, team: 'eq2', teamName: 'Equipo 2 - Replicación del ADN',
+                question: '¿Cuál es la función del complejo PCNA junto con RFC durante la horquilla de replicación eucariótica?',
+                options: [
+                    { letter: 'A', text: 'Aumentar la procesividad y mantener unidas las polimerasas.' },
+                    { letter: 'B', text: 'Sellar las muescas finales mediante enlaces fosfodiéster.' },
+                    { letter: 'C', text: 'Aliviar el superenrollamiento positivo generado por la apertura.' },
+                    { letter: 'D', text: 'Sintetizar los cebadores iniciales de ARN en la hebra retrasada.' }
+                ],
+                correct: 'A', explanation: 'PCNA actúa como abrazadera deslizante asegurando la alta procesividad de la ADN polimerasa[cite: 42].'
+            },
+            {
+                id: 26, team: 'eq2', teamName: 'Equipo 2 - Estructura del ADN',
+                question: '¿Qué tipo de interacciones moleculares son responsables principalmente de mantener el diámetro constante de la doble hélice del ADN?',
+                options: [
+                    { letter: 'A', text: 'Los puentes de hidrógeno múltiples en el esqueleto hidrocarbonado.' },
+                    { letter: 'B', text: 'La formación exclusiva de enlaces fosfodiéster en el interior.' },
+                    { letter: 'C', text: 'El apareamiento específico entre una purina y una pirimidina.' },
+                    { letter: 'D', text: 'La repulsión electrostática entre los grupos fosfato externos.' }
+                ],
+                correct: 'C', explanation: 'El apareamiento constante de una purina con una pirimidina mantiene simétrico el diámetro de la doble hélice[cite: 42].'
+            },
+
+            // EQUIPO 3
+            {
+                id: 27, team: 'eq3', teamName: 'Equipo 3 - Citoesqueleto',
+                question: 'El huso mitótico está formado por:',
+                options: [
+                    { letter: 'A', text: 'Filamentos de actina' },
+                    { letter: 'B', text: 'Filamentos intermedios' },
+                    { letter: 'C', text: 'Microtúbulos' },
+                    { letter: 'D', text: 'Colágeno' }
+                ],
+                correct: 'C', explanation: 'Los microtúbulos componen el huso mitótico para la segregación cromosómica[cite: 42].'
+            },
+            {
+                id: 28, team: 'eq3', teamName: 'Equipo 3 - Microtúbulos',
+                question: '¿Qué proteínas motoras están asociadas al transporte intracelular a lo largo de los microtúbulos?',
+                options: [
+                    { letter: 'A', text: 'Actina y miosina' },
+                    { letter: 'B', text: 'Kinesina y dineína' },
+                    { letter: 'C', text: 'Tubulina e isotipo' },
+                    { letter: 'D', text: 'Colágeno y elastina' }
+                ],
+                correct: 'B', explanation: 'Kinesinas y dineínas son las proteínas motoras que se desplazan sobre los microtúbulos[cite: 42].'
+            },
+            {
+                id: 29, team: 'eq3', teamName: 'Equipo 3 - Filamentos de actina',
+                question: '¿Cuál de las siguientes opciones describe correctamente la estructura y el comportamiento dinámico de los microfilamentos de actina?',
+                options: [
+                    { letter: 'A', text: 'Tienen un diámetro aproximado de 10 nm y carecen de polaridad.' },
+                    { letter: 'B', text: 'Son polímeros helicoidales polares con un extremo (+) de crecimiento rápido y un extremo (-) de crecimiento más lento, capaces de presentar un recambio continuo (treadmill).' },
+                    { letter: 'C', text: 'Están formados por monómeros α-helicoidales sin necesidad de unir nucleótidos.' },
+                    { letter: 'D', text: 'Se organizan en redes flexibles exclusivamente mediante fimbrina.' }
+                ],
+                correct: 'B', explanation: 'Los microfilamentos de actina son polímeros helicoidales polares con dinámico recambio (treadmilling)[cite: 42].'
+            },
+            {
+                id: 30, team: 'eq3', teamName: 'Equipo 3 - Contracción muscular',
+                question: '¿Qué cambio ocurre en las distintas zonas del sarcómero durante la contracción muscular, de acuerdo con el modelo deslizante?',
+                options: [
+                    { letter: 'A', text: 'La banda A reduce su longitud debido al acortamiento de los filamentos gruesos.' },
+                    { letter: 'B', text: 'La banda I y la zona H disminuyen de tamaño, mientras que la banda A permanece prácticamente sin cambios.' },
+                    { letter: 'C', text: 'Los filamentos de actina y miosina se acortan para generar la fuerza.' },
+                    { letter: 'D', text: 'Las líneas Z se alejan entre sí.' }
+                ],
+                correct: 'B', explanation: 'La banda I y la zona H se contraen, pero la longitud de la banda A se mantiene intacta[cite: 42].'
+            },
+            {
+                id: 31, team: 'eq3', teamName: 'Equipo 3 - Motilidad celular',
+                question: 'Durante el ciclo de migración celular, ¿cuál es el evento que sigue inmediatamente a la protrusión del lamelipodio?',
+                options: [
+                    { letter: 'A', text: 'La contracción por actomiosina.' },
+                    { letter: 'B', text: 'La adhesión al sustrato.' },
+                    { letter: 'C', text: 'La condensación nuclear.' },
+                    { letter: 'D', text: 'El desprendimiento posterior.' }
+                ],
+                correct: 'B', explanation: 'Tras la protrusión del frente celular, se establecen nuevas adhesiones focales con el sustrato[cite: 42].'
+            },
+            {
+                id: 32, team: 'eq3', teamName: 'Equipo 3 - Matriz extracelular',
+                question: '¿Cuál es la función principal del colágeno dentro de la matriz extracelular (MEC)?',
+                options: [
+                    { letter: 'A', text: 'Captar agua y formar un gel hidratado que resiste la compresión.' },
+                    { letter: 'B', text: 'Aportar resistencia a la tracción y soportar fuerzas de estiramiento.' },
+                    { letter: 'C', text: 'Actuar como un receptor transmembrana.' },
+                    { letter: 'D', text: 'Sellar el espacio intercelular.' }
+                ],
+                correct: 'B', explanation: 'El colágeno confiere la resistencia principal frente a la tracción en los tejidos[cite: 42].'
+            },
+            {
+                id: 33, team: 'eq3', teamName: 'Equipo 3 - Integrinas',
+                question: 'Respecto al mecanismo de activación y transmisión de señales de las integrinas, ¿cuál afirmación describe correctamente la regulación de su afinidad?',
+                options: [
+                    { letter: 'A', text: 'La integrina se encuentra inicialmente extendida; la unión de talina induce su plegamiento.' },
+                    { letter: 'B', text: 'La integrina se encuentra normalmente en una conformación doblada de menor afinidad; la unión de proteínas intracelulares como la talina a la subunidad β favorece un cambio hacia una estructura extendida con mayor afinidad.' },
+                    { letter: 'C', text: 'Su activación depende exclusivamente de calcio extracelular.' },
+                    { letter: 'D', text: 'Son anclajes pasivos incapaces de señalizar.' }
+                ],
+                correct: 'B', explanation: 'La señalización de adentro hacia afuera por talina cambia la integrina de doblada a extendida (alta afinidad)[cite: 42].'
+            },
+            {
+                id: 34, team: 'eq3', teamName: 'Equipo 3 - Anclaje epitelial',
+                question: 'Al comparar las estructuras de anclaje de las células epiteliales, ¿cuál combinación de interacción y asociación con el citoesqueleto es correcta?',
+                options: [
+                    { letter: 'A', text: 'Adhesión focal: une célula-célula con filamentos intermedios.' },
+                    { letter: 'B', text: 'Hemidesmosoma: une células-MEC con microfilamentos de actina.' },
+                    { letter: 'C', text: 'Unión adherente: une célula-célula y se conecta con filamentos de actina, participando en la cohesión y forma tisular.' },
+                    { letter: 'D', text: 'Desmosoma: une célula-MEC con actina.' }
+                ],
+                correct: 'C', explanation: 'Las uniones adherentes conectan célula con célula asociándose a los filamentos de actina[cite: 42].'
+            },
+            {
+                id: 35, team: 'eq3', teamName: 'Equipo 3 - Cadherinas y morfogénesis',
+                question: '¿Cómo influye la especificidad de las cadherinas en la organización tisular durante el desarrollo embrionario?',
+                options: [
+                    { letter: 'A', text: 'Interactúan de forma inespecífica mezclando cualquier célula.' },
+                    { letter: 'B', text: 'Dependen de magnesio bloqueando la lámina basal.' },
+                    { letter: 'C', text: 'Su adhesión es independiente de calcio.' },
+                    { letter: 'D', text: 'Al establecer interacciones homofílicas selectivas, determinan con qué vecinos se adhiere la célula y cómo se organizan los tejidos.' }
+                ],
+                correct: 'D', explanation: 'La afinidad homofílica diferencial de las cadherinas guía el ordenamiento tisular preciso en la morfogénesis[cite: 42].'
+            },
+            {
+                id: 36, team: 'eq3', teamName: 'Equipo 3 - Sistema de endomembranas',
+                question: '¿Qué proceso permite que una vesícula se fusione con la membrana plasmática y libere su contenido al exterior?',
+                options: [
+                    { letter: 'A', text: 'Endocitosis' },
+                    { letter: 'B', text: 'Osmosis' },
+                    { letter: 'C', text: 'Exocitosis' },
+                    { letter: 'D', text: 'Fagocitosis' }
+                ],
+                correct: 'C', explanation: 'La exocitosis libera moléculas al medio extracelular mediante fusión vesicular[cite: 42].'
+            },
+            {
+                id: 37, team: 'eq3', teamName: 'Equipo 3 - Mitocondria',
+                question: 'Una alteración mitocondrial afecta especialmente tejidos con alta demanda energética. ¿Cuál sería un ejemplo?',
+                options: [
+                    { letter: 'A', text: 'Músculo cardíaco' },
+                    { letter: 'B', text: 'Tejido adiposo únicamente' },
+                    { letter: 'C', text: 'Capa externa de la piel únicamente' },
+                    { letter: 'D', text: 'Cabello ya formado' }
+                ],
+                correct: 'A', explanation: 'El miocardio requiere un suministro constante y masivo de ATP mitocondrial[cite: 42].'
+            },
+            {
+                id: 38, team: 'eq3', teamName: 'Equipo 3 - Núcleo celular',
+                question: '¿Cuál es la diferencia entre eucromatina y heterocromatina?',
+                options: [
+                    { letter: 'A', text: 'La eucromatina suele ser menos condensada y más activa; la heterocromatina, más condensada y menos activa' },
+                    { letter: 'B', text: 'La eucromatina contiene ARN y la heterocromatina solo lípidos' },
+                    { letter: 'C', text: 'Son exactamente iguales' },
+                    { letter: 'D', text: 'La heterocromatina solo aparece en bacterias' }
+                ],
+                correct: 'A', explanation: 'La eucromatina es laxa y transcripcionalmente activa, mientras que la heterocromatina es densa e inactiva[cite: 42].'
+            },
+            {
+                id: 39, team: 'eq3', teamName: 'Equipo 3 - Watson y Crick',
+                question: '¿Qué aportó la fotografía 51 de Rosalind Franklin?',
+                options: [
+                    { letter: 'A', text: 'Evidencia de la estructura helicoidal del ADN mediante difracción de rayos X' },
+                    { letter: 'B', text: 'La secuencia completa del genoma humano' },
+                    { letter: 'C', text: 'El descubrimiento de los ribosomas' },
+                    { letter: 'D', text: 'La demostración de la síntesis de proteínas' }
+                ],
+                correct: 'A', explanation: 'La Fotografía 51 reveló los patrones de difracción de rayos X característicos de la doble hélice[cite: 42].'
+            },
+
+            // EQUIPO 4
+            {
+                id: 40, team: 'eq4', teamName: 'Equipo 4 - Citoesqueleto',
+                question: '¿Qué es el citoesqueleto?',
+                options: [
+                    { letter: 'A', text: 'Aparato digestivo secundario de la célula' },
+                    { letter: 'B', text: 'Red de cadenas de carbohidratos localizadas en el interior' },
+                    { letter: 'C', text: 'Estructura rígida y estática' },
+                    { letter: 'D', text: 'Red de filamentos proteicos localizada en el interior de la célula' }
+                ],
+                correct: 'D', explanation: 'El citoesqueleto es una red tridimensional dinámica de filamentos proteicos citoplasmáticos[cite: 42].'
+            },
+            {
+                id: 41, team: 'eq4', teamName: 'Equipo 4 - Microtúbulos',
+                question: '¿Cuál de las siguientes es una función principal de los microtúbulos?',
+                options: [
+                    { letter: 'A', text: 'Participar en la contracción muscular' },
+                    { letter: 'B', text: 'Participar directamente en la citocinesis' },
+                    { letter: 'C', text: 'Proporcionar soporte y contribuir a la organización interna de la célula' },
+                    { letter: 'D', text: 'Permitir el anclaje firme a la matriz extracelular' }
+                ],
+                correct: 'C', explanation: 'Los microtúbulos brindan soporte estructural y actúan como guías del tráfico intracelular[cite: 42].'
+            },
+            {
+                id: 42, team: 'eq4', teamName: 'Equipo 4 - Miosinas',
+                question: '¿A cuál de las miosinas se le atribuye la función principal de transporte procesivo de carga?',
+                options: [
+                    { letter: 'A', text: 'Miosina II' },
+                    { letter: 'B', text: 'Miosina V' },
+                    { letter: 'C', text: 'Miosina I' },
+                    { letter: 'D', text: 'Miosina VI' }
+                ],
+                correct: 'B', explanation: 'La miosina V es la proteína motora procesiva especializada en el transporte vesicular y de orgánulos[cite: 42].'
+            },
+            {
+                id: 43, team: 'eq4', teamName: 'Equipo 4 - Contracción muscular',
+                question: '¿Cuál es la organización correcta de la unidad contráctil de lo general a lo particular?',
+                options: [
+                    { letter: 'A', text: 'Músculo → haz muscular → fibra muscular → miofibrilla → sarcómero.' },
+                    { letter: 'B', text: 'Músculo → fascículo → miofibrilla → miofilamentos → sarcómero.' },
+                    { letter: 'C', text: 'Músculo → fibra muscular → fascículo → miofibrilla → sarcómero.' },
+                    { letter: 'D', text: 'Músculo → filamentos proteicos → haz muscular → miofibrilla → sarcómero.' }
+                ],
+                correct: 'A', explanation: 'La jerarquía comprende al músculo, haces/fascículos, fibras, miofibrillas y sarcómeros[cite: 42].'
+            },
+            {
+                id: 44, team: 'eq4', teamName: 'Equipo 4 - Motilidad celular',
+                question: '¿Cuál es la secuencia correcta del ciclo de migración celular?',
+                options: [
+                    { letter: 'A', text: 'Adhesión -> protrusión -> desadhesión -> tracción' },
+                    { letter: 'B', text: 'Protrusión -> adhesión -> tracción -> desadhesión' },
+                    { letter: 'C', text: 'Tracción -> protrusión -> adhesión -> desadhesión' },
+                    { letter: 'D', text: 'Desadhesión -> tracción -> protrusión -> adhesión' }
+                ],
+                correct: 'B', explanation: 'El ciclo comprende protrusión frontal, adhesión al sustrato, tracción celular y desadhesión posterior[cite: 42].'
+            },
+            {
+                id: 45, team: 'eq4', teamName: 'Equipo 4 - Matriz extracelular (Laminina)',
+                question: 'La matriz extracelular cuenta con laminina. ¿Cuál es su función?',
+                options: [
+                    { letter: 'A', text: 'Fibra de resistencia a la tracción.' },
+                    { letter: 'B', text: 'Proteína con GAGs para retener agua.' },
+                    { letter: 'C', text: 'Glucoproteína esencial en la organización y ensamblaje de la lámina basal.' },
+                    { letter: 'D', text: 'Glucoproteína adhesiva general.' }
+                ],
+                correct: 'C', explanation: 'La laminina es una glucoproteína clave para el ensamblaje de la lámina basal[cite: 42].'
+            },
+            {
+                id: 46, team: 'eq4', teamName: 'Equipo 4 - Interacciones célula-MEC',
+                question: '¿Qué nombre recibe el proceso mediante el cual las células transforman estímulos mecánicos en señales bioquímicas?',
+                options: [
+                    { letter: 'A', text: 'Transducción de señales' },
+                    { letter: 'B', text: 'Mecanotransducción' },
+                    { letter: 'C', text: 'Adhesión focal' },
+                    { letter: 'D', text: 'Activación de integrina' }
+                ],
+                correct: 'B', explanation: 'La mecanotransducción traduce fuerzas físicas y rigidez en respuestas moleculares[cite: 42].'
+            },
+            {
+                id: 47, team: 'eq4', teamName: 'Equipo 4 - Selectinas',
+                question: '¿Qué tipo de interacciones median principalmente las selectinas entre las células?',
+                options: [
+                    { letter: 'A', text: 'Interacciones estables y permanentes mediadas por colágeno' },
+                    { letter: 'B', text: 'Interacciones transitorias al reconocer carbohidratos' },
+                    { letter: 'C', text: 'Canales directos de comunicación iónica' },
+                    { letter: 'D', text: 'Anclaje exclusivo con la lámina basal' }
+                ],
+                correct: 'B', explanation: 'Las selectinas median adhesiones transitorias mediante el reconocimiento de glicanos de superficie[cite: 42].'
+            },
+            {
+                id: 48, team: 'eq4', teamName: 'Equipo 4 - Pared celular',
+                question: '¿Cuál de los componentes de la pared celular vegetal le proporciona resistencia a la tracción?',
+                options: [
+                    { letter: 'A', text: 'Hemicelulosa' },
+                    { letter: 'B', text: 'Celulosa' },
+                    { letter: 'C', text: 'Pectinas' },
+                    { letter: 'D', text: 'Proteínas' }
+                ],
+                correct: 'B', explanation: 'Las microfibrillas de celulosa aportan la resistencia a la tracción en vegetales[cite: 42].'
+            },
+            {
+                id: 49, team: 'eq4', teamName: 'Equipo 4 - Sistema de endomembranas',
+                question: '¿Cuáles son las proteínas que acercan una vesícula con la membrana blanco?',
+                options: [
+                    { letter: 'A', text: 'Histonas' },
+                    { letter: 'B', text: 'Clatrina' },
+                    { letter: 'C', text: 'Proteínas de anclaje y proteínas Rab-GTP' },
+                    { letter: 'D', text: 'Elastina' }
+                ],
+                correct: 'C', explanation: 'Las proteínas Rab y los factores de anclaje dirigen la especificidad de aproximación vesicular[cite: 42].'
+            },
+            {
+                id: 50, team: 'eq4', teamName: 'Equipo 4 - Mitocondria',
+                question: '¿Cuál es la función principal del ciclo de Krebs dentro de la respiración aeróbica?',
+                options: [
+                    { letter: 'A', text: 'Actuar como aceptor final de electrones reduciendo oxígeno a agua.' },
+                    { letter: 'B', text: 'Bombear protones a través de la membrana externa.' },
+                    { letter: 'C', text: 'Romper glucosa en piruvato en el citosol.' },
+                    { letter: 'D', text: 'Generar NADH y FADH₂ para transferir electrones a la cadena transportadora' }
+                ],
+                correct: 'D', explanation: 'El ciclo de Krebs produce coenzimas reducidas (NADH y FADH₂) para la cadena respiratoria[cite: 42].'
+            },
+            {
+                id: 51, team: 'eq4', teamName: 'Equipo 4 - Núcleo celular',
+                question: '¿Qué estructura del núcleo celular se encarga de sintetizar el ARN ribosomal y ensamblar las subunidades ribosómicas?',
+                options: [
+                    { letter: 'A', text: 'La lámina nuclear' },
+                    { letter: 'B', text: 'El nucléolo' },
+                    { letter: 'C', text: 'El complejo del poro nuclear' },
+                    { letter: 'D', text: 'El nucleoplasma' }
+                ],
+                correct: 'B', explanation: 'El nucléolo es la estructura especializada en la transcripción de ARNr y ensamblaje ribosomal[cite: 42].'
+            },
+            {
+                id: 52, team: 'eq4', teamName: 'Equipo 4 - Watson y Crick',
+                question: '¿Qué técnica experimental clave y qué imagen obtenida por Rosalind Franklin fueron fundamentales para deducir la estructura helicoidal del ADN?',
+                options: [
+                    { letter: 'A', text: 'Centrifugación en gradiente de densidad' },
+                    { letter: 'B', text: 'Difracción de rayos X y la Fotografía 51' },
+                    { letter: 'C', text: 'Electroforesis en gel' },
+                    { letter: 'D', text: 'Microscopía electrónica' }
+                ],
+                correct: 'B', explanation: 'La difracción de rayos X y la Fotografía 51 de Franklin permitieron a Watson y Crick deducir la doble hélice[cite: 42].'
+            },
+
+            // EQUIPO 5
+            {
+                id: 53, team: 'eq5', teamName: 'Equipo 5 - Citoesqueleto',
+                question: '¿Qué componente del citoesqueleto destaca por su elevada resistencia a la tensión mecánica celular?',
+                options: [
+                    { letter: 'A', text: 'Microtúbulos' },
+                    { letter: 'B', text: 'Filamentos intermedios, debido a su elevada resistencia a la tensión mecánica.' },
+                    { letter: 'C', text: 'Filamentos de actina' },
+                    { letter: 'D', text: 'Miosina II' }
+                ],
+                correct: 'B', explanation: 'Los filamentos intermedios soportan tensiones mecánicas elevadas protegiendo a la célula[cite: 42].'
+            },
+            {
+                id: 54, team: 'eq5', teamName: 'Equipo 5 - Microtúbulos',
+                question: '¿Cuál de las siguientes opciones explica mejor el mecanismo que permite el transporte vesicular intracelular?',
+                options: [
+                    { letter: 'A', text: 'Polimerización de actina impulsada por ATP.' },
+                    { letter: 'B', text: 'Las proteínas motoras utilizan los microtúbulos como vías de desplazamiento y la energía del ATP para transportar la carga.' },
+                    { letter: 'C', text: 'Filamentos intermedios como rieles polares.' },
+                    { letter: 'D', text: 'Acortamiento simultáneo de los microtúbulos.' }
+                ],
+                correct: 'B', explanation: 'Kinesinas y dineínas emplean ATP para caminar a lo largo de los microtúbulos transportando carga[cite: 42].'
+            },
+            {
+                id: 55, team: 'eq5', teamName: 'Equipo 5 - Protrusión celular',
+                question: '¿Cuál de los siguientes procesos contribuye directamente a la protrusión de la membrana en el frente de avance?',
+                options: [
+                    { letter: 'A', text: 'Despolimerización de filamentos intermedios.' },
+                    { letter: 'B', text: 'Polimerización de actina en el extremo dirigido hacia la membrana plasmática.' },
+                    { letter: 'C', text: 'Contracción de miosina II sin actina.' },
+                    { letter: 'D', text: 'Desensamblaje microtubular.' }
+                ],
+                correct: 'B', explanation: 'La polimerización direccional de actina empuja la membrana hacia adelante en el borde de avance[cite: 42].'
+            },
+            {
+                id: 56, team: 'eq5', teamName: 'Equipo 5 - Contracción muscular',
+                question: 'En la contracción muscular, ¿cómo actúa el ion calcio?',
+                options: [
+                    { letter: 'A', text: 'Se une a la miosina directamente.' },
+                    { letter: 'B', text: 'El Ca²⁺ se une a la troponina, produciendo un cambio conformacional que permite exponer los sitios de unión de la actina para la miosina.' },
+                    { letter: 'C', text: 'Provoca acortamiento directo de filamentos gruesos.' },
+                    { letter: 'D', text: 'Inhibe la ATPasa de miosina.' }
+                ],
+                correct: 'B', explanation: 'El calcio se une a la troponina, desplazando la tropomiosina para liberar los sitios de unión en la actina[cite: 42].'
+            },
+            {
+                id: 57, team: 'eq5', teamName: 'Equipo 5 - Motilidad y sustrato',
+                question: 'Durante la migración celular, ¿cuál es la explicación más adecuada sobre las adhesiones?',
+                options: [
+                    { letter: 'A', text: 'La polimerización de actina genera desplazamiento independiente del sustrato.' },
+                    { letter: 'B', text: 'Las adhesiones permiten transmitir las fuerzas generadas por el citoesqueleto hacia el sustrato, favoreciendo la tracción celular.' },
+                    { letter: 'C', text: 'Impiden la formación del borde delantero.' },
+                    { letter: 'D', text: 'Alteran exclusivamente la síntesis proteica.' }
+                ],
+                correct: 'B', explanation: 'Las adhesiones focales anclan la célula al sustrato para que la fuerza del citoesqueleto impulse el avance[cite: 42].'
+            },
+            {
+                id: 58, team: 'eq5', teamName: 'Equipo 5 - Matriz extracelular',
+                question: '¿Qué moléculas participan principalmente en la conexión de las células con la matriz extracelular?',
+                options: [
+                    { letter: 'A', text: 'Integrinas' },
+                    { letter: 'B', text: 'Tubulinas' },
+                    { letter: 'C', text: 'Histonas' },
+                    { letter: 'D', text: 'Queratinas' }
+                ],
+                correct: 'A', explanation: 'Las integrinas son los receptores transmembrana encargados de esta unión clave[cite: 42].'
+            },
+            {
+                id: 59, team: 'eq5', teamName: 'Equipo 5 - Uniones celulares',
+                question: '¿Cuál de las siguientes uniones celulares permite el paso directo de iones y moléculas pequeñas entre células vecinas?',
+                options: [
+                    { letter: 'A', text: 'Uniones estrechas.' },
+                    { letter: 'B', text: 'Desmosomas.' },
+                    { letter: 'C', text: 'Uniones comunicantes' },
+                    { letter: 'D', text: 'Hemidesmosomas.' }
+                ],
+                correct: 'C', explanation: 'Las uniones comunicantes o gap junctions forman canales para el intercambio iónico directo[cite: 42].'
+            },
+            {
+                id: 60, team: 'eq5', teamName: 'Equipo 5 - Interacciones célula-MEC',
+                question: '¿Por qué la interacción célula–MEC es importante para la organización de los tejidos?',
+                options: [
+                    { letter: 'A', text: 'Porque permite que las células permanezcan aisladas.' },
+                    { letter: 'B', text: 'Porque contribuye a que las células se adhieran, reciban señales y mantengan una organización adecuada dentro del tejido.' },
+                    { letter: 'C', text: 'Porque sustituye funciones vecinas.' },
+                    { letter: 'D', text: 'Porque evita la comunicación celular.' }
+                ],
+                correct: 'B', explanation: 'La interacción con la MEC aporta estabilidad estructural y señales esenciales para la arquitectura tisular[cite: 42].'
+            },
+            {
+                id: 61, team: 'eq5', teamName: 'Equipo 5 - Uniones epiteliales',
+                question: '¿Qué diferencia estructural y funcional existe entre las uniones adherentes y los desmosomas en los epitelios?',
+                options: [
+                    { letter: 'A', text: 'Las adherentes se conectan con filamentos intermedios.' },
+                    { letter: 'B', text: 'Las uniones adherentes conectan las cadherinas con filamentos de actina (cohesión y forma); los desmosomas conectan con filamentos intermedios (resistencia mecánica).' },
+                    { letter: 'C', text: 'Ambas conectan filamentos de actina.' },
+                    { letter: 'D', text: 'Las adherentes sellan el espacio intercelular.' }
+                ],
+                correct: 'B', explanation: 'Las uniones adherentes se ligan a la actina; los desmosomas se ligan a filamentos intermedios de queratina[cite: 42].'
+            },
+            {
+                id: 62, team: 'eq5', teamName: 'Equipo 5 - Sistema de endomembranas',
+                question: '¿Cuál opción describe correctamente las funciones de COPI, COPII y clatrina en el transporte vesicular?',
+                options: [
+                    { letter: 'A', text: 'COPI participa en síntesis, COPII en degradación.' },
+                    { letter: 'B', text: 'COPII participa en el transporte anterógrado (RE al Golgi), COPI en el retrógrado (Golgi al RE) y clatrina en endocitosis y TGN a endosomas.' },
+                    { letter: 'C', text: 'COPI y COPII intervienen solo en lisosomas.' },
+                    { letter: 'D', text: 'COPII transporta del Golgi al RE.' }
+                ],
+                correct: 'B', explanation: 'COPII maneja anterógrado (RE→Golgi), COPI retrógrado (Golgi→RE) y clatrina rutas endocíticas y trans-Golgi[cite: 42].'
+            },
+            {
+                id: 63, team: 'eq5', teamName: 'Equipo 5 - Mitocondria (ATP sintasa)',
+                question: '¿Qué sucede en la ATP sintasa cuando los protones atraviesan el dominio F₀?',
+                options: [
+                    { letter: 'A', text: 'Se detiene la rotación.' },
+                    { letter: 'B', text: 'Se produce hidrólisis de NADH.' },
+                    { letter: 'C', text: 'El flujo de H⁺ impulsa la rotación del anillo c y del eje γ, provocando cambios conformacionales en las subunidades β para sintetizar ATP.' },
+                    { letter: 'D', text: 'Se transporta ATP hacia la matriz.' }
+                ],
+                correct: 'C', explanation: 'El flujo protónico impulsa la rotación mecánica del eje γ, induciendo la síntesis de ATP en las subunidades β[cite: 42].'
+            },
+            {
+                id: 64, team: 'eq5', teamName: 'Equipo 5 - Núcleo celular',
+                question: '¿Cuál afirmación describe correctamente las diferencias entre eucromatina y heterocromatina?',
+                options: [
+                    { letter: 'A', text: 'La eucromatina presenta mayor compactación y menor actividad.' },
+                    { letter: 'B', text: 'Ambas están formadas exclusivamente por ARN.' },
+                    { letter: 'C', text: 'La eucromatina es menos compacta y presenta mayor actividad transcripcional, mientras que la heterocromatina está más condensada y es inactiva.' },
+                    { letter: 'D', text: 'La eucromatina se localiza solo en el nucléolo.' }
+                ],
+                correct: 'C', explanation: 'La eucromatina es laxa y transcripcionalmente activa; la heterocromatina es densa y reprimida[cite: 42].'
+            },
+            {
+                id: 65, team: 'eq5', teamName: 'Equipo 5 - Modelo de Watson y Crick',
+                question: 'En 1953, Watson y Crick propusieron un modelo estructural del ADN. ¿Cuál fue su principal característica?',
+                options: [
+                    { letter: 'A', text: 'Una sola cadena lineal sin complementariedad.' },
+                    { letter: 'B', text: 'Dos cadenas de aminoácidos unidas por enlaces peptídicos.' },
+                    { letter: 'C', text: 'El ADN presenta una estructura de doble hélice formada por dos cadenas complementarias, permitiendo comprender almacenamiento y copia genética.' },
+                    { letter: 'D', text: 'Cuatro cadenas independientes.' }
+                ],
+                correct: 'C', explanation: 'La doble hélice de cadenas complementarias explicó el almacenamiento y replicación de la información genética[cite: 42].'
+            },
+
+            // EQUIPO 6
+            {
+                id: 66, team: 'eq6', teamName: 'Equipo 6 - Citoesqueleto',
+                question: '¿Cuál de los componentes del citoesqueleto se localiza en las células epiteliales ayudando a sostener las microvellosidades, y participa activamente en crecimiento y motilidad?',
+                options: [
+                    { letter: 'A', text: 'Filamentos de actina' },
+                    { letter: 'B', text: 'Filamentos intermedios' },
+                    { letter: 'C', text: 'Microtúbulos' },
+                    { letter: 'D', text: 'Proteínas motoras' }
+                ],
+                correct: 'A', explanation: 'Los microfilamentos de actina forman el soporte central de las microvellosidades y estructuras de motilidad[cite: 42].'
+            },
+            {
+                id: 67, team: 'eq6', teamName: 'Equipo 6 - Microtúbulos (MTOC)',
+                question: '¿Cómo se denominan los sitios celulares capaces de nuclear y organizar microtúbulos, de los cuales el centrosoma es el ejemplo más conocido?',
+                options: [
+                    { letter: 'A', text: 'Axonemas' },
+                    { letter: 'B', text: 'Heterodímeros' },
+                    { letter: 'C', text: 'MTOCs' },
+                    { letter: 'D', text: 'Protofilamentos' }
+                ],
+                correct: 'C', explanation: 'Los MTOCs (centros organizadores de microtúbulos) nuclean y organizan la red microtubular[cite: 42].'
+            },
+            {
+                id: 68, team: 'eq6', teamName: 'Equipo 6 - Funciones del citoesqueleto',
+                question: '¿Cuál es la diferencia funcional correcta entre los 3 componentes del citoesqueleto?',
+                options: [
+                    { letter: 'A', text: 'La actina da estabilidad permanente, los intermedios movimiento.' },
+                    { letter: 'B', text: 'Los filamentos intermedios dan resistencia mecánica y anclaje; la actina forma la red para motilidad, forma y contracción celular; la miosina es la proteína motora asociada.' },
+                    { letter: 'C', text: 'Los tres son idénticos.' },
+                    { letter: 'D', text: 'Actina y miosina solo están en músculo esquelético.' }
+                ],
+                correct: 'B', explanation: 'Cada filamento cumple funciones específicas y complementarias de soporte, forma y tracción[cite: 42].'
+            },
+            {
+                id: 69, team: 'eq6', teamName: 'Equipo 6 - Contracción muscular',
+                question: '¿Qué evento inicial es esencial para que ocurra la contracción del músculo esquelético?',
+                options: [
+                    { letter: 'A', text: 'La liberación de acetilcolina en la placa motora, que genera un potencial de acción y libera Ca²⁺ del retículo sarcoplásmico.' },
+                    { letter: 'B', text: 'Inhibición total de la miosina.' },
+                    { letter: 'C', text: 'Salida de sodio hacia la mitocondria.' },
+                    { letter: 'D', text: 'Ausencia absoluta de ATP.' }
+                ],
+                correct: 'A', explanation: 'La excitación neuromuscular libera calcio desde el retículo sarcoplásmico al citoplasma para iniciar la contracción[cite: 42].'
+            },
+            {
+                id: 70, team: 'eq6', teamName: 'Equipo 6 - Espacio extracelular intestinal',
+                question: '¿Cuál es la función del espacio extracelular intestinal (líquido intersticial) en la motilidad?',
+                options: [
+                    { letter: 'A', text: 'Almacenar enzimas digestivas.' },
+                    { letter: 'B', text: 'Permitir la difusión de iones, neurotransmisores y hormonas entre células para coordinar la contracción.' },
+                    { letter: 'C', text: 'Bloquear la entrada de calcio.' },
+                    { letter: 'D', text: 'Convertir glucosa en ATP.' }
+                ],
+                correct: 'B', explanation: 'El líquido intersticial facilita la difusión y coordinación de señales entre células nerviosas y musculares entéricas[cite: 42].'
+            },
+            {
+                id: 71, team: 'eq6', teamName: 'Equipo 6 - Integrinas',
+                question: '¿Cómo participan las integrinas en la relación entre una célula y la matriz extracelular?',
+                options: [
+                    { letter: 'A', text: 'Conectan la matriz con el citoesqueleto y participan en la transmisión de señales.' },
+                    { letter: 'B', text: 'Forman directamente colágeno.' },
+                    { letter: 'C', text: 'Impiden la comunicación intercelular.' },
+                    { letter: 'D', text: 'Degradan ATP.' }
+                ],
+                correct: 'A', explanation: 'Las integrinas anclan la matriz al citoesqueleto y median la transducción de señales bidireccionales[cite: 42].'
+            },
+            {
+                id: 72, team: 'eq6', teamName: 'Equipo 6 - Receptores transmembrana',
+                question: 'Las integrinas son receptores transmembrana formados por:',
+                options: [
+                    { letter: 'A', text: 'Un heterodímero α/β.' },
+                    { letter: 'B', text: 'Filamentos de actina' },
+                    { letter: 'C', text: 'Talina y vinculina' },
+                    { letter: 'D', text: 'Todas las anteriores' }
+                ],
+                correct: 'A', explanation: 'Estructuralmente, las integrinas consisten en un heterodímero de subunidades α y β[cite: 42].'
+            },
+            {
+                id: 73, team: 'eq6', teamName: 'Equipo 6 - Uniones epiteliales',
+                question: '¿Cuál de estas es considerada una unión epitelial?',
+                options: [
+                    { letter: 'A', text: 'Unión estrecha' },
+                    { letter: 'B', text: 'Unión adherente' },
+                    { letter: 'C', text: 'Unión gap' },
+                    { letter: 'D', text: 'Todas las anteriores' }
+                ],
+                correct: 'D', explanation: 'Todas ellas forman parte del complejo de uniones intercelulares de los epitelios[cite: 42].'
+            },
+            {
+                id: 74, team: 'eq6', teamName: 'Equipo 6 - Desmosoma vs Hemidesmosoma',
+                question: '¿Cuál es la diferencia principal entre un desmosoma y un hemidesmosoma?',
+                options: [
+                    { letter: 'A', text: 'El desmosoma conecta células vecinas y el hemidesmosoma conecta la célula con la lámina basal.' },
+                    { letter: 'B', text: 'El desmosoma comunica citoplasmas.' },
+                    { letter: 'C', text: 'Ambos conectan células musculares.' },
+                    { letter: 'D', text: 'El hemidesmosoma permite intercambio iónico.' }
+                ],
+                correct: 'A', explanation: 'Los desmosomas unen células entre sí; los hemidesmosomas anclan la célula a la lámina basal[cite: 42].'
+            },
+            {
+                id: 75, team: 'eq6', teamName: 'Equipo 6 - Sistema de endomembranas',
+                question: 'Una célula pancreática con alteración en el RER verá afectada principalmente:',
+                options: [
+                    { letter: 'A', text: 'La producción de ATP.' },
+                    { letter: 'B', text: 'La síntesis de proteínas destinadas a la secreción celular.' },
+                    { letter: 'C', text: 'La degradación de ácidos grasos.' },
+                    { letter: 'D', text: 'La replicación de ADN mitocondrial.' }
+                ],
+                correct: 'B', explanation: 'El RER sintetiza de forma prioritaria las proteínas destinadas a la secreción y a la vía de endomembranas[cite: 42].'
+            },
+            {
+                id: 76, team: 'eq6', teamName: 'Equipo 6 - Mitocondria',
+                question: 'Un fármaco inhibe la cadena de transporte de electrones mitocondrial. ¿Cuál será la consecuencia más directa?',
+                options: [
+                    { letter: 'A', text: 'Aumento de síntesis de ATP.' },
+                    { letter: 'B', text: 'Incremento de transporte al Golgi.' },
+                    { letter: 'C', text: 'Disminución del gradiente de protones y de la producción de ATP.' },
+                    { letter: 'D', text: 'Aumento de síntesis proteica en el RER.' }
+                ],
+                correct: 'C', explanation: 'Al inhibirse el transporte electrónico cesa el bombeo protónico, colapsando el gradiente y la síntesis de ATP[cite: 42].'
+            },
+            {
+                id: 77, team: 'eq6', teamName: 'Equipo 6 - Núcleo y lámina nuclear',
+                question: 'Si eliminas experimentalmente la lámina nuclear en interfase, ¿qué esperas observar?',
+                options: [
+                    { letter: 'A', text: 'El núcleo se vuelve más rígido.' },
+                    { letter: 'B', text: 'El núcleo pierde forma, la envoltura se rompe fácil, la cromatina se desorganiza y falla la replicación.' },
+                    { letter: 'C', text: 'No pasa nada.' },
+                    { letter: 'D', text: 'El nucléolo desaparece.' }
+                ],
+                correct: 'B', explanation: 'La lámina nuclear da soporte mecánico a la envoltura; su ausencia desorganiza la cromatina y altera la función[cite: 42].'
+            },
+            {
+                id: 78, team: 'eq6', teamName: 'Equipo 6 - Estructura del ADN',
+                question: 'De acuerdo con las dimensiones de la doble hélice (Forma B), ¿cuál es la distancia entre cada par de bases adyacentes?',
+                options: [
+                    { letter: 'A', text: '20 Å (2 nm)' },
+                    { letter: 'B', text: '34 Å (3.4 nm)' },
+                    { letter: 'C', text: '3.4 Å (0.34 nm)' },
+                    { letter: 'D', text: '10.85 Å' }
+                ],
+                correct: 'C', explanation: 'La separación axial entre pares de bases contiguos en la forma B es de 3.4 Å (0.34 nm)[cite: 42].'
+            },
+
+            // EQUIPO 7
+            {
+                id: 79, team: 'eq7', teamName: 'Equipo 7 - Citoesqueleto',
+                question: '¿Cuáles son los tres componentes principales que conforman el citoesqueleto de las células eucariotas?',
+                options: [
+                    { letter: 'A', text: 'Microtúbulos, microfilamentos de actina y filamentos intermedios.' },
+                    { letter: 'B', text: 'Ribosomas, microtúbulos y lisosomas.' },
+                    { letter: 'C', text: 'Centríolos, peroxisomas y colágeno.' },
+                    { letter: 'D', text: 'Microfilamentos y cromatina.' }
+                ],
+                correct: 'A', explanation: 'Los tres filamentos clásicos son microtúbulos, microfilamentos de actina y filamentos intermedios[cite: 42].'
+            },
+            {
+                id: 80, team: 'eq7', teamName: 'Equipo 7 - Microtúbulos',
+                question: 'Durante la división celular, ¿cuál es la función principal de los microtúbulos al formar el huso mitótico?',
+                options: [
+                    { letter: 'A', text: 'Duplicar el ADN.' },
+                    { letter: 'B', text: 'Facilitar la separación y distribución de los cromosomas hacia las células hijas.' },
+                    { letter: 'C', text: 'Formar la envoltura nuclear.' },
+                    { letter: 'D', text: 'Sintetizar proteínas cromosómicas.' }
+                ],
+                correct: 'B', explanation: 'El huso mitótico separa de forma equitativa los cromosomas duplicados[cite: 42].'
+            },
+            {
+                id: 81, team: 'eq7', teamName: 'Equipo 7 - Filamentos intermedios',
+                question: '¿Cuál proteína forma parte de los filamentos intermedios de las neuronas y mantiene la estructura de sus axones?',
+                options: [
+                    { letter: 'A', text: 'Tubulina beta.' },
+                    { letter: 'B', text: 'Miosina II.' },
+                    { letter: 'C', text: 'Neurofilamentos.' },
+                    { letter: 'D', text: 'Actina globular.' }
+                ],
+                correct: 'C', explanation: 'Los neurofilamentos son los filamentos intermedios específicos de las células nerviosas[cite: 42].'
+            },
+            {
+                id: 82, team: 'eq7', teamName: 'Equipo 7 - Contracción muscular',
+                question: '¿Cuál es la función directa del ATP durante el ciclo de los puentes cruzados entre actina y miosina?',
+                options: [
+                    { letter: 'A', text: 'Unirse a la miosina y favorecer su desprendimiento de la actina.' },
+                    { letter: 'B', text: 'Unirse a la troponina para liberar calcio.' },
+                    { letter: 'C', text: 'Bloquear proteínas contráctiles.' },
+                    { letter: 'D', text: 'Degradar tropomiosina.' }
+                ],
+                correct: 'A', explanation: 'La unión de ATP a la cabeza de miosina provoca su separación del filamento de actina[cite: 42].'
+            },
+            {
+                id: 83, team: 'eq7', teamName: 'Equipo 7 - Matriz extracelular',
+                question: '¿Qué componente de la matriz extracelular proporciona resistencia a la tensión y contribuye a la integridad mecánica?',
+                options: [
+                    { letter: 'A', text: 'Colágeno.' },
+                    { letter: 'B', text: 'Glucógeno.' },
+                    { letter: 'C', text: 'Hemoglobina.' },
+                    { letter: 'D', text: 'Tubulina.' }
+                ],
+                correct: 'A', explanation: 'El colágeno aporta la resistencia fundamental frente al estiramiento mecánico[cite: 42].'
+            },
+            {
+                id: 84, team: 'eq7', teamName: 'Equipo 7 - Colágeno',
+                question: '¿Cuál es la principal contribución del colágeno a las propiedades mecánicas del tejido?',
+                options: [
+                    { letter: 'A', text: 'Captar agua y formar gel que resiste compresión.' },
+                    { letter: 'B', text: 'Aportar resistencia a la tracción, evitando que el tejido se rompa fácilmente.' },
+                    { letter: 'C', text: 'Actuar como receptor de superficie.' },
+                    { letter: 'D', text: 'Formar la lámina basal con laminina.' }
+                ],
+                correct: 'B', explanation: 'Su malla fibrilar ofrece gran resistencia contra fuerzas de tracción[cite: 42].'
+            },
+            {
+                id: 85, team: 'eq7', teamName: 'Equipo 7 - Adhesiones focales vs Hemidesmosomas',
+                question: '¿Cuál es la principal diferencia entre adhesiones focales y hemidesmosomas?',
+                options: [
+                    { letter: 'A', text: 'Focales: actina + dinámicas. Hemidesmosomas: queratina + estables.' },
+                    { letter: 'B', text: 'Focales: queratina. Hemidesmosomas: actina.' },
+                    { letter: 'C', text: 'Ambas usan integrina α6β4 exclusivamente.' },
+                    { letter: 'D', text: 'Hemidesmosomas altamente dinámicos.' }
+                ],
+                correct: 'A', explanation: 'Las adhesiones focales conectan actina con la MEC (dinámicas); los hemidesmosomas conectan filamentos intermedios con la MEC (estables)[cite: 42].'
+            },
+            {
+                id: 86, team: 'eq7', teamName: 'Equipo 7 - Desmosomas',
+                question: '¿Qué estructura proporciona adhesión intercelular conectando los filamentos intermedios de células vecinas en tejidos sometidos a tensión?',
+                options: [
+                    { letter: 'A', text: 'Unión comunicante.' },
+                    { letter: 'B', text: 'Unión estrecha.' },
+                    { letter: 'C', text: 'Desmosoma.' },
+                    { letter: 'D', text: 'Poro nuclear.' }
+                ],
+                correct: 'C', explanation: 'Los desmosomas unen células vecinas anclándose a sus redes de filamentos intermedios[cite: 42].'
+            },
+            {
+                id: 87, team: 'eq7', teamName: 'Equipo 7 - Uniones estrechas',
+                question: '¿A qué tipo de unión hace referencia la definición: "Regulan el paso de sustancias y mantienen la polaridad celular"?',
+                options: [
+                    { letter: 'A', text: 'Uniones estrechas: la barrera paracelular' },
+                    { letter: 'B', text: 'Uniones gap: comunicación directa' },
+                    { letter: 'C', text: 'Plasmodesmos' },
+                    { letter: 'D', text: 'Pared celular' }
+                ],
+                correct: 'A', explanation: 'Las uniones estrechas forman una barrera paracelular que restringe el paso y conserva la polaridad[cite: 42].'
+            },
+            {
+                id: 88, team: 'eq7', teamName: 'Equipo 7 - Sistema de endomembranas',
+                question: '¿Cuál es la secuencia principal de la vía biosintética/secretora para el flujo de proteínas y lípidos?',
+                options: [
+                    { letter: 'A', text: 'Membrana plasmática → Endosoma → Lisosoma → RER' },
+                    { letter: 'B', text: 'Retículo Endoplasmático Rugoso (RER) → Aparato de Golgi → Compartimentos endosomales-lisosomales o membrana plasmática' },
+                    { letter: 'C', text: 'Aparato de Golgi → RE → Mitocondrias' },
+                    { letter: 'D', text: 'Endosoma → Clatrina → RE' }
+                ],
+                correct: 'B', explanation: 'El flujo secretor clásico inicia en el RER, transita por el Golgi y se distribuye a compartimentos o membrana[cite: 42].'
+            },
+            {
+                id: 89, team: 'eq7', teamName: 'Equipo 7 - Mitocondria (Crestas)',
+                question: '¿Qué estructura mitocondrial contiene los complejos de la cadena respiratoria y la ATP sintasa, y qué función cumplen sus pliegues (crestas)?',
+                options: [
+                    { letter: 'A', text: 'Membrana externa y porinas.' },
+                    { letter: 'B', text: 'Matriz mitocondrial.' },
+                    { letter: 'C', text: 'La membrana interna, cuyos pliegues (crestas) aumentan la superficie disponible para la fosforilación oxidativa.' },
+                    { letter: 'D', text: 'Espacio intermembranoso.' }
+                ],
+                correct: 'C', explanation: 'Los pliegues de la membrana interna (crestas) amplifican el área superficial para alojar la maquinaria oxidativa[cite: 42].'
+            },
+            {
+                id: 90, team: 'eq7', teamName: 'Equipo 7 - Núcleo celular',
+                question: '¿Cuáles son las funciones principales que cumple el núcleo celular según su organización?',
+                options: [
+                    { letter: 'A', text: 'Sintetizar proteínas en el nucleoplasma y degradar lípidos.' },
+                    { letter: 'B', text: 'Resguardar el ADN, organizar la cromatina, coordinar replicación, permitir transcripción/procesamiento de ARN y regular el transporte núcleo-citoplasma.' },
+                    { letter: 'C', text: 'Realizar fosforilación oxidativa.' },
+                    { letter: 'D', text: 'Producir hidrolasas.' }
+                ],
+                correct: 'B', explanation: 'El núcleo resguarda el genoma y coordina la transcripción, replicación y el tráfico macromolecular[cite: 42].'
+            },
+            {
+                id: 91, team: 'eq7', teamName: 'Equipo 7 - Watson y Crick',
+                question: 'Según el modelo de Watson y Crick y la química del ADN, ¿cómo se estabilizan y orientan las dos cadenas de la doble hélice?',
+                options: [
+                    { letter: 'A', text: 'Cadenas paralelas en dirección 5’—5’.' },
+                    { letter: 'B', text: 'Son cadenas antiparalelas 5’—3\' y 3’—5\' con el esqueleto azúcar-fosfato en el exterior y las bases nitrogenadas en el interior, apareadas por puentes de hidrógeno (A-T y G-C).' },
+                    { letter: 'C', text: 'Cadenas formadas por ribosa y uracilo.' },
+                    { letter: 'D', text: 'Cadenas dispersivas con enlaces peptídicos.' }
+                ],
+                correct: 'B', explanation: 'Las cadenas son antiparalelas, con azúcares y fosfatos afuera y bases apareadas en el interior mediante puentes de hidrógeno[cite: 42].'
+            },
+
+            // EQUIPO 8
+            {
+                id: 92, team: 'eq8', teamName: 'Equipo 8 - Citoesqueleto',
+                question: 'Durante un ensayo de laboratorio, se somete un tejido epitelial a tensiones mecánicas severas. ¿Qué componente del citoesqueleto es el principal responsable de brindar resistencia contra estas fuerzas?',
+                options: [
+                    { letter: 'A', text: 'Filamentos de actina' },
+                    { letter: 'B', text: 'Microtúbulos' },
+                    { letter: 'C', text: 'Filamentos Intermedios' },
+                    { letter: 'D', text: 'Proteínas motoras' }
+                ],
+                correct: 'C', explanation: 'Los filamentos intermedios proveen gran resistencia a la tensión mecánica protegiendo la integridad celular[cite: 42].'
+            },
+            {
+                id: 93, team: 'eq8', teamName: 'Equipo 8 - Microtúbulos (Catástrofe)',
+                question: '¿Cómo se le conoce al evento microtubular en el cual la hidrólisis de GTP a GDP curva los protofilamentos, provocando su separación y despolimerización rápida?',
+                options: [
+                    { letter: 'A', text: 'Catástrofe (o despolimerización rápida)' },
+                    { letter: 'B', text: 'Rescate' },
+                    { letter: 'C', text: 'Nucleación por γ-tubulina' },
+                    { letter: 'D', text: 'Treadmilling' }
+                ],
+                correct: 'A', explanation: 'El paso a catástrofe ocurre cuando se agota el casquete de GTP, curvando los protofilamentos y desensamblando el microtúbulo[cite: 42].'
+            },
+            {
+                id: 94, team: 'eq8', teamName: 'Equipo 8 - Polaridad celular',
+                question: 'Una célula pierde su capacidad para polarizarse y formar un borde líder y una región posterior. ¿Qué consecuencia sería más probable?',
+                options: [
+                    { letter: 'A', text: 'Aumento de membrana basal' },
+                    { letter: 'B', text: 'Pérdida de la migración celular dirigida' },
+                    { letter: 'C', text: 'Aumento de adhesión intercelular' },
+                    { letter: 'D', text: 'Formación excesiva de microvellosidades' }
+                ],
+                correct: 'B', explanation: 'La polarización espacial es requisito indispensable para que la célula logre migrar de forma dirigida[cite: 42].'
+            },
+            {
+                id: 95, team: 'eq8', teamName: 'Equipo 8 - Contracción muscular',
+                question: 'Al comparar un sarcómero relajado con uno en contracción, ¿cuál combinación describe correctamente los cambios esperados?',
+                options: [
+                    { letter: 'A', text: 'Banda A disminuye y banda I permanece igual.' },
+                    { letter: 'B', text: 'Banda A y zona H aumentan.' },
+                    { letter: 'C', text: 'Banda A permanece prácticamente igual, mientras la banda I y la zona H disminuyen.' },
+                    { letter: 'D', text: 'Las tres bandas disminuyen.' }
+                ],
+                correct: 'C', explanation: 'Durante la contracción, la longitud de la banda A no se altera, mientras que la banda I y la zona H se acortan[cite: 42].'
+            },
+            {
+                id: 96, team: 'eq8', teamName: 'Equipo 8 - Migración celular',
+                question: 'Durante la migración celular dirigida, ¿qué ocurre específicamente en el lamelipodio y en la cola posterior?',
+                options: [
+                    { letter: 'A', text: 'El lamelipodio se retrae y la cola se extiende.' },
+                    { letter: 'B', text: 'El lamelipodio se extiende hacia adelante (protrusión) y la cola posterior se desadhiere y se retrae.' },
+                    { letter: 'C', text: 'La cola posterior polimeriza actina para empujar.' },
+                    { letter: 'D', text: 'Ambas regiones se adhieren fijamente.' }
+                ],
+                correct: 'B', explanation: 'El avance requiere la protrusión frontal seguida de adhesión y la posterior retracción de la cola celular[cite: 42].'
+            },
+            {
+                id: 97, team: 'eq8', teamName: 'Equipo 8 - Matriz extracelular (Excepto)',
+                question: 'Son afirmaciones correctas sobre la matriz extracelular, EXCEPTO:',
+                options: [
+                    { letter: 'A', text: 'Es una red organizada de macromoléculas y no un relleno amorfo' },
+                    { letter: 'B', text: 'Encontramos colágeno, fibrina, laminina, integrinas y proteoglicanos' },
+                    { letter: 'C', text: 'Sus componentes se unen entre sí y a receptores celulares' },
+                    { letter: 'D', text: 'Es una red dendrítica de actina con filamentos ramificados en el borde anterior' }
+                ],
+                correct: 'D', explanation: 'La red dendrítica de actina forma parte del citoesqueleto intracelular del lamelipodio, no de la matriz extracelular[cite: 42].'
+            },
+            {
+                id: 98, team: 'eq8', teamName: 'Equipo 8 - Integrinas en migración',
+                question: '¿Por qué las integrinas son especialmente importantes durante la migración celular?',
+                options: [
+                    { letter: 'A', text: 'Porque forman filamentos de actina.' },
+                    { letter: 'B', text: 'Porque forman uniones estrechas.' },
+                    { letter: 'C', text: 'Porque sustituyen a la miosina.' },
+                    { letter: 'D', text: 'Porque conectan la matriz extracelular con el citoesqueleto y permiten transmitir fuerzas.' }
+                ],
+                correct: 'D', explanation: 'Las integrinas comunican la MEC con el citoesqueleto permitiendo la tracción y el avance celular[cite: 42].'
+            },
+            {
+                id: 99, team: 'eq8', teamName: 'Equipo 8 - Cadherinas',
+                question: '¿Qué tipo de proteínas transmembrana median el reconocimiento y la adhesión homofílica dependiente de iones de calcio (Ca²⁺)?',
+                options: [
+                    { letter: 'A', text: 'Integrinas' },
+                    { letter: 'B', text: 'Cadherinas' },
+                    { letter: 'C', text: 'Selectinas' },
+                    { letter: 'D', text: 'Conexinas' }
+                ],
+                correct: 'B', explanation: 'Las cadherinas son las proteínas de adhesión célula-célula dependientes de calcio[cite: 42].'
+            },
+            {
+                id: 100, team: 'eq8', teamName: 'Equipo 8 - Uniones gap',
+                question: '¿Cómo se estructuran y qué función cumplen las uniones gap (comunicantes) en las células animales?',
+                options: [
+                    { letter: 'A', text: 'Están formadas por dos conexones alineados (cada uno con seis subunidades de conexinas) que crean un canal hidrofílico para la comunicación directa citoplasma-citoplasma de iones y moléculas pequeñas.' },
+                    { letter: 'B', text: 'Bandas continuas de actina.' },
+                    { letter: 'C', text: 'Pared secundaria rígida.' },
+                    { letter: 'D', text: 'Canales vegetales.' }
+                ],
+                correct: 'A', explanation: 'Dos conexones (formados por 6 conexinas cada uno) componen el canal hidrofílico de las uniones gap[cite: 42].'
+            },
+            {
+                id: 101, team: 'eq8', teamName: 'Equipo 8 - Transporte vesicular',
+                question: '¿De qué depende principalmente la especificidad del transporte vesicular intracelular?',
+                options: [
+                    { letter: 'A', text: 'Del reconocimiento específico entre la vesícula y la membrana blanco' },
+                    { letter: 'B', text: 'De la acción coordinada de las proteínas SNARE y factores de acoplamiento' },
+                    { letter: 'C', text: 'De la fosforilación de enzimas' },
+                    { letter: 'D', text: 'De la simple aproximación física' }
+                ],
+                correct: 'B', explanation: 'La especificidad de fusión depende de la interacción precisa entre proteínas Rab, tethers y complejos SNARE[cite: 42].'
+            },
+            {
+                id: 102, team: 'eq8', teamName: 'Equipo 8 - Ciclo de Krebs',
+                question: '¿Cuál es el rendimiento principal de una vuelta del ciclo del ácido cítrico a partir de una molécula de acetil-CoA?',
+                options: [
+                    { letter: 'A', text: '2 ATP netos directos' },
+                    { letter: 'B', text: '3 NADH, 1 FADH₂ y 1 GTP (o ATP)' },
+                    { letter: 'C', text: '10 piruvatos' },
+                    { letter: 'D', text: 'Exclusivamente CO₂ y agua sin coenzimas' }
+                ],
+                correct: 'B', explanation: 'Cada vuelta del ciclo de Krebs produce 3 NADH, 1 FADH₂ y 1 GTP (equivalente energético a ATP)[cite: 42].'
+            },
+            {
+                id: 103, team: 'eq8', teamName: 'Equipo 8 - Poros nucleares',
+                question: '¿Cuál es la función principal de los poros nucleares en la envoltura nuclear?',
+                options: [
+                    { letter: 'A', text: 'Sintetizar subunidades ribosomales.' },
+                    { letter: 'B', text: 'Regular el transporte bidireccional de macromoléculas entre el nucleoplasma y el citoplasma.' },
+                    { letter: 'C', text: 'Realizar transcripción simultánea.' },
+                    { letter: 'D', text: 'Empaquetar cromatina.' }
+                ],
+                correct: 'B', explanation: 'Los complejos de poro nuclear regulan selectivamente el tránsito bidireccional entre núcleo y citoplasma[cite: 42].'
+            },
+            {
+                id: 104, team: 'eq8', teamName: 'Equipo 8 - Watson y Crick',
+                question: '¿Cuál de las siguientes es una afirmación verdadera sobre el modelo de Watson y Crick?',
+                options: [
+                    { letter: 'A', text: 'La información genética depende de las dimensiones de los surcos' },
+                    { letter: 'B', text: 'Estructura en constante cambio' },
+                    { letter: 'C', text: 'El ADN está formado por dos cadenas enrolladas en hélice' },
+                    { letter: 'D', text: 'Explica detalladamente la transcripción' }
+                ],
+                correct: 'C', explanation: 'La aportación central fue proponer que el ADN consta de dos cadenas complementarias dispuestas en doble hélice
