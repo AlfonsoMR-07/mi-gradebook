@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen de Práctica: Biología Celular y Molecular (2do Parcial)</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; line-height: 1.5; padding-bottom: 40px; }
+        header { background-color: #0f172a; color: white; padding: 20px 16px; position: sticky; top: 0; z-index: 50; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header-content { max-width: 900px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
+        .tag { background-color: #2563eb; color: #bfdbfe; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.05em; }
+        h1 { font-size: 1.5rem; font-weight: 700; margin-top: 4px; }
+        p.subtitle { color: #cbd5e1; font-size: 0.875rem; }
+        .stats { display: flex; align-items: center; gap: 16px; background-color: rgba(30, 41, 59, 0.9); padding: 8px 16px; border-radius: 12px; border: 1px solid rgba(51, 65, 85, 1); }
+        .stat-box { text-align: center; }
+        .stat-label { display: block; font-size: 11px; color: #94a3b8; text-transform: uppercase; }
+        .stat-val { font-size: 1.25rem; font-weight: 700; font-family: monospace; color: #f8fafc; }
+        .divider { width: 1px; height: 32px; background-color: #334155; }
+        
+        main { max-width: 900px; margin: 24px auto; padding: 0 16px; display: flex; flex-direction: column; gap: 24px; }
+        .filter-card { background: white; border-radius: 16px; padding: 16px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .filter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+        .filter-title { font-weight: 600; font-size: 0.875rem; color: #334155; }
+        .reset-btn { padding: 8px 16px; background-color: #f1f5f9; color: #334155; font-weight: 500; font-size: 0.875rem; border-radius: 12px; border: 1px solid #cbd5e1; cursor: pointer; transition: all 0.2s; }
+        .reset-btn:hover { background-color: #e2e8f0; }
+        
+        .questions-list { display: flex; flex-direction: column; gap: 20px; }
+        .question-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05); transition: all 0.2s; display: flex; flex-direction: column; gap: 16px; }
+        .question-card.correct { border-color: #6ee7b7; background-color: #f0fdf4; }
+        .question-card.incorrect { border-color: #fca5a5; background-color: #fff1f2; }
+        
+        .q-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .q-section { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 9999px; background-color: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+        .q-id { font-size: 12px; color: #94a3b8; font-weight: 500; }
+        .q-text { font-size: 1.05rem; font-weight: 600; color: #1e293b; }
+        
+        .options-list { display: flex; flex-direction: column; gap: 10px; }
+        .option-btn { width: 100%; text-align: left; padding: 12px 16px; border-radius: 12px; border: 1px solid #e2e8f0; background: white; color: #334155; font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.15s; }
+        .option-btn:hover:not(:disabled) { background-color: #f8fafc; border-color: #cbd5e1; }
+        .option-letter { width: 28px; height: 28px; border-radius: 8px; background-color: #f1f5f9; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; flex-shrink: 0; }
+        
+        .option-btn.opt-correct { border-color: #10b981; background-color: #ecfdf5; color: #065f46; font-weight: 600; }
+        .option-btn.opt-incorrect { border-color: #f43f5e; background-color: #fff1f2; color: #9f1239; font-weight: 600; }
+        .option-btn.opt-disabled { opacity: 0.6; }
+        
+        .badge-status { margin-left: auto; font-size: 0.75rem; font-weight: 700; }
+        .badge-correct { color: #059669; }
+        .badge-incorrect { color: #e11d48; }
+        
+        .feedback-box { padding: 14px 16px; border-radius: 12px; font-size: 0.875rem; border: 1px solid; margin-top: 4px; }
+        .feedback-box.correct { background-color: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+        .feedback-box.incorrect { background-color: #fff1f2; border-color: #fecdd3; color: #9f1239; }
+        .feedback-title { font-weight: 700; margin-bottom: 4px; }
+        
+        .summary-card { background: linear-gradient(135deg, #0f172a, #1e3a8a); color: white; border-radius: 20px; padding: 32px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 16px; }
+        .summary-card.hidden { display: none; }
+        .trophy { font-size: 3rem; background: rgba(255,255,255,0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .final-score { font-size: 2rem; font-weight: 800; background: rgba(255,255,255,0.2); padding: 8px 24px; border-radius: 16px; backdrop-filter: blur(4px); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <div>
+                <span class="tag">Banco Oficial USEP</span>
+                <h1>Biología Celular y Molecular (2do Parcial)</h1>
+                <p class="subtitle">Evaluación interactiva recopilada de los equipos de trabajo</p>
+            </div>
+            <div class="stats">
+                <div class="stat-box">
+                    <span class="stat-label">Tiempo</span>
+                    <span id="timer" class="stat-val">00:00</span>
+                </div>
+                <div class="divider"></div>
+                <div class="stat-box">
+                    <span class="stat-label">Puntaje</span>
+                    <span id="score-display" class="stat-val">0 / 12</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="filter-card">
+            <div class="filter-header">
+                <span class="filter-title">🔍 Controles del Examen:</span>
+                <button onclick="resetQuiz()" class="reset-btn">🔄 Reiniciar Examen</button>
+            </div>
+        </div>
+
+        <div id="questions-container" class="questions-list"></div>
+
+        <div id="summary-card" class="summary-card hidden">
+            <div class="trophy">🏆</div>
+            <h2>¡Examen Finalizado!</h2>
+            <p id="summary-text" style="color: #cbd5e1; max-width: 500px;">Has completado el banco de preguntas del segundo parcial.</p>
+            <div class="final-score" id="final-score">0 / 12 aciertos</div>
+            <button onclick="resetQuiz()" class="reset-btn" style="background: white; color: #0f172a; font-weight: 700; padding: 12px 24px; font-size: 1rem;">
+                Reiniciar Examen
+            </button>
+        </div>
+    </main>
+
+    <script>
+        const questionsData = [
+            {
+                id: 1,
+                topic: 'Citoesqueleto',
+                question: 'Una célula sometida a cambios constantes de forma necesita reorganizar sus estructuras internas sin perder la distribución adecuada de sus orgánulos. ¿Qué propiedad del citoesqueleto permite responder a estas necesidades?',
+                options: [
+                    { letter: 'A', text: 'La estabilidad permanente de sus filamentos, que impide cualquier modificación estructural.' },
+                    { letter: 'B', text: 'La capacidad de sus componentes para ensamblarse y desensamblarse de manera regulada, adaptando la arquitectura celular.' },
+                    { letter: 'C', text: 'La sustitución de sus proteínas estructurales por lípidos de membrana durante los cambios de forma.' },
+                    { letter: 'D', text: 'La formación de una cubierta continua que separa el citoplasma de los compartimentos membranosos.' }
+                ],
+                correct: 'B',
+                explanation: 'El dinamismo del citoesqueleto permite el ensamblaje y desensamblaje regulado de sus filamentos para adaptar la arquitectura celular[cite: 12].'
+            },
+            {
+                id: 2,
+                topic: 'Microtúbulos',
+                question: 'Durante el funcionamiento de un cilio móvil, una alteración impide que los dobletes de microtúbulos se deslicen entre sí de manera coordinada. ¿Qué proteína sería la más directamente relacionada con este defecto?',
+                options: [
+                    { letter: 'A', text: 'Cinesina, debido a su función en la formación de filamentos intermedios.' },
+                    { letter: 'B', text: 'Queratina, debido a su capacidad para estabilizar el axonema mediante enlaces cruzados.' },
+                    { letter: 'C', text: 'Dineina axonemal, debido a su actividad motora dependiente de ATP sobre los microtúbulos.' },
+                    { letter: 'D', text: 'Fimbrina, debido a su función en la organización de los microfilamentos de actina.' }
+                ],
+                correct: 'C',
+                explanation: 'La dineína axonemal es la proteína motora que genera el deslizamiento de los microtúbulos en cilios y flagelos utilizando ATP[cite: 12].'
+            },
+            {
+                id: 3,
+                topic: 'Filamentos intermedios, microfilamentos de actina y miosina',
+                question: 'Durante la división de una célula animal, se observa que el núcleo se divide correctamente, pero la célula no consigue separar por completo su citoplasma. ¿Qué alteración explicaría mejor este resultado?',
+                options: [
+                    { letter: 'A', text: 'Una disminución en la interacción entre actina y miosina II en el anillo contráctil.' },
+                    { letter: 'B', text: 'Una pérdida de queratina que impide la duplicación de los cromosomas.' },
+                    { letter: 'C', text: 'Una reducción de los neurofilamentos que bloquea la síntesis de ATP.' },
+                    { letter: 'D', text: 'Una alteración de la tubulina que impide directamente la formación de los puentes cruzados musculares.' }
+                ],
+                correct: 'A',
+                explanation: 'La citocinesis depende del anillo contráctil formado por actina y miosina II[cite: 12, 13].'
+            },
+            {
+                id: 4,
+                topic: 'Contracción muscular',
+                question: 'En una fibra muscular esquelética, el retículo sarcoplásmico libera calcio y posteriormente debe recuperar el estado de reposo. ¿Qué mecanismo permite principalmente que disminuya la concentración de calcio en el citoplasma?',
+                options: [
+                    { letter: 'A', text: 'La unión irreversible del calcio a la actina, que bloquea permanentemente sus sitios de interacción.' },
+                    { letter: 'B', text: 'La difusión del calcio hacia el exterior de la fibra a través de los canales de sodio.' },
+                    { letter: 'C', text: 'La degradación de la troponina, que elimina el calcio libre del citoplasma.' },
+                    { letter: 'D', text: 'El transporte activo del calcio de regreso al retículo sarcoplásmico mediante bombas SERCA, con gasto de ATP.' }
+                ],
+                correct: 'D',
+                explanation: 'Las bombas SERCA recapturan activamente el calcio hacia el retículo sarcoplásmico consumiendo ATP para relajar el músculo[cite: 13].'
+            },
+            {
+                id: 5,
+                topic: 'Motilidad y espacio extracelular',
+                question: 'Durante la invasión de un tejido, ciertas células tumorales desarrollan estructuras especializadas que concentran enzimas capaces de degradar componentes de la matriz extracelular. ¿Cómo se denominan estas estructuras?',
+                options: [
+                    { letter: 'A', text: 'Filopodios, cuya función principal es generar cilios mediante el deslizamiento de microtúbulos.' },
+                    { letter: 'B', text: 'Invadopodios, que participan en la degradación localizada de la matriz extracelular.' },
+                    { letter: 'C', text: 'Microvellosidades, especializadas en la digestión extracelular mediante contracción de miosina II.' },
+                    { letter: 'D', text: 'Desmosomas, que degradan la matriz para permitir el desplazamiento de células vecinas.' }
+                ],
+                correct: 'B',
+                explanation: 'Los invadopodios son protrusiones ricas en actina que concentran proteasas para degradar la matriz extracelular[cite: 13].'
+            },
+            {
+                id: 6,
+                topic: 'Matriz extracelular (MEC)',
+                question: 'En un tejido cartilaginoso, la pérdida de ciertos componentes de la matriz provoca una disminución de su capacidad para resistir la compresión. ¿Qué componente sería especialmente importante investigar por su capacidad para retener agua y formar estructuras hidratadas?',
+                options: [
+                    { letter: 'A', text: 'Elastina, debido a que forma una red especializada en absorber grandes cantidades de agua.' },
+                    { letter: 'B', text: 'Fibronectina, debido a que constituye el principal componente contráctil del cartílago.' },
+                    { letter: 'C', text: 'Proteoglicanos con glucosaminoglucanos, debido a su carga negativa y capacidad para retener agua.' },
+                    { letter: 'D', text: 'Queratina, debido a que constituye la red extracelular que distribuye las fuerzas compresivas.' }
+                ],
+                correct: 'C',
+                explanation: 'Los proteoglicanos y sus glucosaminoglucanos asociados poseen cargas negativas que atraen cationes y retienen agua, formando geles resistentes a la compresión[cite: 13].'
+            },
+            {
+                id: 7,
+                topic: 'Interacciones célula-MEC',
+                question: 'Una célula detecta un cambio en la rigidez del sustrato y modifica la expresión de genes relacionados con su diferenciación. ¿Qué mecanismo permite relacionar las propiedades físicas de la matriz con una respuesta celular?',
+                options: [
+                    { letter: 'A', text: 'La degradación de todas las integrinas para impedir la transmisión de señales al citoplasma.' },
+                    { letter: 'B', text: 'La conversión directa de las proteínas de la matriz en ARN mensajero dentro del núcleo.' },
+                    { letter: 'C', text: 'La difusión pasiva de los componentes de la matriz a través de la membrana plasmática.' },
+                    { letter: 'D', text: 'La transmisión de señales mecánicas mediante complejos de adhesión y proteínas señalizadoras conectadas con el citoesqueleto.' }
+                ],
+                correct: 'D',
+                explanation: 'La mecanotransducción transmite las fuerzas y rigidez física del entorno a través de complejos de adhesión y el citoesqueleto hacia el núcleo celular[cite: 13, 14].'
+            },
+            {
+                id: 8,
+                topic: 'Interacciones célula-célula',
+                question: 'En un tejido embrionario, las células deben reconocerse y mantener una adhesión selectiva durante su organización. Una alteración afecta a proteínas de adhesión dependientes de calcio que enlazan células vecinas y se conectan con el citoesqueleto de actina. ¿Qué proteínas están más probablemente afectadas?',
+                options: [
+                    { letter: 'A', text: 'Cadherinas, que participan en la adhesión intercelular y en la organización de los tejidos.' },
+                    { letter: 'B', text: 'Integrinas, que conectan principalmente los componentes de la matriz extracelular con el citoesqueleto.' },
+                    { letter: 'C', text: 'Conexinas, que forman canales de comunicación entre células adyacentes.' },
+                    { letter: 'D', text: 'Tubulinas, que forman los filamentos de adhesión de la membrana plasmática.' }
+                ],
+                correct: 'A',
+                explanation: 'Las cadherinas son moléculas de adhesión dependientes de calcio (Ca²⁺) que median uniones homofílicas conectadas al citoesqueleto de actina[cite: 14].'
+            },
+            {
+                id: 9,
+                topic: 'Uniones especializadas',
+                question: 'En un tejido cardíaco, una alteración impide el paso coordinado de iones entre cardiomiocitos vecinos, aunque las células continúan en contacto físico. ¿Qué estructura celular está más directamente relacionada con este problema?',
+                options: [
+                    { letter: 'A', text: 'Uniones estrechas, que restringen el paso de sustancias por el espacio entre células.' },
+                    { letter: 'B', text: 'Desmosomas, que proporcionan resistencia mecánica frente a las fuerzas de contracción.' },
+                    { letter: 'C', text: 'Uniones comunicantes, formadas por canales que permiten el paso de iones y pequeñas moléculas entre células adyacentes.' },
+                    { letter: 'D', text: 'Hemidesmosomas, que fijan las células a la lámina basal mediante conexiones con filamentos intermedios.' }
+                ],
+                correct: 'C',
+                explanation: 'Las uniones comunicantes (gap junctions) permiten el acoplamiento eléctrico y metabólico directo mediante el paso de iones entre células vecinas[cite: 14].'
+            },
+            {
+                id: 10,
+                topic: 'Sistema de endomembranas',
+                question: 'Una célula presenta una alteración en los lisosomas que impide mantener su pH interno ácido. ¿Cuál sería la consecuencia más probable?',
+                options: [
+                    { letter: 'A', text: 'Aumento de la síntesis de ATP en los lisosomas.' },
+                    { letter: 'B', text: 'Disminución de la actividad de las enzimas hidrolíticas y de la degradación de sustancias.' },
+                    { letter: 'C', text: 'Interrupción de la replicación del ADN nuclear.' },
+                    { letter: 'D', text: 'Aumento de la producción de proteínas en el citosol.' }
+                ],
+                correct: 'B',
+                explanation: 'Las hidrolasas ácidas de los lisosomas requieren un entorno ácido óptimo para funcionar; si el pH sube, su actividad disminuye[cite: 14].'
+            },
+            {
+                id: 11,
+                topic: 'Mitocondria',
+                question: 'Una mutación impide que los complejos de la cadena respiratoria bombeen protones adecuadamente hacia el espacio intermembranoso. ¿Qué proceso se afectará directamente?',
+                options: [
+                    { letter: 'A', text: 'La síntesis de ARN ribosomal en el nucléolo.' },
+                    { letter: 'B', text: 'La formación de vesículas en el aparato de Golgi.' },
+                    { letter: 'C', text: 'La generación del gradiente electroquímico necesario para la síntesis de ATP.' },
+                    { letter: 'D', text: 'La duplicación de los centríolos durante la interfase.' }
+                ],
+                correct: 'C',
+                explanation: 'El bombeo de protones crea el gradiente electroquímico (fuerza motriz protónica) indispensable para que la ATP sintasa produzca ATP[cite: 14].'
+            },
+            {
+                id: 12,
+                topic: 'Núcleo celular',
+                question: 'Una célula necesita expresar un gen específico, pero sus factores de transcripción no pueden unirse a las secuencias reguladoras del ADN. ¿Qué proceso se verá afectado directamente?',
+                options: [
+                    { letter: 'A', text: 'La iniciación de la transcripción del gen correspondiente.' },
+                    { letter: 'B', text: 'La traducción de proteínas en los ribosomas mitocondriales.' },
+                    { letter: 'C', text: 'La degradación de sustancias dentro de los lisosomas.' },
+                    { letter: 'D', text: 'El transporte de lípidos hacia la membrana plasmática.' }
+                ],
+                correct: 'A',
+                explanation: 'La unión de los factores de transcripción a las secuencias reguladoras es el paso esencial para iniciar la transcripción del ADN[cite: 15].'
+            }
+        ];
+
+        let userAnswers = {}; 
+        let timerSeconds = 0;
+        let timerInterval = null;
+        let quizActive = true;
+
+        window.onload = function() {
+            startTimer();
+            renderQuestions();
+        };
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!quizActive) return;
+                timerSeconds++;
+                const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+                const secs = (timerSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer').innerText = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            questionsData.forEach((q, index) => {
+                const isAnswered = userAnswers[q.id] !== undefined;
+                const selectedOption = userAnswers[q.id];
+                const isCorrect = selectedOption === q.correct;
+
+                const card = document.createElement('div');
+                card.className = `question-card ${isAnswered ? (isCorrect ? 'correct' : 'incorrect') : ''}`;
+
+                let optionsHtml = '';
+                q.options.forEach(opt => {
+                    let btnClass = "option-btn";
+                    let badgeHtml = "";
+
+                    if (isAnswered) {
+                        if (opt.letter === q.correct) {
+                            btnClass += " opt-correct";
+                            badgeHtml = '<span class="badge-status badge-correct">✓ Correcta</span>';
+                        } else if (opt.letter === selectedOption) {
+                            btnClass += " opt-incorrect";
+                            badgeHtml = '<span class="badge-status badge-incorrect">✗ Tu respuesta</span>';
+                        } else {
+                            btnClass += " opt-disabled";
+                        }
+                    }
+
+                    optionsHtml += `
+                        <button onclick="selectOption(${q.id}, '${opt.letter}')" ${isAnswered ? 'disabled' : ''} class="${btnClass}">
+                            <span class="option-letter">${opt.letter}</span>
+                            <span>${opt.text}</span>
+                            ${badgeHtml}
+                        </button>
+                    `;
+                });
+
+                let feedbackHtml = '';
+                if (isAnswered) {
+                    feedbackHtml = `
+                        <div class="feedback-box ${isCorrect ? 'correct' : 'incorrect'}">
+                            <div class="feedback-title">${isCorrect ? '¡Excelente! Respuesta Correcta' : 'Respuesta Incorrecta'}</div>
+                            <div><strong>Explicación:</strong> ${q.explanation}</div>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="q-meta">
+                        <span class="q-section">${q.topic}</span>
+                        <span class="q-id">Pregunta ${index + 1} de ${questionsData.length}</span>
+                    </div>
+                    <div class="q-text">${q.question}</div>
+                    <div class="options-list">${optionsHtml}</div>
+                    ${feedbackHtml}
+                `;
+
+                container.appendChild(card);
+            });
+
+            updateScoreUI();
+        }
+
+        function selectOption(questionId, letter) {
+            if (userAnswers[questionId] !== undefined) return;
+            userAnswers[questionId] = letter;
+            renderQuestions();
+        }
+
+        function updateScoreUI() {
+            const totalAnswered = Object.keys(userAnswers).length;
+            let correctCount = 0;
+            
+            for (const id in userAnswers) {
+                const q = questionsData.find(item => item.id == id);
+                if (q && userAnswers[id] === q.correct) {
+                    correctCount++;
+                }
+            }
+
+            document.getElementById('score-display').innerText = `${correctCount} / ${questionsData.length}`;
+            
+            if (totalAnswered === questionsData.length && quizActive) {
+                quizActive = false;
+                clearInterval(timerInterval);
+                const summaryCard = document.getElementById('summary-card');
+                const finalScore = document.getElementById('final-score');
+                const summaryText = document.getElementById('summary-text');
+                
+                finalScore.innerText = `${correctCount} / ${questionsData.length} aciertos`;
+                if (correctCount === questionsData.length) {
+                    summaryText.innerText = "¡Impresionante! Tienes un dominio absoluto de los temas del segundo parcial de Biología Celular y Molecular.";
+                } else if (correctCount >= 9) {
+                    summaryText.innerText = "¡Excelente desempeño! Demuestras bases muy sólidas en la materia.";
+                } else {
+                    summaryText.innerText = "Buen esfuerzo. Te recomendamos repasar los conceptos con desaciertos para afianzar tu estudio.";
+                }
+                summaryCard.classList.remove('hidden');
+                summaryCard.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function resetQuiz() {
+            userAnswers = {};
+            timerSeconds = 0;
+            quizActive = true;
+            document.getElementById('summary-card').classList.add('hidden');
+            startTimer();
+            renderQuestions();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
