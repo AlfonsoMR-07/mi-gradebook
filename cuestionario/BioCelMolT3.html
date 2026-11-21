@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banco de Preguntas USEP - Biología Celular y Molecular (3º Parcial)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white">
+
+    <!-- Header / Navbar -->
+    <header class="bg-indigo-900 text-white shadow-lg sticky top-0 z-30 border-b border-indigo-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-indigo-600 p-2.5 rounded-xl text-white shadow-md">
+                    <i class="fa-solid font-bold fa-dna text-xl sm:text-2xl animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-lg sm:text-xl tracking-tight leading-tight">Biología Celular y Molecular</h1>
+                    <p class="text-xs text-indigo-200 font-medium">Banco de Preguntas USEP • 3º Parcial (55 Preguntas)</p>
+                </div>
+            </div>
+
+            <!-- Stats Bar Header -->
+            <div class="flex items-center space-x-3 sm:space-x-6 text-sm font-semibold bg-indigo-950/60 px-4 py-2 rounded-xl border border-indigo-700/50">
+                <div class="flex items-center space-x-2 text-indigo-200" title="Tiempo transcurrido">
+                    <i class="fa-regular fa-clock text-indigo-400"></i>
+                    <span id="timer" class="font-mono text-white text-base">00:00</span>
+                </div>
+                <div class="h-4 w-px bg-indigo-700"></div>
+                <div class="flex items-center space-x-1 text-emerald-400" title="Aciertos">
+                    <i class="fa-solid fa-check"></i>
+                    <span id="score-correct">0</span>
+                </div>
+                <div class="flex items-center space-x-1 text-rose-400" title="Errores">
+                    <i class="fa-solid fa-xmark"></i>
+                    <span id="score-incorrect">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+        <!-- Sidebar / Filter & Navigation Panel -->
+        <aside class="lg:col-span-1 space-y-6">
+
+            <!-- Category Filter Card -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-filter text-indigo-600"></i> Temas / Equipos
+                    </h2>
+                    <span id="topic-count-badge" class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">8 temas</span>
+                </div>
+                <div class="space-y-1.5 max-h-[380px] overflow-y-auto pr-1" id="category-list">
+                    <!-- Dynamic categories list rendered by JS -->
+                </div>
+            </div>
+
+            <!-- Quiz Controls & Progress Card -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 space-y-4">
+                <div>
+                    <div class="flex justify-between text-xs font-semibold text-slate-500 mb-1">
+                        <span>Progreso General</span>
+                        <span id="progress-text">0 / 55 (0%)</span>
+                    </div>
+                    <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200">
+                        <div id="progress-bar" class="bg-gradient-to-r from-indigo-500 to-indigo-600 h-full transition-all duration-300 w-0"></div>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex flex-col gap-2">
+                    <button id="btn-restart" onclick="restartQuiz()" class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-2 border border-slate-300/60">
+                        <i class="fa-solid fa-rotate-right"></i> Reiniciar Cuestionario
+                    </button>
+                    <button id="btn-shuffle" onclick="shuffleQuestions()" class="w-full py-2.5 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-xl text-sm transition-all duration-200 flex items-center justify-center gap-2 border border-indigo-200">
+                        <i class="fa-solid fa-shuffle"></i> Aleatorizar Preguntas
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Question Navigator Grid -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+                <h3 class="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-thumbtack text-indigo-600"></i> Mapa de Preguntas
+                </h3>
+                <div id="question-grid" class="grid grid-cols-5 gap-1.5 max-h-[220px] overflow-y-auto pr-1 text-center">
+                    <!-- Dynamic grid buttons rendered by JS -->
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- Question & Interactive Area -->
+        <section class="lg:col-span-3 space-y-6">
+
+            <!-- Active Filter Banner -->
+            <div id="active-category-banner" class="bg-indigo-50 border border-indigo-200/80 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-indigo-600 text-white rounded-lg">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-indigo-500 uppercase tracking-wider">Filtro Activo</span>
+                        <h2 id="current-category-title" class="font-bold text-indigo-950 text-base sm:text-lg">Todas las Preguntas</h2>
+                    </div>
+                </div>
+                <span id="filtered-count" class="text-xs font-semibold bg-indigo-200/60 text-indigo-800 px-3 py-1 rounded-full">
+                    55 preguntas
+                </span>
+            </div>
+
+            <!-- Main Question Card -->
+            <div id="question-card" class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-slate-200/80 relative transition-all duration-300">
+
+                <!-- Card Header -->
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                    <span id="q-number-badge" class="px-3 py-1 bg-indigo-100 text-indigo-700 font-bold text-xs sm:text-sm rounded-full">
+                        Pregunta 1 de 55
+                    </span>
+                    <span id="q-category-tag" class="text-xs font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
+                        ESTRUCTURA DEL RNA
+                    </span>
+                </div>
+
+                <!-- Question Prompt -->
+                <div class="mb-6">
+                    <h3 id="question-text" class="text-slate-800 text-lg sm:text-xl font-bold leading-relaxed">
+                        Cargando pregunta...
+                    </h3>
+                </div>
+
+                <!-- Answer Options -->
+                <div id="options-container" class="space-y-3 mb-6">
+                    <!-- Options populated dynamically -->
+                </div>
+
+                <!-- Feedback & Explanation Box -->
+                <div id="explanation-box" class="hidden rounded-xl p-5 border transition-all duration-300 mb-6">
+                    <div class="flex items-start gap-3">
+                        <div id="explanation-icon" class="text-xl mt-0.5"></div>
+                        <div class="space-y-1">
+                            <h4 id="explanation-title" class="font-bold text-base"></h4>
+                            <p id="explanation-text" class="text-sm leading-relaxed"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Navigation Buttons -->
+                <div class="flex items-center justify-between border-t border-slate-100 pt-5">
+                    <button id="btn-prev" onclick="navigateQuestion(-1)" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition-all duration-200 flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-arrow-left"></i> Anterior
+                    </button>
+
+                    <div class="flex items-center gap-2">
+                        <button id="btn-next" onclick="navigateQuestion(1)" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-md transition-all duration-200 flex items-center gap-2">
+                            Siguiente <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Modal Finalization Summary -->
+    <div id="results-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden transition-opacity duration-300">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 transform transition-all text-center space-y-6">
+
+            <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto text-3xl shadow-inner">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+
+            <div>
+                <h2 class="text-2xl font-black text-slate-800">¡Cuestionario Completado!</h2>
+                <p class="text-slate-500 text-sm mt-1">Has finalizado el repaso de la sección seleccionada.</p>
+            </div>
+
+            <!-- Stats Summary Cards -->
+            <div class="grid grid-cols-3 gap-3">
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/70">
+                    <p class="text-xs font-semibold text-slate-400">Calificación</p>
+                    <p id="modal-score-percent" class="text-2xl font-black text-indigo-600">0%</p>
+                </div>
+                <div class="bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200/70">
+                    <p class="text-xs font-semibold text-emerald-600">Correctas</p>
+                    <p id="modal-correct" class="text-2xl font-black text-emerald-600">0</p>
+                </div>
+                <div class="bg-rose-50 p-3.5 rounded-2xl border border-rose-200/70">
+                    <p class="text-xs font-semibold text-rose-600">Incorrectas</p>
+                    <p id="modal-incorrect" class="text-2xl font-black text-rose-600">0</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 rounded-2xl p-4 text-xs text-slate-600 space-y-1 border border-slate-200/60">
+                <div class="flex justify-between">
+                    <span>Tiempo total invertido:</span>
+                    <span id="modal-time" class="font-mono font-bold text-slate-800">00:00</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Total de preguntas respondidas:</span>
+                    <span id="modal-total-q" class="font-bold text-slate-800">55</span>
+                </div>
+            </div>
+
+            <div class="pt-2 flex flex-col sm:flex-row gap-3">
+                <button onclick="restartQuiz(); closeModal();" class="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-md transition-all duration-200">
+                    <i class="fa-solid fa-rotate-right mr-1"></i> Intentar de nuevo
+                </button>
+                <button onclick="closeModal();" class="py-3 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition-all duration-200">
+                    Revisar respuestas
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        const questionsData = [
+            // ESTRUCTURA DEL RNA (Equipo 1)
+            {
+                id: 1,
+                category: "Estructura del RNA",
+                question: "1. ¿Qué característica química diferencia principalmente a la ribosa del RNA de la desoxirribosa del DNA?",
+                options: [
+                    "A. La ribosa contiene timina en la posición 2'.",
+                    "B. La desoxirribosa presenta un grupo hidroxilo adicional.",
+                    "C. La ribosa posee un grupo hidroxilo 2'-OH que está ausente en la desoxirribosa.",
+                    "D. Ambas poseen exactamente la misma composición química.",
+                    "E. La ribosa carece de átomos de oxígeno."
+                ],
+                correct: "C",
+                explanation: "La ribosa cuenta con un grupo hidroxilo (-OH) en el carbono 2' (2'-OH), mientras que la 2'-desoxirribosa tiene un átomo de hidrógeno en esa posición."
+            },
+            {
+                id: 2,
+                category: "Estructura del RNA",
+                question: "2. Si el RNA es una molécula monocatenaria, ¿cómo puede formar regiones con apariencia de doble hélice?",
+                options: [
+                    "A. Porque se une permanentemente a una cadena de DNA.",
+                    "B. Porque forma dos cadenas independientes de RNA.",
+                    "C. Porque sus nucleótidos se separan y forman nuevas moléculas.",
+                    "D. Por qué regiones complementarias de la misma cadena se unen mediante apareamiento intracatenario.",
+                    "E. Porque sustituye la ribosa por desoxirribosa."
+                ],
+                correct: "D",
+                explanation: "El plegamiento intramolecular permite que secuencias complementarias dentro de la misma hebra de RNA se apareen formando tallos o regiones de doble hélice."
+            },
+            {
+                id: 3,
+                category: "Estructura del RNA",
+                question: "3. ¿Cuál es la función principal del grupo 2'-OH en la estructura del RNA?",
+                options: [
+                    "A. Impedir completamente el plegamiento de la molécula.",
+                    "B. Aumentar su estabilidad química frente al DNA.",
+                    "C. Eliminar la necesidad de apareamiento de bases.",
+                    "D. Permitir que el RNA almacene información genética de manera permanente.",
+                    "E. Aumentar su reactividad química y favorecer su flexibilidad estructural y capacidad de plegamiento."
+                ],
+                correct: "E",
+                explanation: "El grupo 2'-OH participa en interacciones de enlace de hidrógeno y aumenta la reactividad química (por ejemplo, facilitando la hidrólisis del enlace fosfodiéster en condiciones alcalinas) y el plegamiento."
+            },
+            {
+                id: 4,
+                category: "Estructura del RNA",
+                question: "4. ¿Qué diferencia existe entre un asa interna y una prominencia (bulge) en la estructura secundaria del RNA?",
+                options: [
+                    "A. El asa interna contiene únicamente guanina y la prominencia únicamente adenina.",
+                    "B. El asa interna se encuentra entre segmentos apareados, mientras que la prominencia sobresale de un solo lado del tallo.",
+                    "C. Ambas son regiones donde todos los nucleótidos están apareados.",
+                    "D. La prominencia conecta dos moléculas diferentes de RNA.",
+                    "E. El asa interna siempre contiene cuatro nucleótidos y la prominencia cinco."
+                ],
+                correct: "B",
+                explanation: "Un asa interna (internal loop) presenta nucleótidos no apareados en ambos lados entre dos tramos apareados, mientras que una prominencia o bulge corresponde a nucleótidos no apareados en una sola hebra."
+            },
+            {
+                id: 5,
+                category: "Estructura del RNA",
+                question: "5. ¿Qué sucede durante una interacción conocida como kissing loops?",
+                options: [
+                    "A. Dos tallos se destruyen para formar una cadena lineal.",
+                    "B. Una secuencia de un asa se aparea con una región externa, formando un pseudonudo.",
+                    "C. Se unen cuatro guaninas mediante enlaces con cationes.",
+                    "D. Dos asas con secuencias complementarias se aparean entre sí, conectando regiones que pueden estar separadas en la secuencia.",
+                    "E. Dos cadenas de DNA se unen mediante puentes de hidrógeno."
+                ],
+                correct: "D",
+                explanation: "En una interacción de tipo kissing loop, las bases expuestas en los bucles de dos horquillas complementarias se aparean entre sí estabilizando estructuras terciarias."
+            },
+            {
+                id: 6,
+                category: "Estructura del RNA",
+                question: "6. ¿Qué característica distingue al G-cuádruplex de otras estructuras de plegamiento del RNA?",
+                options: [
+                    "A. Está formado por cuatro adeninas y estabilizado por sodio exclusivamente.",
+                    "B. Está formado por pares de uracilo y adenina.",
+                    "C. Se compone de dos tallos unidos por un bucle.",
+                    "D. Es una estructura formada únicamente por citocinas.",
+                    "E. Está formado por tétradas de guanina y puede estabilizarse mediante cationes como el K+."
+                ],
+                correct: "E",
+                explanation: "Los G-cuádruplex se organizan en planos de cuatro guaninas (G-tétradas o G-cuartetos) estabilizados por enlaces de hidrógeno de Hoogsteen y cationes coordinados como K+."
+            },
+            {
+                id: 7,
+                category: "Estructura del RNA",
+                question: "7. ¿Cuál es la diferencia fundamental entre la estructura secundaria y la terciaria del RNA?",
+                options: [
+                    "A. La secundaria describe la función genética y la terciaria la composición química.",
+                    "B. La secundaria representa una doble hélice completa y la terciaria una cadena lineal.",
+                    "C. La secundaria describe los apareamientos, tallos y bucles, mientras que la terciaria representa la organización tridimensional de esos elementos.",
+                    "D. Ambas describen exactamente el mismo nivel de organización.",
+                    "E. La terciaria se forma antes que la secundaria y no depende de ella."
+                ],
+                correct: "C",
+                explanation: "La estructura secundaria define el patrón de apareamiento de bases (tallos, bucles, protuberancias), mientras que la terciaria describe el empaquetamiento tridimensional en el espacio."
+            },
+
+            // ESTRUCTURA DE LOS GENES (Equipo 2)
+            {
+                id: 8,
+                category: "Estructura de los Genes",
+                question: "1. ¿Cuál es la función principal de un gen?",
+                options: [
+                    "A. Producir energía.",
+                    "B. Transportar oxígeno.",
+                    "C. Almacenar información hereditaria.",
+                    "D. Destruir sustancias."
+                ],
+                correct: "C",
+                explanation: "Un gen es una unidad funcional de herencia que contiene la información codificada (y reguladora) para producir un producto funcional, típicamente una proteína o un ARN funcional."
+            },
+            {
+                id: 9,
+                category: "Estructura de los Genes",
+                question: "2. ¿Qué es un exón?",
+                options: [
+                    "A. Región del gen que permanece en el ARN maduro.",
+                    "B. Una proteína reguladora.",
+                    "C. Una molécula de energía.",
+                    "D. Una parte de la membrana."
+                ],
+                correct: "A",
+                explanation: "Los exones son las secuencias de un gen eucariota que se conservan tras el ayuste (splicing) en el ARN mensajero maduro."
+            },
+            {
+                id: 10,
+                category: "Estructura de los Genes",
+                question: "3. ¿Qué proceso permite copiar la información del ADN en ARN?",
+                options: [
+                    "A. Traducción.",
+                    "B. Replicación.",
+                    "C. Mutación.",
+                    "D. Transcripción."
+                ],
+                correct: "D",
+                explanation: "La transcripción es el proceso mediante el cual una ARN polimerasa sintetiza una cadena de ARN complementaria a partir de una hebra molde de ADN."
+            },
+            {
+                id: 11,
+                category: "Estructura de los Genes",
+                question: "4. ¿Qué función desempeña el promotor en un gen eucariota?",
+                options: [
+                    "A. Es el sitio donde se inicia la transcripción.",
+                    "B. Codifica la secuencia de aminoácidos.",
+                    "C. Elimina los exones.",
+                    "D. Detiene la replicación del ADN."
+                ],
+                correct: "A",
+                explanation: "El promotor es la región reguladora cercana al inicio del gen donde se ensamblan factores de transcripción y la ARN polimerasa para iniciar la transcripción."
+            },
+            {
+                id: 12,
+                category: "Estructura de los Genes",
+                question: "5. ¿Por qué el ADN no codificante es importante para el funcionamiento celular?",
+                options: [
+                    "A. Porque reemplaza completamente al ADN codificante.",
+                    "B. Porque participa en la regulación de la expresión de los genes.",
+                    "C. Porque produce directamente todas las proteínas.",
+                    "D. Porque impide las mutaciones genéticas."
+                ],
+                correct: "B",
+                explanation: "Gran parte del ADN no codificante incluye elementos reguladores (promotores, potenciadores, silenciadores) y ARN no codificantes que controlan cuándo, dónde y cuánto se expresan los genes."
+            },
+            {
+                id: 13,
+                category: "Estructura de los Genes",
+                question: "6. ¿Cuál de las siguientes estructuras contiene ADN no codificante?",
+                options: [
+                    "A. Únicamente los exones.",
+                    "B. Los promotores y otras regiones reguladoras.",
+                    "C. Exclusivamente los codones de inicio.",
+                    "D. Solamente las secuencias que producen proteínas."
+                ],
+                correct: "B",
+                explanation: "Los promotores, potenciadores (enhancers), intrones y regiones UTR son ejemplos de secuencias no codificantes de proteínas."
+            },
+            {
+                id: 14,
+                category: "Estructura de los Genes",
+                question: "7. ¿Qué codón suele indicar el inicio de un ORF?",
+                options: [
+                    "A. UAA.",
+                    "B. UAG.",
+                    "C. AUG.",
+                    "D. UGA."
+                ],
+                correct: "C",
+                explanation: "El codón de inicio habitual en el marco abierto de lectura (ORF) es AUG (que en eucariontes codifica metionina), mientras que UAA, UAG y UGA son codones de terminación o paro."
+            },
+
+            // TIPOS DE RNA (Equipo 3)
+            {
+                id: 15,
+                category: "Tipos de RNA",
+                question: "1. ¿Qué tipo de ARN transporta la información genética del ADN en forma de codones para especificar los aminoácidos durante la síntesis de proteínas?",
+                options: [
+                    "A. ARN mensajero (ARNm).",
+                    "B. ARN nucleolar pequeño (snoRNA).",
+                    "C. ARN de transferencia (ARNt).",
+                    "D. ARN largo no codificante (IncRNA)."
+                ],
+                correct: "A",
+                explanation: "El ARN mensajero (ARNm) lleva la secuencia de codones desde el núcleo al ribosoma para dirigir la síntesis de la cadena polipeptídica."
+            },
+            {
+                id: 16,
+                category: "Tipos de RNA",
+                question: "2. Es el ARN que facilita la formación del enlace peptídico y alinea el ARNt con el ARNm durante la traducción.",
+                options: [
+                    "A. ARN de interferencia pequeño (siRNA).",
+                    "B. ARN ribosómico (ARNr).",
+                    "C. ARN de transferencia (ARNt).",
+                    "D. MicroRNA (miRNA)."
+                ],
+                correct: "B",
+                explanation: "El ARN ribosómico (ARNr) forma el núcleo estructural y catalítico del ribosoma (la actividad peptidil transferasa es una catálisis mediada por ARN / ribozima)."
+            },
+            {
+                id: 17,
+                category: "Tipos de RNA",
+                question: "3. ¿Qué tipo de ARN regula la expresión génica al unirse a la región 3' UTR del ARNm, provocando su represión o degradación?",
+                options: [
+                    "A. ARN de telomerasa.",
+                    "B. ARN de partícula de reconocimiento de señal.",
+                    "C. MicroRNA (miRNA).",
+                    "D. ARN ribosómico (ARNr)"
+                ],
+                correct: "C",
+                explanation: "Los microRNAs (miRNA), asociados al complejo RISC, suelen unirse a secuencias complementarias en la región 3' UTR de ARNm diana para reprimir su traducción o promover su degradación."
+            },
+            {
+                id: 18,
+                category: "Tipos de RNA",
+                question: "4. ¿Qué tipo de ARN mantiene la integridad del genoma al silenciar los transposones y regular la expresión génica?",
+                options: [
+                    "A. ARN largo no codificante (IncRNA).",
+                    "B. ARN que interactúa con Piwi (piRNA).",
+                    "C. ARN libre circular (ccfRNA).",
+                    "D. ARN de telomerasa."
+                ],
+                correct: "B",
+                explanation: "Los piRNA interactúan con proteínas de la familia PIWI (especialmente en línea germinal) para silenciar elementos transponibles y proteger la estabilidad genómica."
+            },
+            {
+                id: 19,
+                category: "Tipos de RNA",
+                question: "5. Es un tipo de ARN que se encuentra empaquetado en vesículas extracelulares y cuya presencia puede reflejar alteraciones en la señalización celular y estados patológicos, como la neurodegeneración y la metástasis tumoral. ¿A qué tipo de ARN corresponde?",
+                options: [
+                    "A. ARN libre circulante (ccfRNA).",
+                    "B. ARN nuclear pequeño (snRNA).",
+                    "C. ARN exosomal (exRNA).",
+                    "D. ARN largo no codificante (IncRNA)."
+                ],
+                correct: "C",
+                explanation: "El ARN exosomal (exRNA) se transporta dentro de vesículas extracelulares como los exosomas, participando en comunicación intercelular y sirviendo como biomarcador en patologías."
+            },
+            {
+                id: 20,
+                category: "Tipos de RNA",
+                question: "6. ¿Qué ARN es el que guía modificaciones químicas de otros ARN, como la metilación y la pseudouridilación?",
+                options: [
+                    "A. ARN mensajero (ARNm).",
+                    "B. ARN de transferencia (ARNt).",
+                    "C. ARN nucleolar pequeño (snoRNA).",
+                    "D. ARN libre circular (ccfRNA)."
+                ],
+                correct: "C",
+                explanation: "Los snoRNA (pequeños ARN nucleolares) actúan como guías para enzimas modificadoras en la maduración de ARNr y otros ARN (por ejemplo, 2'-O-metilación y pseudouridilación)."
+            },
+            {
+                id: 21,
+                category: "Tipos de RNA",
+                question: "7. ¿Qué tipo de ARN funciona como plantilla para añadir repeticiones de telómeros y evitar la pérdida de ADN durante la replicación?",
+                options: [
+                    "A. ARN de telomerasa.",
+                    "B. ARN de partícula de reconocimiento de señal.",
+                    "C. ARN de interferencia pequeño (siRNA).",
+                    "D. ARN exosomal (exRNA)."
+                ],
+                correct: "A",
+                explanation: "La telomerasa es una transcriptasa inversa ribonucleoproteica que utiliza su propio componente de ARN (TERC/TR) como molde para sintetizar repeticiones teloméricas."
+            },
+
+            // TRANSCRIPCIÓN Y PROCESAMIENTO DEL ARN (Equipo 4)
+            {
+                id: 22,
+                category: "Transcripción y Procesamiento del ARN",
+                question: "1. Durante el proceso de transcripción de la expresión génica participa una enzima fundamental llamada ARN polimerasa. ¿Qué función desempeña esta enzima?",
+                options: [
+                    "A. Duplica la molécula de ADN para formar dos moléculas idénticas.",
+                    "B. Transporta aminoácidos hacia los ribosomas.",
+                    "C. Une aminoácidos para formar una cadena de proteínas.",
+                    "D. Sintetiza una molécula de ARN utilizando una hebra de ADN como molde."
+                ],
+                correct: "D",
+                explanation: "La ARN polimerasa lee la hebra molde de ADN y cataliza la polimerización de ribonucleótidos trifosfato para formar una cadena de ARN."
+            },
+            {
+                id: 23,
+                category: "Transcripción y Procesamiento del ARN",
+                question: "2. ¿Por qué se le denomina \"codificante\" a la hebra no molde del ADN?",
+                options: [
+                    "A. Porque tiene la misma secuencia que el RNA producido, presentando timina (T) en lugar de uracilo (U).",
+                    "B. Porque es la cadena que lee directamente la RNA polimerasa para copiar los ribonucleótidos.",
+                    "C. Porque contiene únicamente los exones que serán traducidos a proteínas.",
+                    "D. Porque es complementaria y antiparalela al transcrito primario de RNA."
+                ],
+                correct: "A",
+                explanation: "La hebra codificante (o con sentido) tiene la misma polaridad y secuencia de bases que el transcrito de ARN, salvo que posee timina (T) donde el ARN tiene uracilo (U)."
+            },
+            {
+                id: 24,
+                category: "Transcripción y Procesamiento del ARN",
+                question: "3. ¿Qué función cumple la secuencia promotora dentro del ADN durante el proceso de transcripción?",
+                options: [
+                    "A. Elimina los intrones y une los exones para generar un ARN mensajero maduro.",
+                    "B. Agrega múltiples residuos de adenina en el extremo 3' para dar estabilidad.",
+                    "C. Transporta el ARN mensajero maduro desde el núcleo hacia el citoplasma.",
+                    "D. Indica el sitio de inicio (+1) y la dirección en la que avanzará la enzima."
+                ],
+                correct: "D",
+                explanation: "El promotor posiciona a la maquinaria transcripcional y la ARN polimerasa respecto al sitio de inicio de la transcripción (+1) y define la hebra y dirección de síntesis."
+            },
+            {
+                id: 25,
+                category: "Transcripción y Procesamiento del ARN",
+                question: "5. ¿Qué dirección sigue el ARN polimerasa al leer la hebra molde de ADN y en qué dirección crece la cadena de ARN naciente?",
+                options: [
+                    "A. Lee la hebra de molde 5'-3' y sintetiza el ARN de 3' --5'.",
+                    "B. Lee y sintetiza las dos cadenas en 5'-3'.",
+                    "C. Lee la hebra molde de 3'-5' y sintetiza el ARN de 5'-3'.",
+                    "D. Lee de 3'-5') sintetiza en la misma dirección."
+                ],
+                correct: "C",
+                explanation: "Como las cadenas son antiparalelas, la ARN polimerasa lee el molde de ADN en dirección 3'→5' y sintetiza el nuevo ARN en dirección 5'→3'."
+            },
+            {
+                id: 26,
+                category: "Transcripción y Procesamiento del ARN",
+                question: "6. ¿Cuál de las opciones relaciona cada tipo de ARN con su función?",
+                options: [
+                    "A. mRNA (adaptador), tRNA (codificante), rRNA (estructural).",
+                    "B. mRNA (estructural), tRNA (adaptador), rRNA (codificante).",
+                    "C. mRNA (codificante), tRNA (estructural), rRNA (adaptador).",
+                    "D. mRNA (codificante), tRNA (adaptador), rRNA (estructural)."
+                ],
+                correct: "D",
+                explanation: "El mRNA es codificante (lleva los codones), el tRNA actúa como adaptador (une aminoácidos y reconoce codones mediante el anticodón) y el rRNA tiene función estructural y catalítica en el ribosoma."
+            },
+            {
+                id: 27,
+                category: "Transcripción y Procesamiento del ARN",
+                question: "7. ¿Qué es la burbuja de transcripción?",
+                options: [
+                    "A. Es la región donde la RNA polimerasa incorpora un ribonucleótido trifosfato (rNTP) complementario a la base de la hebra molde.",
+                    "B. Es el espacio estructural dentro del ribosoma donde el RNA mensajero se acopla con los anticodones del RNA de transferencia para ensamblar la cadena polipeptídica.",
+                    "C. Es una región donde la doble hélice del ADN se desenrolla gracias a la ARN polimerasa, dejando expuesta la hebra molde para sintetizar una cadena de ARN.",
+                    "D. Abertura bidireccional que forma la enzima helicasa en el origen de replicación para que las ADN polimerasas dupliquen simultáneamente ambas hebras del cromosoma."
+                ],
+                correct: "C",
+                explanation: "La burbuja de transcripción es la zona local de separación de las hebras del ADN generada durante la transcripción para exponer el molde y formar el híbrido temporal ADN-ARN."
+            },
+
+            // AMINOÁCIDOS (Equipo 5)
+            {
+                id: 28,
+                category: "Aminoácidos",
+                question: "1. ¿Cuál es la organización estructural general de los aminoácidos alfa y qué componentes se encuentran unidos al carbono alfa para conformar su estructura molecular básica?",
+                options: [
+                    "A. Un carbono alfa unido a dos grupos amino, un grupo carboxilo y una cadena lateral que determina la identidad química de cada aminoácido.",
+                    "B. Un carbono alfa unido a un grupo amino, un grupo carboxilo, un átomo de hidrógeno y una cadena lateral que determina sus propiedades particulares.",
+                    "C. Un carbono alfa unido a un grupo amino, dos grupos carboxilo y una cadena lateral que establece las características químicas de cada aminoácido.",
+                    "D. Un carbono alfa unido a dos grupos carboxilo, un átomo de hidrógeno y una cadena lateral que establece sus propiedades estructurales."
+                ],
+                correct: "B",
+                explanation: "Un α-aminoácido posee un carbono α central unido a cuatro sustituyentes: un grupo amino (-NH2 / -NH3+), un grupo carboxilo (-COOH / -COO-), un hidrógeno (-H) y una cadena lateral o grupo R."
+            },
+            {
+                id: 29,
+                category: "Aminoácidos",
+                question: "2. ¿Cuál es la función de las abreviaturas de tres letras y los códigos de una letra en la identificación de los veinte aminoácidos estándar y en la representación de las secuencias peptídicas y proteicas?",
+                options: [
+                    "A. Identifican los grupos funcionales de cada aminoácido mediante códigos que permiten reconocer su polaridad y comportamiento químico.",
+                    "B. Representan las modificaciones estructurales de los aminoácidos mediante símbolos que describen sus cambios durante la síntesis proteica.",
+                    "C. Clasifican los aminoácidos según la cantidad de grupos amino y carboxilo presentes en sus respectivas estructuras moleculares.",
+                    "D. Identifican cada aminoácido mediante abreviaturas estandarizadas que facilitan la escritura y representación de las secuencias de proteínas."
+                ],
+                correct: "D",
+                explanation: "Los códigos de tres letras (p. ej., Ala, Gly) y de una letra (p. ej., A, G) son notaciones estandarizadas para expresar y analizar secuencias de péptidos y proteínas de forma compacta."
+            },
+            {
+                id: 30,
+                category: "Aminoácidos",
+                question: "3. ¿Qué características químicas presentan los aminoácidos no polares en relación con la composición de sus cadenas laterales y su distribución dentro de las proteínas globulares?",
+                options: [
+                    "A. Poseen cadenas laterales predominantemente hidrofóbicas, que favorecen su agrupación en el interior de muchas proteínas globulares.",
+                    "B. Poseen cadenas laterales predominantemente hidrofílicas, que favorecen su exposición al agua en la superficie de las proteínas globulares.",
+                    "C. Poseen cadenas laterales con grupos ionizables, que favorecen la formación de puentes salinos entre diferentes regiones de las proteínas globulares.",
+                    "D. Poseen cadenas laterales con grupos nitrogenados, que favorecen la formación de interacciones electrostáticas dentro de las proteínas globulares."
+                ],
+                correct: "A",
+                explanation: "Los aminoácidos apolares/no polares tienen cadenas laterales hidrofóbicas (alifáticas o aromáticas) que tienden a replegarse hacia el interior de las proteínas globulares alejándose del solvente acuoso."
+            },
+            {
+                id: 31,
+                category: "Aminoácidos",
+                question: "4. ¿Qué propiedades químicas permiten identificar a los aminoácidos polares sin carga y cómo participan sus cadenas laterales en las interacciones con el medio acuoso y otras moléculas?",
+                options: [
+                    "A. Presentan cadenas laterales hidrofóbicas que evitan el contacto con el agua y favorecen su localización en el interior de las proteínas.",
+                    "B. Presentan cadenas laterales con carga negativa que favorecen las interacciones electrostáticas y la formación de puentes salinos.",
+                    "C. Presentan cadenas laterales hidrofílicas sin carga neta que permiten formar puentes de hidrógeno y participar en interacciones moleculares específicas.",
+                    "D. Presentan cadenas laterales con carga positiva que favorecen la unión electrostática con aminoácidos ácidos y otros grupos funcionales."
+                ],
+                correct: "C",
+                explanation: "Los aminoácidos polares sin carga (como serina, treonina, asparagina o glutamina) poseen grupos funcionales polares neutros a pH fisiológico capaces de formar puentes de hidrógeno."
+            },
+            {
+                id: 32,
+                category: "Aminoácidos",
+                question: "5. ¿Cuál es la característica estructural y química que distingue al aspartato y al glutamato como aminoácidos ácidos, considerando el comportamiento de sus cadenas laterales a pH fisiológico?",
+                options: [
+                    "A. Contienen grupos amino adicionales que pueden protonarse, generando cargas positivas y favoreciendo interacciones con moléculas de carga negativa",
+                    "B. Contienen grupos carboxilo adicionales que se desprotonan, formando grupos carboxilato responsables de su carga negativa a pH fisiológico.",
+                    "C. Contienen grupos hidroxilo adicionales que pueden ionizarse, generando cargas negativas y favoreciendo interacciones con moléculas polares.",
+                    "D. Contienen estructuras nitrogenadas adicionales que pueden aceptar protones, generando cargas positivas en sus cadenas laterales."
+                ],
+                correct: "B",
+                explanation: "El aspartato (Asp/D) y el glutamato (Glu/E) tienen cadenas laterales con un grupo carboxilo adicional cuyo pKa es menor al pH fisiológico (~7.4), por lo que se encuentran desprotonados (-COO-) con carga neta negativa."
+            },
+            {
+                id: 33,
+                category: "Aminoácidos",
+                question: "6. ¿Qué características estructurales y químicas permiten clasificar a la lisina, arginina e histidina como aminoácidos básicos, considerando la capacidad de sus cadenas laterales para aceptar protones?",
+                options: [
+                    "A. Presentan grupos carboxilo adicionales que pueden perder protones, generando cargas negativas en sus cadenas laterales.",
+                    "B. Presentan cadenas laterales hidrocarbonadas que favorecen las interacciones hidrofóbicas y su localización en el interior de las proteínas.",
+                    "C. Presentan grupos hidroxilo y sulfhidrilo que permiten formar puentes de hidrógeno con moléculas del medio acuoso.",
+                    "D. Presentan grupos amino o estructuras nitrogenadas capaces de aceptar protones, adquiriendo carga positiva cuando se encuentran protonadas."
+                ],
+                correct: "D",
+                explanation: "La lisina (Lys/K), arginina (Arg/R) e histidina (His/H) poseen grupos nitrogenados básicos capaces de captar protones (H+) y adquirir carga positiva."
+            },
+            {
+                id: 34,
+                category: "Aminoácidos",
+                question: "7. ¿Qué importancia tienen las interacciones iónicas entre los aminoácidos ácidos y básicos en la organización y estabilidad estructural de las proteínas?",
+                options: [
+                    "A. Permiten la atracción entre cadenas laterales de cargas opuestas, favoreciendo la formación de puentes salinos y la estabilidad estructural de las proteínas.",
+                    "B. Permiten la asociación entre cadenas laterales apolares, favoreciendo su agrupación interna y disminuyendo el contacto con el medio acuoso.",
+                    "C. Permiten la unión covalente entre grupos sulfhidrilo, favoreciendo la formación de puentes disulfuro y la estabilidad estructural de las proteínas.",
+                    "D. Permiten la interacción entre grupos polares sin carga, favoreciendo la formación de puentes de hidrógeno y la organización de las proteínas."
+                ],
+                correct: "A",
+                explanation: "La atracción electrostática entre grupos cargados negativamente (carboxilatos de Asp/Glu) y positivamente (grupos protonados de Lys/Arg/His) forma puentes salinos que estabilizan el plegamiento proteico."
+            },
+
+            // CÓDIGO GENÉTICO, tRNA Y RIBOSOMA (Equipo 6)
+            {
+                id: 35,
+                category: "Código Genético, tRNA y Ribosoma",
+                question: "1. Al analizar las funciones de los sitios A, P y E en el ribosoma, ¿cuál describe de manera correcta la secuencia que sigue un tRNA individual?",
+                options: [
+                    "A. Entra por el sitio E, pasa al sitio P para la catálisis y sale libre por el sitio A.",
+                    "B. Entra por el sitio P, migra al sitio A para incorporar la proteína y se libera en el sitio E.",
+                    "C. Entra con su aminoácido al sitio A, se desplaza al sitio P sosteniendo el péptido y pasa al sitio E para ser liberado.",
+                    "D. Entra al sitio A, transfiere su aminoácido directamente al sitio E y sale por el sitio P.",
+                    "E. Se une simultáneamente a los sitios A y E para ensamblar las subunidades 60S y 40S."
+                ],
+                correct: "C",
+                explanation: "Durante la elongación, un aminoacil-tRNA ingresa al sitio A (aminoacil), tras la formación del enlace peptídico se transloca al sitio P (peptidil) y finalmente pasa al sitio E (exit) para descargarse y salir."
+            },
+            {
+                id: 36,
+                category: "Código Genético, tRNA y Ribosoma",
+                question: "2. En relación con las regiones estructurales del tRNA, ¿qué función cumple el tallo aceptor y en qué nucleótidos finaliza?",
+                options: [
+                    "A. Se ubica en el extremo 5' libre y se une al mRNA mediante pares de bases.",
+                    "B. Corresponde al bucle anticodón y finaliza en una secuencia de dihidropiridinas (D).",
+                    "C. Corresponde al extremo 3' terminado en la secuencia constante CCA, donde se acopla el aminoácido.",
+                    "D. Contiene la ribotimidina (T) y la pseudouridina para interaccionar directamente con el ribosoma.",
+                    "E. Es un bucle variable cuya principal función es adaptar la forma terciaria de trébol a una forma de \"L\"."
+                ],
+                correct: "C",
+                explanation: "El tallo aceptor lleva en su extremo 3' la secuencia conservada 5'-CCA-3', donde la aminoacil-tRNA sintetasa enlaza covalentemente el aminoácido correspondiente."
+            },
+            {
+                id: 37,
+                category: "Código Genético, tRNA y Ribosoma",
+                question: "3. ¿Qué ocurre al llegar el codón de terminación UAA al sitio A del ribosoma?",
+                options: [
+                    "A. Un tRNA cargado se une a UAA y detiene la elongación sin que participen factores de liberación.",
+                    "B. El factor eRF1 reconoce el codón con ayuda de eRF3 unido a GTP, formando el complejo de terminación.",
+                    "C. La subunidad 60S se separa de inmediato del ribosoma sin que intervengan factores de liberación.",
+                    "D. La subunidad 40S se separa de inmediato del ribosoma e intervienen factores de liberación."
+                ],
+                correct: "B",
+                explanation: "Los codones de parada (como UAA) no son reconocidos por tRNA; en eucariontes, el factor de liberación eRF1 (junto con eRF3-GTP) reconoce el codón de terminación en el sitio A para promover la liberación del polipéptido."
+            },
+            {
+                id: 38,
+                category: "Código Genético, tRNA y Ribosoma",
+                question: "4. Durante la elongación en eucariontes, una vez que el centro peptidil transferasa cataliza el enlace peptídico, ¿qué ocurre durante la translocación?",
+                options: [
+                    "A. eEF2 con GTP facilita el avance de un codón; el tRNA pasa de Pa E, el peptidil-tRNA de A a P y queda libre A.",
+                    "B. El ribosoma retrocede un codón en dirección 3' a 5' y el peptidil-tRNA pasa directamente desde el sitio P hasta el sitio E.",
+                    "C. El tRNA descargado del sitio E recibe el nuevo aminoácido y se desplaza directamente hacia el sitio A del ribosoma.",
+                    "D. El tRNA descargado del sitio E pierde un aminoácido y se desplaza directamente hacia el sitio A del ribosoma."
+                ],
+                correct: "A",
+                explanation: "El factor de elongación eEF2 acoplado a la hidrólisis de GTP impulsa el desplazamiento del ribosoma un codón (5'→3'), moviendo el tRNA desacilado de P a E, el peptidil-tRNA de A a P y dejando el sitio A libre."
+            },
+            {
+                id: 39,
+                category: "Código Genético, tRNA y Ribosoma",
+                question: "5. ¿Qué aminoácido corresponde al codón AUG?",
+                options: [
+                    "A. Leucina.",
+                    "B. Valina.",
+                    "C. Metionina.",
+                    "D. Serina."
+                ],
+                correct: "C",
+                explanation: "El codón AUG especifica metionina (Met) y funciona habitualmente como codón de inicio de la traducción."
+            },
+            {
+                id: 40,
+                category: "Código Genético, tRNA y Ribosoma",
+                question: "6. ¿Cuál es la función principal del sitio P del ribosoma?",
+                options: [
+                    "A. Recibir el tRNA entrante",
+                    "B. Mantener el tRNA unido a la cadena de aminoácidos en crecimiento.",
+                    "C. Liberar el tRNA descargado.",
+                    "D. Reconocer los codones de terminación."
+                ],
+                correct: "B",
+                explanation: "El sitio P (peptidil) alberga al tRNA que porta la cadena polipeptídica en crecimiento hasta que transfiere su péptido al aminoacil-tRNA del sitio A."
+            },
+            {
+                id: 41,
+                category: "Código Genético, tRNA y Ribosoma",
+                question: "7. ¿Qué característica tiene el código genético cuando varios codones pueden codificar el mismo aminoácido?",
+                options: [
+                    "A. Universal.",
+                    "B. Continuo.",
+                    "C. Degenerado.",
+                    "D. Exclusivo."
+                ],
+                correct: "C",
+                explanation: "Se dice que el código genético es degenerado (o redundante) porque 61 codones con sentido codifican para 20 aminoácidos estándar, de modo que varios codones sinónimos pueden corresponder a un mismo aminoácido."
+            },
+
+            // 3 PASOS DE LA TRADUCCIÓN (Equipo 7)
+            {
+                id: 42,
+                category: "3 Pasos de la Traducción",
+                question: "1. ¿Qué se forma cuando el elF2-GTP se une al tRNA iniciador?",
+                options: [
+                    "A. Complejo ribosomal 80S.",
+                    "B. Complejo ternario.",
+                    "C. Complejo de elongación.",
+                    "D. Complejo de terminación."
+                ],
+                correct: "B",
+                explanation: "En la iniciación eucariota, el factor eIF2 unido a GTP forma el complejo ternario junto con el Met-tRNAi (tRNA iniciador)."
+            },
+            {
+                id: 43,
+                category: "3 Pasos de la Traducción",
+                question: "2.- ¿Qué función cumple el factor elF4E durante la iniciación?",
+                options: [
+                    "A. Se une al casquete 5'.",
+                    "B. Reconoce el codón AUG.",
+                    "C. Libera el tRNA iniciador.",
+                    "D. Une las subunidades 40S y 60S."
+                ],
+                correct: "A",
+                explanation: "eIF4E es la subunidad de eIF4F que reconoce y se une específicamente al casquete 5' (5' cap, 7-metilguanosina) del ARNm eucariota."
+            },
+            {
+                id: 44,
+                category: "3 Pasos de la Traducción",
+                question: "3.- ¿Qué factor facilita el desplazamiento del ribosoma durante la elongación?",
+                options: [
+                    "A. elF1A.",
+                    "B. eRF3.",
+                    "C. eEF2.",
+                    "D. elF4G."
+                ],
+                correct: "C",
+                explanation: "eEF2 (factor de elongación eucariota 2) media la translocación ribosómica a lo largo del ARNm."
+            },
+            {
+                id: 45,
+                category: "3 Pasos de la Traducción",
+                question: "4.- ¿Qué subunidad ribosómica forma el complejo de preiniciación 43S?",
+                options: [
+                    "A. 60S",
+                    "B. 40S",
+                    "C. 80S",
+                    "D. 50S"
+                ],
+                correct: "B",
+                explanation: "El complejo de preiniciación 43S (43S PIC) se forma a partir de la subunidad ribosómica menor 40S asociada al complejo ternario y factores de iniciación."
+            },
+            {
+                id: 46,
+                category: "3 Pasos de la Traducción",
+                question: "5.- Durante la elongación, el aminoacil-tRNA entra al sitio A unido a:",
+                options: [
+                    "A. eEF2-GTP",
+                    "B. eEF1A-GTP",
+                    "C. elF2-GTP",
+                    "D. eRF3-GTP"
+                ],
+                correct: "B",
+                explanation: "En eucariontes, eEF1A unido a GTP escolta y entrega los aminoacil-tRNA cargados al sitio A del ribosoma."
+            },
+            {
+                id: 47,
+                category: "3 Pasos de la Traducción",
+                question: "6. ¿Qué cataliza la formación del enlace peptídico?",
+                options: [
+                    "A. eEF2",
+                    "B. El centro peptidil transferasa del ribosoma.",
+                    "C. eRF1",
+                    "D. ABCE1"
+                ],
+                correct: "B",
+                explanation: "El centro peptidil transferasa (PTC) de la subunidad mayor del ribosoma cataliza la transferencia del péptido y la formación del enlace peptídico."
+            },
+            {
+                id: 48,
+                category: "3 Pasos de la Traducción",
+                question: "7. ¿Qué reconoce el codón de terminación UAA?",
+                options: [
+                    "A. Un tRNA especial",
+                    "B. eRF1",
+                    "C. eEF2",
+                    "D. elF4E"
+                ],
+                correct: "B",
+                explanation: "El factor de liberación eRF1 reconoce directamente los codones de terminación (UAA, UAG, UGA) en el sitio A del ribosoma eucariota."
+            },
+
+            // APOPTOSIS (Equipo 8)
+            {
+                id: 49,
+                category: "Apoptosis",
+                question: "1. ¿Qué rasgo distingue principalmente a la apoptosis frente a la necrosis?",
+                options: [
+                    "A. Hinchazón celular temprana con ruptura rápida de membrana y respuesta inflamatoria.",
+                    "B. Conservación de la membrana durante gran parte del proceso y escasa inflamación.",
+                    "C. Expansión del volumen citoplasmático con lisis descontrolada y liberación masiva de enzimas.",
+                    "D. Pérdida inmediata de la integridad de la membrana con inflamación severa del tejido vecino."
+                ],
+                correct: "B",
+                explanation: "La apoptosis es una muerte celular programada y ordenada que mantiene intacta la membrana plasmática hasta etapas tardías (formando cuerpos apoptóticos) y evita liberar contenido intracelular inflamatorio."
+            },
+            {
+                id: 50,
+                category: "Apoptosis",
+                question: "2. ¿Cuál es la función directa del complejo DISC durante la vía extrínseca de la apoptosis?",
+                options: [
+                    "A. Ensamblar moléculas de Apaf-1 para activar a la procaspasa iniciadora 9.",
+                    "B. Neutralizar proteínas antiapoptóticas como BCL-2 y MCL-1 en el citosol.",
+                    "C. Permeabilizar la membrana mitocondrial externa para liberar citocroто с.",
+                    "D. Reclutar proteínas adaptadoras y activar procaspasas iniciadoras 8 o 10."
+                ],
+                correct: "D",
+                explanation: "El complejo de señalización inductor de muerte (DISC) se forma en receptores de muerte y recluta adaptadores (como FADD) para activar las procaspasas iniciadoras 8 o 10."
+            },
+            {
+                id: 51,
+                category: "Apoptosis",
+                question: "3. Es reclutado por el receptor en el complejo DISC y es un precursor inactivo:",
+                options: [
+                    "A. Apaf-1.",
+                    "B. Bh3- only.",
+                    "C. Procaspasa.",
+                    "D. Apoptosoma."
+                ],
+                correct: "C",
+                explanation: "Las caspasas se sintetizan como zimógenos o precursores inactivos llamados procaspasas (como procaspasa-8), que se reclutan y activan por proximidad o escisión proteolítica."
+            },
+            {
+                id: 52,
+                category: "Apoptosis",
+                question: "4. ¿Qué papel cumplen las caspasas iniciadoras dentro de la cascada de apoptosis?",
+                options: [
+                    "A. Digieren directamente las proteínas del citoesqueleto para romper la célula en pedazos al final del proceso.",
+                    "B. Se activan primero ante una señal de muerte y luego activan a las caspasas ejecutoras para continuar el proceso.",
+                    "C. Impiden que los fagocitos reconozcan a la célula hasta que termine la división celular.",
+                    "D. Reparan las rupturas del ADN cuando la célula sufre daño leve por radiación."
+                ],
+                correct: "B",
+                explanation: "Las caspasas iniciadoras (como 8, 9 o 10) responden a las señales iniciales y activan por proteólisis a las caspasas ejecutoras (como 3 y 7), amplificando la cascada apoptótica."
+            },
+            {
+                id: 53,
+                category: "Apoptosis",
+                question: "5. ¿Cuál de las siguientes situaciones es un ejemplo normal y necesario de apoptosis en el organismo?",
+                options: [
+                    "A. La eliminación de las células entre los dedos durante el desarrollo embrionario para formar dedos separados.",
+                    "B. La muerte repentina de células musculares cuando falta oxígeno por una obstrucción sanguínea.",
+                    "C. La hinchazón y explosión de células infectadas por bacterias que liberan toxinas al tejido cercano.",
+                    "D. La multiplicación rápida de células dañadas sin control cuando fallan los mecanismos de seguridad."
+                ],
+                correct: "A",
+                explanation: "La eliminación fisiológica del tejido interdigital durante la embriogénesis es un ejemplo clásico de apoptosis necesaria para el modelado tisular."
+            },
+            {
+                id: 54,
+                category: "Apoptosis",
+                question: "6. Durante la señalización de la apoptosis, las vías extrínseca e intrínseca reclutan diferentes caspasas iniciadoras que convergen en la activación de caspasas ejecutoras para llevar a cabo la muerte celular. ¿qué combinación relaciona correctamente cada vía con su caspasa iniciadora y las caspasas ejecutoras activadas?",
+                options: [
+                    "A. Vía extrínseca: caspasa 9 / Vía intrínseca: caspasas 8 o 10 / Ejecutoras: caspasas 3 y 7.",
+                    "B. Vía extrínseca: caspasas 8 o 10 / Vía intrínseca: caspasa 9 / Ejecutoras: caspasas 3 y 7.",
+                    "C. Vía extrínseca: caspasas 3 y 7 / Vía intrínseca: caspasa 9 / Ejecutoras: caspasas 8 o 10.",
+                    "D. Vía extrínseca: caspasas 8 o 10 / Vía intrínseca: caspasas 3 y 7 / Ejecutoras: caspasa."
+                ],
+                correct: "B",
+                explanation: "La vía extrínseca activa caspasas iniciadoras 8 o 10; la vía intrínseca (mitocondrial, vía el apoptosoma) activa la caspasa iniciadora 9; ambas convergen en la activación de las caspasas ejecutoras 3 y 7."
+            },
+            {
+                id: 55,
+                category: "Apoptosis",
+                question: "7. ¿Cuál es el orden correcto de las fases del proceso de apoptosis?",
+                options: [
+                    "A. Condensación de cromatina, Reconocimiento/fagocitosis y Necrosis.",
+                    "B. Fragmentación nuclear, Necrosis y Condensación de cromatina.",
+                    "C. Condensación de cromatina, Fragmentación nuclear y Reconocimiento/ fagocitosis.",
+                    "D. Fragmentación nuclear, Condensación de cromatina y Reconocimiento/ fagocitosis."
+                ],
+                correct: "C",
+                explanation: "La apoptosis cursa con condensación de la cromatina (picnosis), fragmentación nuclear/celular y exposición de señales (como fosfatidilserina) para su reconocimiento y fagocitosis."
+            }
+        ];
+
+        // State variables
+        let currentFilter = "ALL";
+        let filteredQuestions = [...questionsData];
+        let currentIndex = 0;
+        let userAnswers = {}; // { questionId: { selected: "A", isCorrect: true/false } }
+        let timerSeconds = 0;
+        let timerInterval = null;
+
+        // On Load Init
+        window.onload = function() {
+            initCategories();
+            filterByCategory("ALL");
+            startTimer();
+        };
+
+        // Timer function
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+                const secs = (timerSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('timer').textContent = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        // Initialize dynamic category filter list
+        function initCategories() {
+            const categories = ["ALL", ...new Set(questionsData.map(q => q.category))];
+            const categoryContainer = document.getElementById('category-list');
+            categoryContainer.innerHTML = '';
+
+            categories.forEach(cat => {
+                const count = cat === "ALL" ? questionsData.length : questionsData.filter(q => q.category === cat).length;
+                const label = cat === "ALL" ? "Todas las preguntas" : cat;
+
+                const btn = document.createElement('button');
+                btn.className = `cat-btn w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 flex items-center justify-between border ${cat === currentFilter ? 'bg-indigo-600 text-white border-indigo-600 font-semibold shadow-xs' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200/60'}`;
+                btn.setAttribute('data-cat', cat);
+                btn.onclick = () => filterByCategory(cat);
+
+                btn.innerHTML = `
+                    <span class="truncate pr-2">${label}</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full ${cat === currentFilter ? 'bg-indigo-700 text-indigo-100' : 'bg-slate-200 text-slate-600'}">${count}</span>
+                `;
+                categoryContainer.appendChild(btn);
+            });
+        }
+
+        // Filter questions by Category
+        function filterByCategory(category) {
+            currentFilter = category;
+            if (category === "ALL") {
+                filteredQuestions = [...questionsData];
+                document.getElementById('current-category-title').textContent = "Todas las Preguntas";
+            } else {
+                filteredQuestions = questionsData.filter(q => q.category === category);
+                document.getElementById('current-category-title').textContent = category;
+            }
+
+            document.getElementById('filtered-count').textContent = `${filteredQuestions.length} preguntas`;
+            currentIndex = 0;
+
+            // Update Category UI active state
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                const btnCat = btn.getAttribute('data-cat');
+                if (btnCat === category) {
+                    btn.className = 'cat-btn w-full text-left px-3 py-2 rounded-xl text-xs transition-all duration-200 flex items-center justify-between border bg-indigo-600 text-white border-indigo-600 font-semibold shadow-xs';
+                    btn.querySelector('span:last-child').className = 'text-[10px] px-2 py-0.5 rounded-full bg-indigo-700 text-indigo-100';
+                } else {
+                    btn.className = 'cat-btn w-full text-left px-3 py-2 rounded-xl text-xs transition-all duration-200 flex items-center justify-between border bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200/60';
+                    btn.querySelector('span:last-child').className = 'text-[10px] px-2 py-0.5 rounded-full bg-slate-200 text-slate-600';
+                }
+            });
+
+            renderQuestionGrid();
+            renderCurrentQuestion();
+        }
+
+        // Render Sidebar Question Grid Navigator
+        function renderQuestionGrid() {
+            const grid = document.getElementById('question-grid');
+            grid.innerHTML = '';
+
+            filteredQuestions.forEach((q, idx) => {
+                const ans = userAnswers[q.id];
+                const btn = document.createElement('button');
+                btn.onclick = () => jumpToQuestion(idx);
+
+                let bgClass = "bg-slate-100 text-slate-600 hover:bg-slate-200 border-slate-200";
+                if (ans) {
+                    bgClass = ans.isCorrect
+                        ? "bg-emerald-500 text-white border-emerald-600 font-bold"
+                        : "bg-rose-500 text-white border-rose-600 font-bold";
+                }
+
+                if (idx === currentIndex) {
+                    bgClass += " ring-2 ring-indigo-600 ring-offset-1";
+                }
+
+                btn.className = `h-8 text-xs font-semibold rounded-lg border flex items-center justify-center transition-all ${bgClass}`;
+                btn.textContent = q.id;
+                grid.appendChild(btn);
+            });
+        }
+
+        // Jump to specific question index
+        function jumpToQuestion(idx) {
+            currentIndex = idx;
+            renderCurrentQuestion();
+            renderQuestionGrid();
+        }
+
+        // Navigation (Prev / Next)
+        function navigateQuestion(direction) {
+            const newIndex = currentIndex + direction;
+            if (newIndex >= 0 && newIndex < filteredQuestions.length) {
+                currentIndex = newIndex;
+                renderCurrentQuestion();
+                renderQuestionGrid();
+            } else if (newIndex >= filteredQuestions.length) {
+                showResultsModal();
+            }
+        }
+
+        // Render current question card
+        function renderCurrentQuestion() {
+            const q = filteredQuestions[currentIndex];
+            if (!q) return;
+
+            // Badges & Labels
+            document.getElementById('q-number-badge').textContent = `Pregunta ${currentIndex + 1} de ${filteredQuestions.length}`;
+            document.getElementById('q-category-tag').textContent = q.category.toUpperCase();
+            document.getElementById('question-text').textContent = q.question;
+
+            // Buttons state
+            document.getElementById('btn-prev').disabled = currentIndex === 0;
+            const nextBtn = document.getElementById('btn-next');
+            if (currentIndex === filteredQuestions.length - 1) {
+                nextBtn.innerHTML = `Finalizar <i class="fa-solid fa-flag-checkered"></i>`;
+                nextBtn.className = "px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-sm shadow-md transition-all duration-200 flex items-center gap-2";
+            } else {
+                nextBtn.innerHTML = `Siguiente <i class="fa-solid fa-arrow-right"></i>`;
+                nextBtn.className = "px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-md transition-all duration-200 flex items-center gap-2";
+            }
+
+            // Options container
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            const answer = userAnswers[q.id];
+
+            q.options.forEach((opt) => {
+                const letter = opt.trim().charAt(0); // 'A', 'B', 'C', 'D', 'E'
+                const optBtn = document.createElement('button');
+                optBtn.className = "w-full text-left p-4 rounded-xl border text-sm sm:text-base font-medium transition-all duration-200 flex items-start gap-3 relative";
+
+                if (!answer) {
+                    optBtn.className += " bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:border-indigo-300";
+                    optBtn.onclick = () => selectOption(q.id, letter);
+                } else {
+                    optBtn.disabled = true;
+                    if (letter === q.correct) {
+                        optBtn.className += " bg-emerald-50 border-emerald-500 text-emerald-900 font-semibold ring-1 ring-emerald-500";
+                    } else if (letter === answer.selected && !answer.isCorrect) {
+                        optBtn.className += " bg-rose-50 border-rose-500 text-rose-900 font-semibold ring-1 ring-rose-500";
+                    } else {
+                        optBtn.className += " bg-slate-50/60 border-slate-200 text-slate-400 opacity-60";
+                    }
+                }
+
+                let iconHTML = '';
+                if (answer) {
+                    if (letter === q.correct) {
+                        iconHTML = `<i class="fa-solid fa-circle-check text-emerald-600 text-lg mt-0.5"></i>`;
+                    } else if (letter === answer.selected && !answer.isCorrect) {
+                        iconHTML = `<i class="fa-solid fa-circle-xmark text-rose-600 text-lg mt-0.5"></i>`;
+                    } else {
+                        iconHTML = `<i class="fa-regular fa-circle text-slate-300 text-lg mt-0.5"></i>`;
+                    }
+                } else {
+                    iconHTML = `<i class="fa-regular fa-circle text-slate-300 text-lg mt-0.5 group-hover:text-indigo-400"></i>`;
+                }
+
+                optBtn.innerHTML = `
+                    ${iconHTML}
+                    <span class="flex-1 leading-snug">${opt}</span>
+                `;
+
+                optionsContainer.appendChild(optBtn);
+            });
+
+            // Explanation Box
+            const expBox = document.getElementById('explanation-box');
+            if (answer) {
+                expBox.classList.remove('hidden');
+                if (answer.isCorrect) {
+                    expBox.className = "rounded-xl p-5 border bg-emerald-50/80 border-emerald-200 text-emerald-900 mb-6";
+                    document.getElementById('explanation-icon').innerHTML = `<i class="fa-solid fa-circle-check text-emerald-600"></i>`;
+                    document.getElementById('explanation-title').textContent = "¡Respuesta Correcta!";
+                } else {
+                    expBox.className = "rounded-xl p-5 border bg-rose-50/80 border-rose-200 text-rose-900 mb-6";
+                    document.getElementById('explanation-icon').innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-600"></i>`;
+                    document.getElementById('explanation-title').textContent = `Respuesta Incorrecta (Correcta: ${q.correct})`;
+                }
+                document.getElementById('explanation-text').textContent = q.explanation;
+            } else {
+                expBox.classList.add('hidden');
+            }
+
+            updateProgress();
+        }
+
+        // Option selection handler
+        function selectOption(questionId, selectedLetter) {
+            const q = questionsData.find(item => item.id === questionId);
+            if (!q) return;
+
+            const isCorrect = selectedLetter === q.correct;
+            userAnswers[questionId] = {
+                selected: selectedLetter,
+                isCorrect: isCorrect
+            };
+
+            renderCurrentQuestion();
+            renderQuestionGrid();
+            updateScores();
+
+            const allAnswered = filteredQuestions.every(fq => userAnswers[fq.id]);
+            if (allAnswered && filteredQuestions.length > 3) {
+                setTimeout(() => {
+                    showResultsModal();
+                }, 800);
+            }
+        }
+
+        // Update top scoreboard and main progress bar
+        function updateScores() {
+            let correct = 0;
+            let incorrect = 0;
+
+            Object.values(userAnswers).forEach(ans => {
+                if (ans.isCorrect) correct++;
+                else incorrect++;
+            });
+
+            document.getElementById('score-correct').textContent = correct;
+            document.getElementById('score-incorrect').textContent = incorrect;
+        }
+
+        function updateProgress() {
+            const totalCount = questionsData.length;
+            const answeredCount = Object.keys(userAnswers).length;
+            const percentage = Math.round((answeredCount / totalCount) * 100);
+
+            document.getElementById('progress-text').textContent = `${answeredCount} / ${totalCount} (${percentage}%)`;
+            document.getElementById('progress-bar').style.width = `${percentage}%`;
+        }
+
+        // Restart Quiz
+        function restartQuiz() {
+            userAnswers = {};
+            currentIndex = 0;
+            timerSeconds = 0;
+            updateScores();
+            filterByCategory(currentFilter);
+        }
+
+        // Shuffle Questions
+        function shuffleQuestions() {
+            for (let i = filteredQuestions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [filteredQuestions[i], filteredQuestions[j]] = [filteredQuestions[j], filteredQuestions[i]];
+            }
+            currentIndex = 0;
+            renderQuestionGrid();
+            renderCurrentQuestion();
+        }
+
+        // Results Modal
+        function showResultsModal() {
+            let correct = 0;
+            let incorrect = 0;
+            const totalFiltered = filteredQuestions.length;
+
+            filteredQuestions.forEach(q => {
+                const ans = userAnswers[q.id];
+                if (ans) {
+                    if (ans.isCorrect) correct++;
+                    else incorrect++;
+                }
+            });
+
+            const percent = totalFiltered > 0 ? Math.round((correct / totalFiltered) * 100) : 0;
+
+            document.getElementById('modal-score-percent').textContent = `${percent}%`;
+            document.getElementById('modal-correct').textContent = correct;
+            document.getElementById('modal-incorrect').textContent = incorrect;
+            document.getElementById('modal-total-q').textContent = totalFiltered;
+
+            const mins = Math.floor(timerSeconds / 60).toString().padStart(2, '0');
+            const secs = (timerSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('modal-time').textContent = `${mins}:${secs}`;
+
+            document.getElementById('results-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('results-modal').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
